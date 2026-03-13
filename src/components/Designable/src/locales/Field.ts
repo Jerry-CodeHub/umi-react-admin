@@ -113,13 +113,7 @@ export const Field = {
       },
       'x-pattern': {
         title: 'UI Pattern',
-        dataSource: [
-          'Editable',
-          'Disabled',
-          'ReadOnly',
-          'ReadPretty',
-          'Inherit',
-        ],
+        dataSource: ['Editable', 'Disabled', 'ReadOnly', 'ReadPretty', 'Inherit'],
       },
       'x-validator': 'Validator',
       'x-decorator': 'Decorator',

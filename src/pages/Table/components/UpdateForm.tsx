@@ -53,20 +53,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => (
       }}
       title="基本信息"
     >
-      <ProFormText
-        width="md"
-        name="name"
-        label="规则名称"
-        rules={[{ required: true, message: '请输入规则名称！' }]}
-      />
+      <ProFormText width="md" name="name" label="规则名称" rules={[{ required: true, message: '请输入规则名称！' }]} />
       <ProFormTextArea
         name="desc"
         width="md"
         label="规则描述"
         placeholder="请输入至少五个字符"
-        rules={[
-          { required: true, message: '请输入至少五个字符的规则描述！', min: 5 },
-        ]}
+        rules={[{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }]}
       />
     </StepsForm.StepForm>
     <StepsForm.StepForm
@@ -117,11 +110,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => (
       }}
       title="设定调度周期"
     >
-      <ProFormDateTimePicker
-        name="time"
-        label="开始时间"
-        rules={[{ required: true, message: '请选择开始时间！' }]}
-      />
+      <ProFormDateTimePicker name="time" label="开始时间" rules={[{ required: true, message: '请选择开始时间！' }]} />
       <ProFormSelect
         name="frequency"
         label="监控对象"

@@ -8,8 +8,7 @@ const DemoSunburst = () => {
     const config = {
       data: {
         type: 'fetch',
-        value:
-          'https://gw.alipayobjects.com/os/antvdemo/assets/data/sunburst.json',
+        value: 'https://gw.alipayobjects.com/os/antvdemo/assets/data/sunburst.json',
       },
       valueField: 'sum',
       label: {

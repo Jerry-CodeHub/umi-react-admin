@@ -1,16 +1,7 @@
 import { FormGrid as FormilyGird } from '@formily/antd-v5';
 import { observer } from '@formily/reactive-react';
-import {
-  TreeNode,
-  createBehavior,
-  createResource,
-} from '@pind/designable-core';
-import {
-  DnFC,
-  DroppableWidget,
-  useNodeIdProps,
-  useTreeNode,
-} from '@pind/designable-react';
+import { TreeNode, createBehavior, createResource } from '@pind/designable-core';
+import { DnFC, DroppableWidget, useNodeIdProps, useTreeNode } from '@pind/designable-react';
 import React from 'react';
 import { LoadTemplate } from '../../common/LoadTemplate';
 import { AllLocales } from '../../locales';

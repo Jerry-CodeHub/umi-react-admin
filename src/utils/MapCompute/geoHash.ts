@@ -66,11 +66,7 @@ export function geohashBounds(hash: string) {
  * geoHash(39.9042, 116.4074, 8) => "wx4g0s8q"
  * geoHash(39.9042, 116.4074, 12) => "wx4g0s8q3srx"
  */
-export function centerGeoHash(
-  lat: number,
-  lon: number,
-  precision: number,
-): string {
+export function centerGeoHash(lat: number, lon: number, precision: number): string {
   const BITS = [16, 8, 4, 2, 1];
   const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
   let isEven = true;

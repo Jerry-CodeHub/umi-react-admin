@@ -13,8 +13,7 @@ export const Cascader = {
         },
         fieldNames: {
           title: '自定义字段名',
-          tooltip:
-            '默认值：{ label: "label", value: "value", children: "children" }',
+          tooltip: '默认值：{ label: "label", value: "value", children: "children" }',
         },
       },
     },
@@ -29,13 +28,11 @@ export const Cascader = {
         },
         displayRender: {
           title: 'Display Render',
-          tooltip:
-            'The rendering function displayed after selection, the default is label => label.join("/")	',
+          tooltip: 'The rendering function displayed after selection, the default is label => label.join("/")	',
         },
         fieldNames: {
           title: 'Field Names',
-          tooltip:
-            'Defaults：{ label: "label", value: "value", children: "children" }',
+          tooltip: 'Defaults：{ label: "label", value: "value", children: "children" }',
         },
       },
     },
@@ -50,13 +47,11 @@ export const Cascader = {
         },
         displayRender: {
           title: '디스플레이 렌더링',
-          tooltip:
-            '선택 후 실행되는 렌더링 함수로 기본 값은 label => label.join("/")	',
+          tooltip: '선택 후 실행되는 렌더링 함수로 기본 값은 label => label.join("/")	',
         },
         fieldNames: {
           title: '필드 이름',
-          tooltip:
-            '기본 값：{ label: "label", value: "value", children: "children" }',
+          tooltip: '기본 값：{ label: "label", value: "value", children: "children" }',
         },
       },
     },

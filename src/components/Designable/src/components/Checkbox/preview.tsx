@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Checkbox: DnFC<React.ComponentProps<typeof FormilyCheckbox>> =
-  FormilyCheckbox;
+export const Checkbox: DnFC<React.ComponentProps<typeof FormilyCheckbox>> = FormilyCheckbox;
 
 Checkbox.Behavior = createBehavior({
   name: 'Checkbox.Group',

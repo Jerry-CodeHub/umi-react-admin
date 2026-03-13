@@ -1,17 +1,7 @@
 import { observer } from '@formily/react';
 import { toArr } from '@formily/shared';
-import {
-  TreeNode,
-  createBehavior,
-  createResource,
-} from '@pind/designable-core';
-import {
-  DnFC,
-  DroppableWidget,
-  TreeNodeWidget,
-  useNodeIdProps,
-  useTreeNode,
-} from '@pind/designable-react';
+import { TreeNode, createBehavior, createResource } from '@pind/designable-core';
+import { DnFC, DroppableWidget, TreeNodeWidget, useNodeIdProps, useTreeNode } from '@pind/designable-react';
 import { Collapse } from 'antd';
 import { CollapsePanelProps, CollapseProps } from 'antd/lib/collapse';
 import React, { Fragment, useState } from 'react';
@@ -66,10 +56,7 @@ export const FormCollapse: DnFC<CollapseProps> & {
               {...props}
               style={{ ...props.style }}
               header={
-                <span
-                  data-content-editable="x-component-props.header"
-                  data-content-editable-node-id={panel.id}
-                >
+                <span data-content-editable="x-component-props.header" data-content-editable-node-id={panel.id}>
                   {props.header}
                 </span>
               }
@@ -83,11 +70,7 @@ export const FormCollapse: DnFC<CollapseProps> & {
                     padding: '20px 0',
                   },
                 },
-                panel.children.length ? (
-                  <TreeNodeWidget node={panel} />
-                ) : (
-                  <DroppableWidget />
-                ),
+                panel.children.length ? <TreeNodeWidget node={panel} /> : <DroppableWidget />,
               )}
             </Collapse.Panel>
           );
@@ -138,9 +121,7 @@ FormCollapse.Behavior = createBehavior(
       droppable: true,
       allowAppend: (target, source) =>
         target.children.length === 0 ||
-        !!source?.every(
-          (node) => node.props['x-component'] === 'FormCollapse.CollapsePanel',
-        ),
+        !!source?.every((node) => node.props['x-component'] === 'FormCollapse.CollapsePanel'),
       propsSchema: createVoidFieldSchema(AllSchemas.FormCollapse),
     },
     designerLocales: AllLocales.FormCollapse,
@@ -148,8 +129,7 @@ FormCollapse.Behavior = createBehavior(
   {
     name: 'FormCollapse.CollapsePanel',
     extends: ['Field'],
-    selector: (node) =>
-      node.props['x-component'] === 'FormCollapse.CollapsePanel',
+    selector: (node) => node.props['x-component'] === 'FormCollapse.CollapsePanel',
     designerProps: {
       droppable: true,
       allowDrop: (node) => node.props['x-component'] === 'FormCollapse',

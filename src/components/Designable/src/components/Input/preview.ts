@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Input: DnFC<React.ComponentProps<typeof FormilyInput>> =
-  FormilyInput;
+export const Input: DnFC<React.ComponentProps<typeof FormilyInput>> = FormilyInput;
 
 Input.Behavior = createBehavior(
   {

@@ -8,10 +8,7 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 import { PdfStyle } from './Pdf.style';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
 
 const options = {
   cMapUrl: '/cmaps/',
@@ -33,9 +30,7 @@ export default function Pdf() {
     }
   }
 
-  function onDocumentLoadSuccess({
-    numPages: nextNumPages,
-  }: PDFDocumentProxy): void {
+  function onDocumentLoadSuccess({ numPages: nextNumPages }: PDFDocumentProxy): void {
     setNumPages(nextNumPages);
   }
 
@@ -49,15 +44,10 @@ export default function Pdf() {
             </header>
             <div className="Example__container">
               <div className="Example__container__load">
-                <label htmlFor="file">Load from file:</label>{' '}
-                <input onChange={onFileChange} type="file" />
+                <label htmlFor="file">Load from file:</label> <input onChange={onFileChange} type="file" />
               </div>
               <div className="Example__container__document">
-                <Document
-                  file={file}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  options={options}
-                >
+                <Document file={file} onLoadSuccess={onDocumentLoadSuccess} options={options}>
                   {Array.from(new Array(numPages), (el, index) => (
                     <Page key={`page_${index + 1}`} pageNumber={index + 1} />
                   ))}

@@ -4,11 +4,11 @@ import { useEffect, useRef } from 'react';
 import { data, frequencyTicks } from './components/DataUnit.ts';
 
 const Frequency = () => {
-  const svgRef = useRef(null) as any;
-  const containerRef = useRef(null) as any;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 格式化频率显示
-  const formatFrequency = (hz: any) => {
+  const formatFrequency = (hz: number) => {
     if (hz >= 1e9) return `${(hz / 1e9).toFixed(0)}GHz`;
     if (hz >= 1e6) return `${(hz / 1e6).toFixed(0)}MHz`;
     return `${(hz / 1e3).toFixed(0)}kHz`;
@@ -67,10 +67,13 @@ const Frequency = () => {
     // const height = data.length * typeHeight + margin.top + margin.bottom;
 
     // 计算每个类型的高度并存储
-    const typeHeights = data.map((typeData: any) => calculateTypeHeight(typeData.ranges));
+    const typeHeights = data.map((typeData: { ranges: { range: [number, number]; level?: number }[] }) =>
+      calculateTypeHeight(typeData.ranges),
+    );
 
     // 计算总高度
-    const totalHeight = typeHeights.reduce((acc: any, height: any) => acc + height, 0) + margin.top + margin.bottom;
+    const totalHeight =
+      typeHeights.reduce((acc: number, height: number) => acc + height, 0) + margin.top + margin.bottom;
 
     // 创建 SVG
     const svg = d3

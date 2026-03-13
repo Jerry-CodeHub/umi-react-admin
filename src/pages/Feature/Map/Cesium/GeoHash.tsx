@@ -10,7 +10,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useState } from 'react';
 
 const InfoGeoHash: React.FC = () => {
-  const [viewer, setViewer] = useState(null as any);
+  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
 
   Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
@@ -88,9 +88,9 @@ const InfoGeoHash: React.FC = () => {
   };
 
   // NOTE 根据中心点坐标生成 GeoHash
-  const [precisions, setPrecisions] = useState(5 as any);
+  const [precisions, setPrecisions] = useState<number>(5);
   const inputNumberChange: InputNumberProps['onChange'] = (value) => {
-    setPrecisions(value);
+    if (value !== null) setPrecisions(Number(value));
   };
   const [centerHash, setCenterHash] = useState('');
   const handleCenterGeoHash = () => {

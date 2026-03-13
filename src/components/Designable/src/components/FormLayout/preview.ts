@@ -7,8 +7,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createVoidFieldSchema } from '../Field';
 
-export const FormLayout: DnFC<React.ComponentProps<typeof FormilyFormLayout>> =
-  withContainer(FormilyFormLayout);
+export const FormLayout: DnFC<React.ComponentProps<typeof FormilyFormLayout>> = withContainer(FormilyFormLayout);
 
 FormLayout.Behavior = createBehavior({
   name: 'FormLayout',

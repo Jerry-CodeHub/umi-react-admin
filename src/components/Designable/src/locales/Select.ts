@@ -14,8 +14,7 @@ export const Select = {
         defaultActiveFirstOption: '默认高亮第一个选项',
         dropdownMatchSelectWidth: {
           title: '下拉菜单和选择器同宽',
-          tooltip:
-            '默认将设置 min-width，当值小于选择框宽度时会被忽略。false 时会关闭虚拟滚动',
+          tooltip: '默认将设置 min-width，当值小于选择框宽度时会被忽略。false 时会关闭虚拟滚动',
         },
         defaultOpen: '默认展开',
         filterOption: '选项筛选器',

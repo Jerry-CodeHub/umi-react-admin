@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Password: DnFC<React.ComponentProps<typeof FormilyPassword>> =
-  FormilyPassword;
+export const Password: DnFC<React.ComponentProps<typeof FormilyPassword>> = FormilyPassword;
 
 Password.Behavior = createBehavior({
   name: 'Password',

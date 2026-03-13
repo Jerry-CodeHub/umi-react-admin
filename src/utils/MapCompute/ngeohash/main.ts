@@ -308,8 +308,7 @@ var decode_int = function (hash_int, bitDepth) {
 var neighbor = function (hashString, direction) {
   var lonLat = decode(hashString);
   var neighborLat = lonLat.latitude + direction[0] * lonLat.error.latitude * 2;
-  var neighborLon =
-    lonLat.longitude + direction[1] * lonLat.error.longitude * 2;
+  var neighborLon = lonLat.longitude + direction[1] * lonLat.error.longitude * 2;
   neighborLon = ensure_valid_lon(neighborLon);
   neighborLat = ensure_valid_lat(neighborLat);
   return encode(neighborLat, neighborLon, hashString.length);
@@ -330,8 +329,7 @@ var neighbor_int = function (hash_int, direction, bitDepth) {
   bitDepth = bitDepth || 52;
   var lonlat = decode_int(hash_int, bitDepth);
   var neighbor_lat = lonlat.latitude + direction[0] * lonlat.error.latitude * 2;
-  var neighbor_lon =
-    lonlat.longitude + direction[1] * lonlat.error.longitude * 2;
+  var neighbor_lon = lonlat.longitude + direction[1] * lonlat.error.longitude * 2;
   neighbor_lon = ensure_valid_lon(neighbor_lon);
   neighbor_lat = ensure_valid_lat(neighbor_lat);
   return encode_int(neighbor_lat, neighbor_lon, bitDepth);

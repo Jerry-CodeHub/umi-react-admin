@@ -1,4 +1,5 @@
 // 运行时配置
+import ErrorBoundary from '@/components/ErrorBoundary';
 import RightContent from '@/layouts/RightContent';
 import { appList } from '@/layouts/_defaultProps';
 import type { RequestConfig, RunTimeLayoutConfig, RuntimeAntdConfig } from '@umijs/max';
@@ -45,6 +46,7 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     splitMenus: true,
     fixSiderbar: true,
     fixHeader: true,
+    childrenRender: (children) => <ErrorBoundary>{children}</ErrorBoundary>,
 
     // 其他属性见：https://procomponents.ant.design/components/layout#prolayout
   };

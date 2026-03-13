@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Radio: DnFC<React.ComponentProps<typeof FormilyRadio>> =
-  FormilyRadio;
+export const Radio: DnFC<React.ComponentProps<typeof FormilyRadio>> = FormilyRadio;
 
 Radio.Behavior = createBehavior({
   name: 'Radio.Group',

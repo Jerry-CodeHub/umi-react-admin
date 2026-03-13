@@ -52,18 +52,21 @@ config/
 ## 代码规范
 
 ### 格式化 (Prettier)
+
 - 行宽: 120 字符
 - 单引号
 - 尾逗号: always
 - 自动排序导入
 
 ### ESLint 规则
+
 - 禁止 `console.log` (允许 warn/error)
 - 未使用变量警告 (`_` 前缀可忽略)
 - 强制使用 `===` 和 `!==`
 - 禁止显式 `any` (警告)
 
 ### 命名规范
+
 - React 组件: PascalCase (`Home.tsx`)
 - 工具函数: camelCase (`format.ts`)
 - 组件目录: PascalCase (`FullCalendar/index.tsx`)
@@ -84,16 +87,19 @@ config/
 ## 特殊说明
 
 ### Cesium 地图
+
 - 需要设置环境变量 `CESIUM_ION_TOKEN`
 - Cesium 资源在构建时自动复制到 dist/Cesium/
 - 全局变量 `CESIUM_BASE_URL` 指向 `/Cesium`
 
 ### 国际化
+
 - 默认语言: zh-CN
 - 菜单项键名前缀: `menu.`
 - 使用 `useIntl()` hook 获取翻译
 
 ### 权限控制
+
 - 在 `src/access.ts` 定义权限
 - 使用 `useAccess()` hook 获取权限
 - 路由中通过 `access` 属性控制访问

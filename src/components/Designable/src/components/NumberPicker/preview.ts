@@ -6,9 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const NumberPicker: DnFC<
-  React.ComponentProps<typeof FormilyNumberPicker>
-> = FormilyNumberPicker;
+export const NumberPicker: DnFC<React.ComponentProps<typeof FormilyNumberPicker>> = FormilyNumberPicker;
 
 NumberPicker.Behavior = createBehavior({
   name: 'NumberPicker',

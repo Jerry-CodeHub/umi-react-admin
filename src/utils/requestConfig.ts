@@ -5,7 +5,7 @@ import { message } from 'antd';
 
 // TODO: 请根据实际项目进行配置
 export const requestConfig: RequestConfig = {
-  timeout: 1000,
+  timeout: 15000,
   // NOTE: 错误处理
   errorConfig: {
     // 错误抛出

@@ -8,8 +8,7 @@ const DemoColumn = () => {
     const config = {
       data: {
         type: 'fetch',
-        value:
-          'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/column-stacked.json',
+        value: 'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/column-stacked.json',
       },
       xField: 'state',
       yField: 'population',

@@ -9,14 +9,7 @@ import { createVoidFieldSchema } from '../Field';
 
 export const Card: DnFC<React.ComponentProps<typeof AntdCard>> = (props) => {
   return (
-    <AntdCard
-      {...props}
-      title={
-        <span data-content-editable="x-component-props.title">
-          {props.title}
-        </span>
-      }
-    >
+    <AntdCard {...props} title={<span data-content-editable="x-component-props.title">{props.title}</span>}>
       {props.children}
     </AntdCard>
   );

@@ -1,16 +1,6 @@
 import { observer } from '@formily/react';
-import {
-  TreeNode,
-  createBehavior,
-  createResource,
-} from '@pind/designable-core';
-import {
-  DnFC,
-  DroppableWidget,
-  TreeNodeWidget,
-  useNodeIdProps,
-  useTreeNode,
-} from '@pind/designable-react';
+import { TreeNode, createBehavior, createResource } from '@pind/designable-core';
+import { DnFC, DroppableWidget, TreeNodeWidget, useNodeIdProps, useTreeNode } from '@pind/designable-react';
 import { Tabs } from 'antd';
 import { TabPaneProps, TabsProps } from 'antd/lib/tabs';
 import React, { Fragment, useState } from 'react';
@@ -76,10 +66,7 @@ export const FormTab: DnFC<TabsProps> & {
               {...props}
               style={{ ...props.style }}
               tab={
-                <span
-                  data-content-editable="x-component-props.tab"
-                  data-content-editable-node-id={tab.id}
-                >
+                <span data-content-editable="x-component-props.tab" data-content-editable-node-id={tab.id}>
                   {props.tab}
                 </span>
               }
@@ -93,11 +80,7 @@ export const FormTab: DnFC<TabsProps> & {
                     padding: '20px 0',
                   },
                 },
-                tab.children.length ? (
-                  <TreeNodeWidget node={tab} />
-                ) : (
-                  <DroppableWidget node={tab} />
-                ),
+                tab.children.length ? <TreeNodeWidget node={tab} /> : <DroppableWidget node={tab} />,
               )}
             </Tabs.TabPane>
           );
@@ -147,9 +130,7 @@ FormTab.Behavior = createBehavior(
       droppable: true,
       allowAppend: (target, source) =>
         target.children.length === 0 ||
-        source?.every(
-          (node) => node.props['x-component'] === 'FormTab.TabPane',
-        ) ||
+        source?.every((node) => node.props['x-component'] === 'FormTab.TabPane') ||
         false,
       propsSchema: createVoidFieldSchema(AllSchemas.FormTab),
     },

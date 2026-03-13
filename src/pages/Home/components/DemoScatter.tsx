@@ -9,8 +9,7 @@ const DemoScatter = () => {
       paddingLeft: 60,
       data: {
         type: 'fetch',
-        value:
-          'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/scatter-point-sequential.json',
+        value: 'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/scatter-point-sequential.json',
       },
       xField: (d: any) => new Date(d.date),
       yField: 'value',

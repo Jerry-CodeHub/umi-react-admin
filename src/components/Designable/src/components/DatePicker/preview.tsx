@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const DatePicker: DnFC<React.ComponentProps<typeof FormilyDatePicker>> =
-  FormilyDatePicker;
+export const DatePicker: DnFC<React.ComponentProps<typeof FormilyDatePicker>> = FormilyDatePicker;
 
 DatePicker.Behavior = createBehavior(
   {

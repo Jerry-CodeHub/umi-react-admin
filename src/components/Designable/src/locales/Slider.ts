@@ -13,8 +13,7 @@ export const Slider = {
         },
         tooltipVisible: {
           title: '提示显示',
-          tooltip:
-            '开启时，提示 将会始终显示；否则始终不显示，哪怕在拖拽及移入时',
+          tooltip: '开启时，提示 将会始终显示；否则始终不显示，哪怕在拖拽及移入时',
         },
         max: '最大值',
         min: '最小值',

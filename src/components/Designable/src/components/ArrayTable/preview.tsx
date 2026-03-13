@@ -2,18 +2,8 @@
 /* eslint-disable */
 import { ArrayBase } from '@formily/antd-v5';
 import { observer } from '@formily/react';
-import {
-  TreeNode,
-  createBehavior,
-  createResource,
-} from '@pind/designable-core';
-import {
-  DnFC,
-  DroppableWidget,
-  TreeNodeWidget,
-  useNodeIdProps,
-  useTreeNode,
-} from '@pind/designable-react';
+import { TreeNode, createBehavior, createResource } from '@pind/designable-core';
+import { DnFC, DroppableWidget, TreeNodeWidget, useNodeIdProps, useTreeNode } from '@pind/designable-react';
 import { Table, TableProps } from 'antd';
 import cls from 'classnames';
 import React from 'react';
@@ -35,10 +25,7 @@ const ensureObjectItemsNode = createEnsureTypeItemsNode('object');
 
 const HeaderCell: React.FC = (props: any) => {
   return (
-    <th
-      {...props}
-      data-designer-node-id={props.className.match(/data-id\:([^\s]+)/)?.[1]}
-    >
+    <th {...props} data-designer-node-id={props.className.match(/data-id\:([^\s]+)/)?.[1]}>
       {props.children}
     </th>
   );
@@ -46,10 +33,7 @@ const HeaderCell: React.FC = (props: any) => {
 
 const BodyCell: React.FC = (props: any) => {
   return (
-    <td
-      {...props}
-      data-designer-node-id={props.className.match(/data-id\:([^\s]+)/)?.[1]}
-    >
+    <td {...props} data-designer-node-id={props.className.match(/data-id\:([^\s]+)/)?.[1]}>
       {props.children}
     </td>
   );
@@ -162,15 +146,8 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
     });
     return [objectNode, additionNode];
   });
-  const columns = queryNodesByComponentPath(node, [
-    'ArrayTable',
-    '*',
-    'ArrayTable.Column',
-  ]);
-  const additions = queryNodesByComponentPath(node, [
-    'ArrayTable',
-    'ArrayTable.Addition',
-  ]);
+  const columns = queryNodesByComponentPath(node, ['ArrayTable', '*', 'ArrayTable.Column']);
+  const additions = queryNodesByComponentPath(node, ['ArrayTable', 'ArrayTable.Addition']);
   const defaultRowKey = () => {
     return node.id;
   };
@@ -206,11 +183,7 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
             return (
               <Table.Column
                 {...props}
-                title={
-                  <div data-content-editable="x-component-props.title">
-                    {props.title}
-                  </div>
-                }
+                title={<div data-content-editable="x-component-props.title">{props.title}</div>}
                 dataIndex={node.id}
                 className={`data-id:${node.id}`}
                 key={node.id}
@@ -224,9 +197,7 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
               />
             );
           })}
-          {columns.length === 0 && (
-            <Table.Column render={() => <DroppableWidget />} />
-          )}
+          {columns.length === 0 && <Table.Column render={() => <DroppableWidget />} />}
         </Table>
         {additions.map((child) => {
           return <TreeNodeWidget node={child} key={child.id} />;
@@ -251,14 +222,7 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
             title: node.getMessage('addSortHandle'),
             icon: 'AddSort',
             onClick: () => {
-              if (
-                hasNodeByComponentPath(node, [
-                  'ArrayTable',
-                  '*',
-                  'ArrayTable.Column',
-                  'ArrayTable.SortHandle',
-                ])
-              )
+              if (hasNodeByComponentPath(node, ['ArrayTable', '*', 'ArrayTable.Column', 'ArrayTable.SortHandle']))
                 return;
               const tableColumn = new TreeNode({
                 componentName: 'Field',
@@ -286,15 +250,7 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
             title: node.getMessage('addIndex'),
             icon: 'AddIndex',
             onClick: () => {
-              if (
-                hasNodeByComponentPath(node, [
-                  'ArrayTable',
-                  '*',
-                  'ArrayTable.Column',
-                  'ArrayTable.Index',
-                ])
-              )
-                return;
+              if (hasNodeByComponentPath(node, ['ArrayTable', '*', 'ArrayTable.Column', 'ArrayTable.Index'])) return;
               const tableColumn = new TreeNode({
                 componentName: 'Field',
                 props: {
@@ -336,11 +292,7 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
                 '*',
                 'ArrayTable.Column',
                 (name) => {
-                  return (
-                    name === 'ArrayTable.Remove' ||
-                    name === 'ArrayTable.MoveDown' ||
-                    name === 'ArrayTable.MoveUp'
-                  );
+                  return name === 'ArrayTable.Remove' || name === 'ArrayTable.MoveDown' || name === 'ArrayTable.MoveUp';
                 },
               ]);
               const tableColumn = new TreeNode({
@@ -369,17 +321,10 @@ export const ArrayTable: DnFC<TableProps<any>> = observer((props) => {
                 '*',
                 'ArrayTable.Column',
                 (name) => {
-                  return (
-                    name === 'ArrayTable.Remove' ||
-                    name === 'ArrayTable.MoveDown' ||
-                    name === 'ArrayTable.MoveUp'
-                  );
+                  return name === 'ArrayTable.Remove' || name === 'ArrayTable.MoveDown' || name === 'ArrayTable.MoveUp';
                 },
               ]);
-              const oldAdditionNode = findNodeByComponentPath(node, [
-                'ArrayTable',
-                'ArrayTable.Addition',
-              ]);
+              const oldAdditionNode = findNodeByComponentPath(node, ['ArrayTable', 'ArrayTable.Addition']);
               if (!oldOperationNode) {
                 const operationNode = new TreeNode({
                   componentName: 'Field',
@@ -443,9 +388,7 @@ ArrayTable.Behavior = createBehavior(createArrayBehavior('ArrayTable'), {
   selector: (node) => node.props['x-component'] === 'ArrayTable.Column',
   designerProps: {
     droppable: true,
-    allowDrop: (node) =>
-      node.props['type'] === 'object' &&
-      node.parent?.props?.['x-component'] === 'ArrayTable',
+    allowDrop: (node) => node.props['type'] === 'object' && node.parent?.props?.['x-component'] === 'ArrayTable',
     propsSchema: createVoidFieldSchema(AllSchemas.ArrayTable.Column),
   },
   designerLocales: AllLocales.ArrayTableColumn,

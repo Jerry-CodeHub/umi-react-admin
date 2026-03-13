@@ -12,8 +12,7 @@ import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
 import UpdateForm, { FormValueType } from './components/UpdateForm';
 
-const { addUser, queryUserList, deleteUser, modifyUser } =
-  services.UserController;
+const { addUser, queryUserList, deleteUser, modifyUser } = services.UserController;
 
 /**
  * 添加节点
@@ -84,8 +83,7 @@ const handleRemove = async (selectedRows: API.UserInfo[]) => {
 
 const TableList: React.FC<unknown> = () => {
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
-  const [updateModalVisible, handleUpdateModalVisible] =
-    useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef<ActionType>();
   const [row, setRow] = useState<API.UserInfo>();
@@ -153,22 +151,12 @@ const TableList: React.FC<unknown> = () => {
           labelWidth: 120,
         }}
         toolBarRender={() => [
-          <Button
-            key="1"
-            type="primary"
-            onClick={() => handleModalVisible(true)}
-          >
+          <Button key="1" type="primary" onClick={() => handleModalVisible(true)}>
             新建
           </Button>,
         ]}
         request={async (params, sorter, filter) => {
-          const { data, success } = await queryUserList({
-            ...params,
-            // FIXME: remove @ts-ignore
-            // @ts-ignore
-            sorter,
-            filter,
-          });
+          const { data, success } = await queryUserList({ ...params }, { sorter, filter });
           return {
             data: data?.list || [],
             success,
@@ -183,9 +171,7 @@ const TableList: React.FC<unknown> = () => {
         <FooterToolbar
           extra={
             <div>
-              已选择{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              项&nbsp;&nbsp;
+              已选择 <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> 项&nbsp;&nbsp;
             </div>
           }
         >
@@ -201,10 +187,7 @@ const TableList: React.FC<unknown> = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <CreateForm
-        onCancel={() => handleModalVisible(false)}
-        modalVisible={createModalVisible}
-      >
+      <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
         <ProTable<API.UserInfo, API.UserInfo>
           onSubmit={async (value) => {
             const success = await handleAdd(value);

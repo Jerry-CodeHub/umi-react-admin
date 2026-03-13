@@ -11,7 +11,7 @@ const BarChartRace = () => {
     if (!svgRef.current) return;
 
     // 深拷贝数据以避免修改原始数据
-    const data = JSON.parse(JSON.stringify(dataBar));
+    const data = structuredClone(dataBar);
 
     // 设置基本参数
     const duration = 250; // 每一帧动画的持续时间

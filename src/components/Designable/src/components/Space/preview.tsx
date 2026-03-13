@@ -7,8 +7,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createVoidFieldSchema } from '../Field';
 
-export const Space: DnFC<React.ComponentProps<typeof FormilySpace>> =
-  withContainer(FormilySpace);
+export const Space: DnFC<React.ComponentProps<typeof FormilySpace>> = withContainer(FormilySpace);
 
 Space.Behavior = createBehavior({
   name: 'Space',

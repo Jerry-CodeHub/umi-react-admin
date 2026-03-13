@@ -11,10 +11,7 @@ interface Props {
 
 export function Wrapper({ children, center, style }: Props) {
   return (
-    <div
-      className={classNames(styles.Wrapper, center && styles.center)}
-      style={style}
-    >
+    <div className={classNames(styles.Wrapper, center && styles.center)} style={style}>
       {children}
     </div>
   );

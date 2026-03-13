@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Select: DnFC<React.ComponentProps<typeof FormilySelect>> =
-  FormilySelect;
+export const Select: DnFC<React.ComponentProps<typeof FormilySelect>> = FormilySelect;
 
 Select.Behavior = createBehavior({
   name: 'Select',

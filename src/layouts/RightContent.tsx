@@ -1,17 +1,24 @@
 import { GithubOutlined, GlobalOutlined, SkinOutlined, UserOutlined } from '@ant-design/icons';
 import { setLocale, useIntl } from '@umijs/max';
 import { Avatar, Button, Popover, message } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const safeLocalStorage = {
+  getItem: (key: string) => (typeof window !== 'undefined' ? localStorage.getItem(key) : null),
+};
 
 const RightContent = () => {
   const [messageApi, contextHolder] = message.useMessage();
   // NOTE: 多语言
   const intl = useIntl();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [localeType, setLocaleType] = useState(localStorage.getItem('umi_locale') || 'zh-CN');
-  if (!localStorage.getItem('umi_locale')) {
-    setLocale('zh-CN');
-  }
+  const [localeType, setLocaleType] = useState(safeLocalStorage.getItem('umi_locale') || 'zh-CN');
+
+  useEffect(() => {
+    if (!safeLocalStorage.getItem('umi_locale')) {
+      setLocale('zh-CN');
+    }
+  }, []);
   const localeTypeData = [
     {
       label: '中文',

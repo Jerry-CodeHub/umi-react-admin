@@ -34,8 +34,7 @@ export const TreeSelect = {
         virtual: '开启虚拟滚动',
         dropdownMatchSelectWidth: {
           title: '下拉选择器同宽',
-          tooltip:
-            '默认将设置 min-width，当值小于选择框宽度时会被忽略。false 时会关闭虚拟滚动',
+          tooltip: '默认将设置 min-width，当值小于选择框宽度时会被忽略。false 时会关闭虚拟滚动',
         },
         showCheckedStrategy: {
           title: '复选回显策略',
@@ -108,8 +107,7 @@ export const TreeSelect = {
         },
         treeNodeFilterProp: {
           title: 'Tree Node Filter Properties',
-          tooltip:
-            'The treeNode attribute corresponding to the input item filter',
+          tooltip: 'The treeNode attribute corresponding to the input item filter',
         },
         treeDataSimpleMode: {
           title: 'Tree Data Simple Mode',
@@ -152,8 +150,7 @@ export const TreeSelect = {
         virtual: '수직 스크롤 사용',
         dropdownMatchSelectWidth: {
           title: '드롭다운 너비 맞추기',
-          tooltip:
-            '기본적으로 최소 너비가 설정되며 값이 선택 상자의 너비보다 작으면 무시됩니다.',
+          tooltip: '기본적으로 최소 너비가 설정되며 값이 선택 상자의 너비보다 작으면 무시됩니다.',
         },
         showCheckedStrategy: {
           title: '선택한 전략 표시',

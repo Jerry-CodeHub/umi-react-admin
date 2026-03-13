@@ -8,12 +8,7 @@ import {
   PreviewWidget,
   SchemaEditorWidget,
 } from '@/components/Designable/widgets';
-import {
-  GlobalRegistry,
-  KeyCode,
-  Shortcut,
-  createDesigner,
-} from '@pind/designable-core';
+import { GlobalRegistry, KeyCode, Shortcut, createDesigner } from '@pind/designable-core';
 import { sources } from '@pind/designable-formily-antd';
 import {
   ComponentTreeWidget,
@@ -32,10 +27,7 @@ import {
   Workspace,
   WorkspacePanel,
 } from '@pind/designable-react';
-import {
-  SettingsForm,
-  setNpmCDNRegistry,
-} from '@pind/designable-react-settings-form';
+import { SettingsForm, setNpmCDNRegistry } from '@pind/designable-react-settings-form';
 import { Alert } from 'antd';
 setNpmCDNRegistry('//unpkg.com');
 const { ErrorBoundary } = Alert;
@@ -104,25 +96,17 @@ const Designables = () => {
             <ErrorBoundary>
               <ToolbarPanel>
                 <DesignerToolsWidget />
-                <ViewToolsWidget
-                  use={['DESIGNABLE', 'JSONTREE', 'MARKUP', 'PREVIEW']}
-                />
+                <ViewToolsWidget use={['DESIGNABLE', 'JSONTREE', 'MARKUP', 'PREVIEW']} />
               </ToolbarPanel>
               <ViewportPanel style={{ height: '100%' }}>
-                <ViewPanel type="DESIGNABLE">
-                  {() => <ComponentTreeWidget components={{ ...sources }} />}
-                </ViewPanel>
+                <ViewPanel type="DESIGNABLE">{() => <ComponentTreeWidget components={{ ...sources }} />}</ViewPanel>
                 <ViewPanel type="JSONTREE" scrollable={false}>
-                  {(tree, onChange) => (
-                    <SchemaEditorWidget tree={tree} onChange={onChange} />
-                  )}
+                  {(tree, onChange) => <SchemaEditorWidget tree={tree} onChange={onChange} />}
                 </ViewPanel>
                 <ViewPanel type="MARKUP" scrollable={false}>
                   {(tree) => <MarkupSchemaWidget tree={tree} />}
                 </ViewPanel>
-                <ViewPanel type="PREVIEW">
-                  {(tree) => <PreviewWidget tree={tree} />}
-                </ViewPanel>
+                <ViewPanel type="PREVIEW">{(tree) => <PreviewWidget tree={tree} />}</ViewPanel>
               </ViewportPanel>
             </ErrorBoundary>
           </WorkspacePanel>

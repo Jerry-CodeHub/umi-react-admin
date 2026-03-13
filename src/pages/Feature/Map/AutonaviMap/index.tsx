@@ -17,10 +17,7 @@ export default function AutonaviMap() {
 
   const mapEvents: MapProps['events'] = {
     click: (event: any) => {
-      const position: [number, number] = [
-        event.lnglat.getLng(),
-        event.lnglat.getLat(),
-      ];
+      const position: [number, number] = [event.lnglat.getLng(), event.lnglat.getLat()];
       message.success(`获取的坐标点位置为${position}`);
       setPosition(position);
     },
@@ -30,9 +27,7 @@ export default function AutonaviMap() {
     <AutonaviMapStyle>
       <ProCard>
         <div style={{ height: 500 }}>
-          <Map events={mapEvents}>
-            {position && <Marker position={position} />}
-          </Map>
+          <Map events={mapEvents}>{position && <Marker position={position} />}</Map>
         </div>
       </ProCard>
     </AutonaviMapStyle>

@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Upload: DnFC<React.ComponentProps<typeof FormilyUpload>> =
-  FormilyUpload;
+export const Upload: DnFC<React.ComponentProps<typeof FormilyUpload>> = FormilyUpload;
 
 Upload.Behavior = createBehavior(
   {

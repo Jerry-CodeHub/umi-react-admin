@@ -104,21 +104,11 @@ export const Item = React.memo(
           style={
             {
               ...wrapperStyle,
-              transition: [transition, wrapperStyle?.transition]
-                .filter(Boolean)
-                .join(', '),
-              '--translate-x': transform
-                ? `${Math.round(transform.x)}px`
-                : undefined,
-              '--translate-y': transform
-                ? `${Math.round(transform.y)}px`
-                : undefined,
-              '--scale-x': transform?.scaleX
-                ? `${transform.scaleX}`
-                : undefined,
-              '--scale-y': transform?.scaleY
-                ? `${transform.scaleY}`
-                : undefined,
+              transition: [transition, wrapperStyle?.transition].filter(Boolean).join(', '),
+              '--translate-x': transform ? `${Math.round(transform.x)}px` : undefined,
+              '--translate-y': transform ? `${Math.round(transform.y)}px` : undefined,
+              '--scale-x': transform?.scaleX ? `${transform.scaleX}` : undefined,
+              '--scale-y': transform?.scaleY ? `${transform.scaleY}` : undefined,
               '--index': index,
               '--color': color,
             } as React.CSSProperties
@@ -142,9 +132,7 @@ export const Item = React.memo(
           >
             {value}
             <span className={styles.Actions}>
-              {onRemove ? (
-                <Remove className={styles.Remove} onClick={onRemove} />
-              ) : null}
+              {onRemove ? <Remove className={styles.Remove} onClick={onRemove} /> : null}
               {handle ? <Handle {...handleProps} {...listeners} /> : null}
             </span>
           </div>

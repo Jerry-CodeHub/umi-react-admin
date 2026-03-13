@@ -1,9 +1,4 @@
-import {
-  ChromeFilled,
-  CrownFilled,
-  SmileFilled,
-  TabletFilled,
-} from '@ant-design/icons';
+import { ChromeFilled, CrownFilled, SmileFilled, TabletFilled } from '@ant-design/icons';
 
 export const route = {
   path: '/',

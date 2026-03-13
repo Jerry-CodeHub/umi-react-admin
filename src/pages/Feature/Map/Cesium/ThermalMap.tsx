@@ -18,7 +18,7 @@ const ThermalMap = () => {
     const loadThermalData = async () => {
       try {
         const thermal = await import('@/utils/MapCompute/ThermalMapData.json');
-        const obj = JSON.parse(JSON.stringify(thermal.default));
+        const obj = structuredClone(thermal.default);
         const arrayResult = obj.coverageData.arrayResult;
         setData(arrayResult);
         setThermalData(obj); // 保存完整数据供其他功能使用

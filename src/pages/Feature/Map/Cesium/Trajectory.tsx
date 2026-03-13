@@ -198,9 +198,9 @@ const Trajectory: React.FC = () => {
 
   // NOTE 相交合并/包含去重, 组成新的路径渲染
   const handlerLatLon = () => {
-    let intercept = JSON.parse(JSON.stringify(interceptResultList));
-    let location = JSON.parse(JSON.stringify(locationResultList));
-    let demodulation = JSON.parse(JSON.stringify(demodulationResultList));
+    let intercept = structuredClone(interceptResultList);
+    let location = structuredClone(locationResultList);
+    let demodulation = structuredClone(demodulationResultList);
 
     // 使用示例
     // const polygonArrays = [

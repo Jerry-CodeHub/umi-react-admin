@@ -1,13 +1,7 @@
 import { ArrayBase } from '@formily/antd-v5';
 import { observer } from '@formily/react';
 import { TreeNode, createResource } from '@pind/designable-core';
-import {
-  DnFC,
-  DroppableWidget,
-  TreeNodeWidget,
-  useNodeIdProps,
-  useTreeNode,
-} from '@pind/designable-react';
+import { DnFC, DroppableWidget, TreeNodeWidget, useNodeIdProps, useTreeNode } from '@pind/designable-react';
 import { Card, CardProps } from 'antd';
 import cls from 'classnames';
 import { Fragment } from 'react';
@@ -26,9 +20,7 @@ import './styles.less';
 const ensureObjectItemsNode = createEnsureTypeItemsNode('object');
 
 const isArrayCardsOperation = (name: string) =>
-  name === 'ArrayCards.Remove' ||
-  name === 'ArrayCards.MoveDown' ||
-  name === 'ArrayCards.MoveUp';
+  name === 'ArrayCards.Remove' || name === 'ArrayCards.MoveDown' || name === 'ArrayCards.MoveUp';
 
 export const ArrayCards: DnFC<CardProps> = observer((props) => {
   const node = useTreeNode();
@@ -85,25 +77,10 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
   });
   const renderCard = () => {
     if (node.children.length === 0) return <DroppableWidget />;
-    const additions = queryNodesByComponentPath(node, [
-      'ArrayCards',
-      'ArrayCards.Addition',
-    ]);
-    const indexes = queryNodesByComponentPath(node, [
-      'ArrayCards',
-      '*',
-      'ArrayCards.Index',
-    ]);
-    const operations = queryNodesByComponentPath(node, [
-      'ArrayCards',
-      '*',
-      isArrayCardsOperation,
-    ]);
-    const children = queryNodesByComponentPath(node, [
-      'ArrayCards',
-      '*',
-      (name) => name.indexOf('ArrayCards.') === -1,
-    ]);
+    const additions = queryNodesByComponentPath(node, ['ArrayCards', 'ArrayCards.Addition']);
+    const indexes = queryNodesByComponentPath(node, ['ArrayCards', '*', 'ArrayCards.Index']);
+    const operations = queryNodesByComponentPath(node, ['ArrayCards', '*', isArrayCardsOperation]);
+    const children = queryNodesByComponentPath(node, ['ArrayCards', '*', (name) => name.indexOf('ArrayCards.') === -1]);
     return (
       <ArrayBase disabled>
         <ArrayBase.Item index={0} record={() => null}>
@@ -114,9 +91,7 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
                 {indexes.map((node, key) => (
                   <TreeNodeWidget key={key} node={node} />
                 ))}
-                <span data-content-editable="x-component-props.title">
-                  {props.title}
-                </span>
+                <span data-content-editable="x-component-props.title">{props.title}</span>
               </Fragment>
             }
             className={cls('ant-formily-array-cards-item', props.className)}
@@ -131,9 +106,7 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
           >
             <div {...createNodeId(designer, ensureObjectItemsNode(node).id)}>
               {children.length ? (
-                children.map((node) => (
-                  <TreeNodeWidget key={node.id} node={node} />
-                ))
+                children.map((node) => <TreeNodeWidget key={node.id} node={node} />)
               ) : (
                 <DroppableWidget hasChildren={false} />
               )}
@@ -156,14 +129,7 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
             title: node.getMessage('addIndex'),
             icon: 'AddIndex',
             onClick: () => {
-              if (
-                hasNodeByComponentPath(node, [
-                  'ArrayCards',
-                  '*',
-                  'ArrayCards.Index',
-                ])
-              )
-                return;
+              if (hasNodeByComponentPath(node, ['ArrayCards', '*', 'ArrayCards.Index'])) return;
               const indexNode = new TreeNode({
                 componentName: node.componentName,
                 props: {
@@ -179,10 +145,7 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
             title: node.getMessage('addOperation'),
             icon: 'AddOperation',
             onClick: () => {
-              const oldAdditionNode = findNodeByComponentPath(node, [
-                'ArrayCards',
-                'ArrayCards.Addition',
-              ]);
+              const oldAdditionNode = findNodeByComponentPath(node, ['ArrayCards', 'ArrayCards.Addition']);
               if (!oldAdditionNode) {
                 const additionNode = new TreeNode({
                   componentName: node.componentName,
@@ -194,21 +157,9 @@ export const ArrayCards: DnFC<CardProps> = observer((props) => {
                 });
                 ensureObjectItemsNode(node).insertAfter(additionNode);
               }
-              const oldRemoveNode = findNodeByComponentPath(node, [
-                'ArrayCards',
-                '*',
-                'ArrayCards.Remove',
-              ]);
-              const oldMoveDownNode = findNodeByComponentPath(node, [
-                'ArrayCards',
-                '*',
-                'ArrayCards.MoveDown',
-              ]);
-              const oldMoveUpNode = findNodeByComponentPath(node, [
-                'ArrayCards',
-                '*',
-                'ArrayCards.MoveUp',
-              ]);
+              const oldRemoveNode = findNodeByComponentPath(node, ['ArrayCards', '*', 'ArrayCards.Remove']);
+              const oldMoveDownNode = findNodeByComponentPath(node, ['ArrayCards', '*', 'ArrayCards.MoveDown']);
+              const oldMoveUpNode = findNodeByComponentPath(node, ['ArrayCards', '*', 'ArrayCards.MoveUp']);
               if (!oldRemoveNode) {
                 ensureObjectItemsNode(node).append(
                   new TreeNode({

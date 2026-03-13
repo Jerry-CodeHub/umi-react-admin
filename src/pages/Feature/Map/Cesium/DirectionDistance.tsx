@@ -96,9 +96,9 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 经纬度渲染
   const handlerLatLon = () => {
-    let intercept = JSON.parse(JSON.stringify(interceptResultList));
-    let location = JSON.parse(JSON.stringify(locationResultList));
-    let demodulation = JSON.parse(JSON.stringify(demodulationResultList));
+    let intercept = structuredClone(interceptResultList);
+    let location = structuredClone(locationResultList);
+    let demodulation = structuredClone(demodulationResultList);
 
     let interceptList = handlerPolygonPath(intercept);
     viewer.entities.add({
@@ -142,9 +142,9 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 方向距离渲染
   const handlerDistance = () => {
-    let intercept = JSON.parse(JSON.stringify(interceptResultList));
-    let location = JSON.parse(JSON.stringify(locationResultList));
-    let demodulation = JSON.parse(JSON.stringify(demodulationResultList));
+    let intercept = structuredClone(interceptResultList);
+    let location = structuredClone(locationResultList);
+    let demodulation = structuredClone(demodulationResultList);
 
     let startLongitude = 116.3974;
     let startLatitude = 39.9093;

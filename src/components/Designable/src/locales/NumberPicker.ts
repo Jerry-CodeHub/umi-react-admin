@@ -10,8 +10,7 @@ export const NumberPicker = {
         keyboard: '启用快捷键',
         parser: {
           title: '格式解析器',
-          tooltip:
-            '指定从 格式转换器 里转换回数字的方式，和 格式转换器 搭配使用,格式：function(string): number',
+          tooltip: '指定从 格式转换器 里转换回数字的方式，和 格式转换器 搭配使用,格式：function(string): number',
         },
         decimalSeparator: '小数点',
         precision: '数字精度',
@@ -46,8 +45,7 @@ export const NumberPicker = {
         step: 'Step',
         stringMode: {
           title: 'String Format',
-          tooltip:
-            'Support high-precision decimals after opening. At the same time onChange will return string type',
+          tooltip: 'Support high-precision decimals after opening. At the same time onChange will return string type',
         },
       },
     },
@@ -63,8 +61,7 @@ export const NumberPicker = {
         keyboard: '숏컷 키 활성화',
         parser: {
           title: '포멧 파서',
-          tooltip:
-            '문자열을 숫자로 변환하는 포맷 컨버터를 만들고 사용하세요, 형식 :function(string): number',
+          tooltip: '문자열을 숫자로 변환하는 포맷 컨버터를 만들고 사용하세요, 형식 :function(string): number',
         },
         decimalSeparator: '소수 구분 기호',
         precision: '정밀도',
@@ -73,8 +70,7 @@ export const NumberPicker = {
         step: '스탭',
         stringMode: {
           title: '문자열 형식',
-          tooltip:
-            '높은 정밀도 소수를 지원합니다. onChange에서 문자열 타입으로 반환됩니다.',
+          tooltip: '높은 정밀도 소수를 지원합니다. onChange에서 문자열 타입으로 반환됩니다.',
         },
       },
     },

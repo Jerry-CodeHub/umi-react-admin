@@ -5,8 +5,7 @@ import { Container } from '../../common/Container';
 import { AllLocales } from '../../locales';
 import { createFieldSchema } from '../Field';
 
-export const ObjectContainer: DnFC<React.ComponentProps<typeof Container>> =
-  Container;
+export const ObjectContainer: DnFC<React.ComponentProps<typeof Container>> = Container;
 ObjectContainer.Behavior = createBehavior({
   name: 'Object',
   extends: ['Field'],

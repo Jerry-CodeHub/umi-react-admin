@@ -9,8 +9,7 @@ const DemoLine = () => {
     const config = {
       data: {
         type: 'fetch',
-        value:
-          'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/line-slider.json',
+        value: 'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/line-slider.json',
       },
       xField: (d: any) => new Date(d.date),
       yField: 'close',

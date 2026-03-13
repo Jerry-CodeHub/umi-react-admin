@@ -6,8 +6,7 @@ import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';
 import { createFieldSchema } from '../Field';
 
-export const Transfer: DnFC<React.ComponentProps<typeof FormilyTransfer>> =
-  FormilyTransfer;
+export const Transfer: DnFC<React.ComponentProps<typeof FormilyTransfer>> = FormilyTransfer;
 
 Transfer.Behavior = createBehavior({
   name: 'Transfer',

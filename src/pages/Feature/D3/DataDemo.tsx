@@ -1,4 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
+import * as d3 from 'd3';
 import { axisBottom, axisTop, pointer, select } from 'd3';
 import { useEffect, useRef } from 'react';
 import { data, frequencyTicks } from './components/DataUnit.ts';

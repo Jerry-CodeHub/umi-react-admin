@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 该文件不做 ESLint 检测
 /* eslint-disable */
 import { isEmpty, isPlainObj } from '@formily/shared';

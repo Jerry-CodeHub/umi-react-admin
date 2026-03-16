@@ -2,17 +2,19 @@ import { ProCard } from '@ant-design/pro-components';
 import { Editor } from '@tinymce/tinymce-react';
 import { Button } from 'antd';
 import { useRef } from 'react';
+import type { Editor as TinyMCEEditor } from 'tinymce';
 
 export default () => {
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<TinyMCEEditor | null>(null);
   const log = () => {
     if (editorRef.current) {
+      console.warn(editorRef.current.getContent());
     }
   };
   return (
     <ProCard className="shadow-2xl">
       <Editor
-        apiKey="6zvw3rhm02o1kafli7w6bclz6xt3zgc8fcc718dq44s56rz7"
+        apiKey={process.env.TINYMCE_API_KEY}
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue="<p>This is the initial content of the editor.</p>"
         init={{

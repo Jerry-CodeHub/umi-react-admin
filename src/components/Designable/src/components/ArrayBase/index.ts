@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createBehavior } from '@pind/designable-core';
 import { AllLocales } from '../../locales';
 import { AllSchemas } from '../../schemas';

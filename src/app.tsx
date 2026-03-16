@@ -16,9 +16,12 @@ declare global {
 }
 
 import * as Cesium from 'cesium';
-// 仅在需要时挂载到 window，避免全局污染
+// 仅在需要时挂载到 window，避免全局污染；同时统一初始化 Cesium Ion token
 if (typeof window !== 'undefined' && !window.Cesium) {
   window.Cesium = Cesium;
+}
+if (typeof CESIUM_ION_TOKEN !== 'undefined' && CESIUM_ION_TOKEN) {
+  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
 }
 
 // NOTE:全局初始化数据配置，用于 Layout 用户信息和权限初始化

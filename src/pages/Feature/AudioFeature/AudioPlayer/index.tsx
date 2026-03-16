@@ -6,6 +6,12 @@ import 'xgplayer-music/dist/index.min.css';
 import 'xgplayer/dist/index.min.css';
 import { AudioPlayerStyles } from './AudioPlayerStyle';
 
+declare global {
+  interface Window {
+    analyze: InstanceType<typeof Analyze> | undefined;
+  }
+}
+
 export default function AudioPlayer() {
   useMount(() => {
     function initEvents() {
@@ -53,13 +59,13 @@ export default function AudioPlayer() {
 
     // 初始化频谱
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let analyze = new Analyze(player, document.querySelector('canvas'), {
+    let analyze = new Analyze(player, document.querySelector('canvas') as HTMLElement, {
       bgColor: 'rgba(0,0,0,0.7)',
       stroke: 3,
     });
 
     // 初始化歌词模块
-    let lyric = new Lyric([lyricTxts], document.querySelector('#gc'), {});
+    let lyric = new Lyric([lyricTxts], document.querySelector('#gc'));
     lyric.bind(player);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let nullText = 0;
@@ -71,7 +77,7 @@ export default function AudioPlayer() {
 
     player.on('playing', function () {
       lyric.show();
-      player.mode = 2;
+      (player as any).mode = 2;
     });
     let canvasDom = document.getElementById('canvas') as HTMLCanvasElement;
     canvasDom.width = window.innerWidth;

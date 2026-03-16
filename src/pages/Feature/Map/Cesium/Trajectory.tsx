@@ -13,7 +13,6 @@ import React, { useEffect, useState } from 'react';
 
 const Trajectory: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
   const [viewer, setViewer] = useState(null as any);
   // let turf = window.turf;
   // console.log(turf);
@@ -59,7 +58,7 @@ const Trajectory: React.FC = () => {
 
     // 销毁
     return () => {
-      viewer.destroy();
+      if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
 

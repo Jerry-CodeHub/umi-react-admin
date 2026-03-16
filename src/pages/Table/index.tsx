@@ -1,12 +1,5 @@
 import services from '@/services/demo';
-import {
-  ActionType,
-  FooterToolbar,
-  PageContainer,
-  ProDescriptions,
-  ProDescriptionsItemProps,
-  ProTable,
-} from '@ant-design/pro-components';
+import { ActionType, FooterToolbar, PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { Button, Divider, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
@@ -88,11 +81,12 @@ const TableList: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [row, setRow] = useState<API.UserInfo>();
   const [selectedRowsState, setSelectedRows] = useState<API.UserInfo[]>([]);
-  const columns: ProDescriptionsItemProps<API.UserInfo>[] = [
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const columns: any[] = [
     {
       title: '名称',
       dataIndex: 'name',
-      tip: '名称是唯一的 key',
+      tooltip: '名称是唯一的 key',
       formItemProps: {
         rules: [
           {
@@ -120,7 +114,7 @@ const TableList: React.FC<unknown> = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => (
+      render: (_: any, record: API.UserInfo) => (
         <>
           <a
             onClick={() => {

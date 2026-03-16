@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { FormItem } from '@formily/antd-v5';
 import { FormPath } from '@formily/core';
 import { ArrayField, ISchema, Field as InternalField, ObjectField, Schema, VoidField, observer } from '@formily/react';

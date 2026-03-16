@@ -12,7 +12,6 @@ const HaiAirPosture = () => {
   const [messageApi, contextHolder] = message.useMessage();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState([]);
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
   // setTimeout(() => {
   //   let CesiumNavigation = window.CesiumNavigation;
   //   console.log('CesiumNavigation:', window);
@@ -153,7 +152,7 @@ const HaiAirPosture = () => {
 
     // 销毁
     return () => {
-      viewer.destroy();
+      if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
 

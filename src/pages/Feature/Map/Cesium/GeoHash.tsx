@@ -13,8 +13,6 @@ const InfoGeoHash: React.FC = () => {
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
 
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
-
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
     const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -69,7 +67,7 @@ const InfoGeoHash: React.FC = () => {
 
     // 销毁
     return () => {
-      viewer.destroy();
+      if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
 
@@ -140,6 +138,7 @@ const InfoGeoHash: React.FC = () => {
     //获取四角经纬度
     // 获取当前视图范围
     let extent = viewer.camera.computeViewRectangle();
+    if (!extent) return;
 
     // 提取四个角的经纬度
     let southwest = Cesium.Rectangle.southwest(extent);
@@ -185,6 +184,7 @@ const InfoGeoHash: React.FC = () => {
 
   // 获取当前地图的显示范围
   function getMapViewRectangle() {
+    if (viewer === null) return null;
     const rectangle = viewer.camera.computeViewRectangle();
     if (rectangle) {
       return {
@@ -223,7 +223,7 @@ const InfoGeoHash: React.FC = () => {
         });
 
         // 在 Cesium 中绘制子区域
-        viewer.entities.add({
+        viewer?.entities.add({
           rectangle: {
             coordinates: Cesium.Rectangle.fromDegrees(subWest, subSouth, subEast, subNorth),
             material: Cesium.Color.RED.withAlpha(0.3),
@@ -249,7 +249,7 @@ const InfoGeoHash: React.FC = () => {
 
   // NOTE 清除所有实体
   const handleRemoveAll = () => {
-    viewer.entities.removeAll();
+    viewer?.entities.removeAll();
   };
 
   return (

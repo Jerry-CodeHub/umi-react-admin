@@ -1,4 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
+import * as d3 from 'd3';
 import { axisBottom, axisTop, pointer, select } from 'd3';
 import { useEffect, useRef } from 'react';
 import { data, frequencyTicks } from './components/DataUnit.ts';
@@ -62,7 +63,7 @@ const Frequency = () => {
 
     // 设置尺寸和边距
     const margin = { top: 50, right: 0, bottom: 50, left: 0 };
-    const width = Math.max(containerRef.current.clientWidth - margin.left - margin.right, 800);
+    const width = Math.max((containerRef.current?.clientWidth ?? 800) - margin.left - margin.right, 800);
     // const typeHeight = 150;
     // const height = data.length * typeHeight + margin.top + margin.bottom;
 
@@ -135,7 +136,7 @@ const Frequency = () => {
 
     // 创建hover tooltip
     const hoverTooltip = d3
-      .select(svgRef.current.parentNode)
+      .select(svgRef.current.parentNode as Element)
       .append('div')
       .attr('class', 'hover-tooltip')
       .style('position', 'absolute')

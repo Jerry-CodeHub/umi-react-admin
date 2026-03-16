@@ -7,7 +7,7 @@ const logo = {
 };
 
 export const LogoWidget: React.FC = () => {
-  const url = logo[useTheme()];
+  const url = logo[(useTheme() ?? 'light') as keyof typeof logo];
   return (
     <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
       <img src={url} style={{ margin: '12px 8px', height: 18, width: 'auto' }} />

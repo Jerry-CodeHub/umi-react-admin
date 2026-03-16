@@ -3,22 +3,23 @@ import { ProCard } from '@ant-design/pro-components';
 import { Alert, Button, Modal, Spin, message } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const ThermalMap = () => {
   const [viewer, setViewer] = useState(null as any);
+  const infoDivRef = useRef<HTMLDivElement | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState([] as any);
   const [thermalData, setThermalData] = useState(null as any); // 保存完整的热力图数据
   const [loading, setLoading] = useState(true);
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
 
   // 动态加载热力图数据
   useEffect(() => {
     const loadThermalData = async () => {
       try {
         const thermal = await import('@/utils/MapCompute/ThermalMapData.json');
-        const obj = structuredClone(thermal.default);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const obj: any = structuredClone(thermal.default);
         const arrayResult = obj.coverageData.arrayResult;
         setData(arrayResult);
         setThermalData(obj); // 保存完整数据供其他功能使用
@@ -99,6 +100,10 @@ const ThermalMap = () => {
     return () => {
       if (newViewer && !newViewer.isDestroyed()) {
         newViewer.destroy();
+      }
+      if (infoDivRef.current) {
+        document.body.removeChild(infoDivRef.current);
+        infoDivRef.current = null;
       }
     };
   }, [loading, messageApi]);
@@ -363,12 +368,16 @@ const ThermalMap = () => {
         fieldStrength: point.fieldStrength,
       };
     });
-    let infoDiv = document.createElement('div');
-    document.body.appendChild(infoDiv);
-    infoDiv.style.position = 'absolute';
-    infoDiv.style.background = 'white';
-    infoDiv.style.padding = '5px';
-    infoDiv.style.display = 'none';
+    if (!infoDivRef.current) {
+      const infoDiv = document.createElement('div');
+      infoDiv.style.position = 'absolute';
+      infoDiv.style.background = 'white';
+      infoDiv.style.padding = '5px';
+      infoDiv.style.display = 'none';
+      document.body.appendChild(infoDiv);
+      infoDivRef.current = infoDiv;
+    }
+    const infoDiv = infoDivRef.current;
 
     // 鼠标放到点上时根据点的名称显示信息
     viewer.screenSpaceEventHandler.setInputAction(function onMouseMove(movement: any) {
@@ -468,7 +477,10 @@ const ThermalMap = () => {
             <Modal
               title=""
               open={isModalOpen}
-              style={{ top: positionInfo.y + 100, left: positionInfo.x - 300 }}
+              style={{
+                top: Math.min((positionInfo.y ?? 0) + 100, window.innerHeight - 200),
+                left: Math.max(Math.min((positionInfo.x ?? 0) - 300, window.innerWidth - 320), 8),
+              }}
               onCancel={() => setIsModalOpen(false)}
               footer={null}
               width={300}

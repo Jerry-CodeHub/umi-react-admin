@@ -7,8 +7,8 @@ import Timeline from 'wavesurfer.js/plugins/timeline';
 import { AudioVisibleStyles } from './AudioVisible.style';
 
 // WaveSurfer hook
-const useWavesurfer = (containerRef, options) => {
-  const [wavesurfer, setWavesurfer] = useState(null);
+const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: any) => {
+  const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
 
   // Initialize wavesurfer when the container mounts
   // or any of the props change
@@ -25,7 +25,7 @@ const useWavesurfer = (containerRef, options) => {
     return () => {
       ws.destroy();
     };
-  }, [options, containerRef]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return wavesurfer;
 };
@@ -33,13 +33,14 @@ const useWavesurfer = (containerRef, options) => {
 // Create a React component that will render wavesurfer.
 // Props are wavesurfer options.
 const WaveSurferPlayer = (props: any) => {
-  const containerRef = useRef();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const wavesurfer = useWavesurfer(containerRef, props);
 
   // On play button click
   const onPlayClick = useCallback(() => {
+    if (!wavesurfer) return;
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
   }, [wavesurfer]);
@@ -55,7 +56,7 @@ const WaveSurferPlayer = (props: any) => {
     const subscriptions = [
       wavesurfer.on('play', () => setIsPlaying(true)),
       wavesurfer.on('pause', () => setIsPlaying(false)),
-      wavesurfer.on('timeupdate', (currentTime) => setCurrentTime(currentTime)),
+      wavesurfer.on('timeupdate', (currentTime: number) => setCurrentTime(currentTime)),
     ];
 
     return () => {

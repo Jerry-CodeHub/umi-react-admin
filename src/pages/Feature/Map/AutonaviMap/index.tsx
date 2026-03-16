@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { AutonaviMapStyle } from './AutonaviMapStyle';
 
 export default function AutonaviMap() {
-  const [position, setPosition] = useState<ReactAMap.Position>();
+  const [position, setPosition] = useState<[number, number] | undefined>();
 
   const mapEvents: MapProps['events'] = {
     click: (event: any) => {
@@ -27,7 +27,9 @@ export default function AutonaviMap() {
     <AutonaviMapStyle>
       <ProCard>
         <div style={{ height: 500 }}>
-          <Map events={mapEvents}>{position && <Marker position={position} />}</Map>
+          <Map WebGLParams={{}} events={mapEvents}>
+            {position && <Marker position={position} />}
+          </Map>
         </div>
       </ProCard>
     </AutonaviMapStyle>

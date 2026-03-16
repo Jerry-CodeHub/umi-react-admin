@@ -8,10 +8,8 @@ import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useRef, useState } from 'react';
 
 const Unit = () => {
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
   const [messageApi, contextHolder] = message.useMessage();
   const [viewer, setViewer] = useState(null as any);
-  const viewerRef = useRef(viewer);
   const draggingEntityRef = useRef(null); // 正在拖拽的实体
 
   // NOTE 添加图标
@@ -72,7 +70,7 @@ const Unit = () => {
     }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
     // 鼠标左键释放事件
-    handler.setInputAction((movement) => {
+    handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
       if (isDragging && draggingEntityRef.current) {
         // 获取鼠标的地理位置
         const cartesian = viewer.camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
@@ -83,7 +81,9 @@ const Unit = () => {
           const newLatitude = Cesium.Math.toDegrees(cartographic.latitude);
 
           // 更新实体位置
-          draggingEntityRef.current.position = Cesium.Cartesian3.fromDegrees(newLongitude, newLatitude);
+          (draggingEntityRef.current as any).position = new Cesium.ConstantPositionProperty(
+            Cesium.Cartesian3.fromDegrees(newLongitude, newLatitude),
+          );
         }
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -133,7 +133,6 @@ const Unit = () => {
 
     setViewer(viewer);
     handleAddDrag(viewer);
-    viewerRef.current = viewer;
 
     // 2, 添加一个点击事件来显示位置坐标：
     viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement: { position: Cesium.Cartesian2 }) {
@@ -153,14 +152,9 @@ const Unit = () => {
 
     // 销毁 Cesium
     return () => {
-      viewer.destroy();
+      if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
-
-  // NOTE ref
-  useEffect(() => {
-    viewerRef.current = viewer;
-  }, [viewer]);
 
   // NOTE 绘制矩形区域
   const handlerRef = useRef() as any;

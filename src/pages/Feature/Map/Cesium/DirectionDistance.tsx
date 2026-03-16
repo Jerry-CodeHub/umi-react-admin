@@ -16,7 +16,6 @@ import 'cesium/Build/Cesium/Widgets/widgets.css';
 import React, { useEffect, useState } from 'react';
 
 const DirectionDistance: React.FC = () => {
-  Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
   const [viewer, setViewer] = useState(null as any);
 
   useEffect(() => {
@@ -55,7 +54,7 @@ const DirectionDistance: React.FC = () => {
 
     // 销毁
     return () => {
-      viewer.destroy();
+      if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
 

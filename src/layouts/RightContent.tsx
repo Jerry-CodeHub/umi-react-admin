@@ -9,7 +9,6 @@ const safeLocalStorage = {
 
 const RightContent = () => {
   const [messageApi, contextHolder] = message.useMessage();
-  // NOTE: 多语言
   const intl = useIntl();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [localeType, setLocaleType] = useState(safeLocalStorage.getItem('umi_locale') || 'zh-CN');
@@ -46,7 +45,6 @@ const RightContent = () => {
   return (
     <>
       {contextHolder}
-      {/* NOTE: user */}
       <Popover
         title=""
         trigger="hover"
@@ -72,7 +70,6 @@ const RightContent = () => {
 
       <span className="mr-5 border-2 rounded-lg h-7" />
 
-      {/* NOTE: 换肤 */}
       <Popover
         trigger="hover"
         placement="bottom"
@@ -96,7 +93,6 @@ const RightContent = () => {
         <Button className="flex items-center justify-center" icon={<SkinOutlined />} />
       </Popover>
 
-      {/* NOTE: 多语言 */}
       <Popover
         className="mr-5 text-2xl"
         trigger="hover"
@@ -121,7 +117,6 @@ const RightContent = () => {
         <Button className="flex items-center justify-center" icon={<GlobalOutlined />} />
       </Popover>
 
-      {/* NOTE: GitHub 链接 */}
       <Button
         className="mr-6"
         icon={<GithubOutlined />}

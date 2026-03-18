@@ -1,4 +1,3 @@
-// 运行时配置
 import ErrorBoundary from '@/components/ErrorBoundary';
 import RightContent from '@/layouts/RightContent';
 import { appList } from '@/layouts/_defaultProps';
@@ -7,8 +6,8 @@ import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { getInitialState as libGetInitialState } from './utils/Auth/initalState';
 import { requestConfig } from './utils/requestConfig';
 
-// NOTE: cesium-heatmap 插件需要全局引入 Cesium 库
-// 声明全局 Cesium 类型
+// cesium-heatmap 等插件依赖全局 window.Cesium，需在此挂载
+// 同时声明类型以避免 TS 报错
 declare global {
   interface Window {
     Cesium: typeof import('cesium');
@@ -16,32 +15,27 @@ declare global {
 }
 
 import * as Cesium from 'cesium';
-// 仅在需要时挂载到 window，避免全局污染；同时统一初始化 Cesium Ion token
+// 防止 SSR 或模块重复加载时重复挂载，也避免覆盖已有实例
 if (typeof window !== 'undefined' && !window.Cesium) {
   window.Cesium = Cesium;
 }
+// CESIUM_ION_TOKEN 由构建时环境变量注入（见 config/config.ts define 配置）
 if (typeof CESIUM_ION_TOKEN !== 'undefined' && CESIUM_ION_TOKEN) {
   Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN as string;
 }
 
-// NOTE:全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 export async function getInitialState() {
-  // return { name: '@umijs/max' };
   return await libGetInitialState();
 }
 
-// NOTE: Request 运行时配置
 export const request: RequestConfig = requestConfig;
 
-// NOTE: Layout 运行时配置
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const layout: RunTimeLayoutConfig = (initialState) => {
   return {
     title: 'React Admin',
-    // logo: '/umi-react-admin/logo.svg',
     logo: '/logo.svg',
-    // 默认布局调整
     rightContentRender: () => <RightContent />,
     menuHeaderRender: undefined,
     appList,
@@ -50,27 +44,17 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     fixSiderbar: true,
     fixHeader: true,
     childrenRender: (children) => <ErrorBoundary>{children}</ErrorBoundary>,
-
-    // 其他属性见：https://procomponents.ant.design/components/layout#prolayout
+    // 更多 ProLayout 属性见：https://procomponents.ant.design/components/layout#prolayout
   };
 };
 
-// NOTE: Antd 运行时配置
 export const antd: RuntimeAntdConfig = (memo) => {
   memo.theme ??= {};
-  // 1, dark 算法
-  // 默认算法 theme.defaultAlgorithm
-  // 暗色算法 theme.darkAlgorithm
-  // 紧凑算法 theme.compactAlgorithm
-
-  // memo.theme.algorithm = theme.darkAlgorithm; // 配置 antd5 的预设 dark 算法
-
-  // 2. 组合使用暗色算法与紧凑算法
-  // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
-
+  // 如需切换主题算法，取消对应行注释：
+  // theme.defaultAlgorithm（默认）/ theme.darkAlgorithm（暗色）/ theme.compactAlgorithm（紧凑）
+  // 也可组合使用：algorithm: [theme.darkAlgorithm, theme.compactAlgorithm]
   memo.appConfig = {
     message: {
-      // 配置 message 最大显示数，超过限制时，最早的消息会被自动关闭
       maxCount: 3,
     },
   };

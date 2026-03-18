@@ -26,5 +26,4 @@ const DemoLine = () => {
   return <Line {...config} />;
 };
 
-// ReactDOM.render(<DemoLine />, document.getElementById('container'));
 export default DemoLine;

@@ -40,6 +40,4 @@ const DemoSankey = () => {
   return <Sankey {...config} />;
 };
 
-// ReactDOM.render(<DemoSankey />, document.getElementById('container'));
-
 export default DemoSankey;

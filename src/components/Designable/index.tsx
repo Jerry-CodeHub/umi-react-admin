@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-// import { createRoot } from 'react-dom/client'
 import { saveSchema } from '@/components/Designable/service';
 import {
   ActionsWidget,
@@ -29,6 +27,7 @@ import {
 } from '@pind/designable-react';
 import { SettingsForm, setNpmCDNRegistry } from '@pind/designable-react-settings-form';
 import { Alert } from 'antd';
+import { useMemo } from 'react';
 setNpmCDNRegistry('//unpkg.com');
 const { ErrorBoundary } = Alert;
 GlobalRegistry.registerDesignerLocales({
@@ -120,11 +119,3 @@ const Designables = () => {
 };
 
 export default Designables;
-
-// const container = document.getElementById('root')
-// if (container) {
-//   const root = createRoot(container)
-//   root.render(<App />)
-// } else {
-//   console.error('dom root is non-existent')
-// }

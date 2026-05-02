@@ -4,13 +4,17 @@
   "scripts": {
     "build": "max build",
     "build:github": "cross-env UMI_ENV=github max build",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
     "format": "prettier --cache --write .",
     "postinstall": "max setup",
+    "lint": "max lint",
     "prepare": "husky install",
     "preview": "pnpm build && pnpm max preview --port 8001",
     "setup": "max setup",
     "start": "cross-env max dev",
-    "start:github": "cross-env UMI_ENV=github max dev"
+    "start:github": "cross-env UMI_ENV=github max dev",
+    "test": "node --test scripts/*.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css,less}": [

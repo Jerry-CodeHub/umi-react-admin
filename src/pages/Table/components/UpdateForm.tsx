@@ -48,11 +48,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => (
   >
     <StepsForm.StepForm
       initialValues={{
+        id: props.values.id,
         name: props.values.name,
         nickName: props.values.nickName,
       }}
       title="基本信息"
     >
+      <ProFormText hidden name="id" />
       <ProFormText width="md" name="name" label="规则名称" rules={[{ required: true, message: '请输入规则名称！' }]} />
       <ProFormTextArea
         name="desc"

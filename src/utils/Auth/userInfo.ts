@@ -1,15 +1,18 @@
 // use to init UserInfo
 export type UserClaim = {
-  userName: string;
-  userEmail: string;
+  name: string;
+  email: string;
+  nickName?: string;
 };
 
 export class UserInfo {
-  public userName: string;
-  public userEmail: string;
+  public name: string;
+  public email: string;
+  public nickName: string;
 
   constructor(userClaim: UserClaim) {
-    this.userName = userClaim.userName || '';
-    this.userEmail = userClaim.userEmail || '';
+    this.name = userClaim.name || '';
+    this.email = userClaim.email || '';
+    this.nickName = userClaim.nickName || userClaim.name || '';
   }
 }

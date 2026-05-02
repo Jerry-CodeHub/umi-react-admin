@@ -1,10 +1,16 @@
+import { AUTH_TOKEN_KEY } from '@/constants';
 import { GithubOutlined, GlobalOutlined, SkinOutlined, UserOutlined } from '@ant-design/icons';
-import { setLocale, useIntl } from '@umijs/max';
+import { history, setLocale, useIntl } from '@umijs/max';
 import { Avatar, Button, Popover, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 const safeLocalStorage = {
   getItem: (key: string) => (typeof window !== 'undefined' ? localStorage.getItem(key) : null),
+  removeItem: (key: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  },
 };
 
 const RightContent = () => {
@@ -54,7 +60,9 @@ const RightContent = () => {
           <div
             className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-zinc-200"
             onClick={() => {
-              // TODO: 实现登出功能
+              safeLocalStorage.removeItem(AUTH_TOKEN_KEY);
+              messageApi.success(intl.formatMessage({ id: 'Logout' }));
+              history.push('/login');
             }}
           >
             {intl.formatMessage({ id: 'Logout' })}

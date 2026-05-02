@@ -1,25 +1,37 @@
-import { handlerComputePoint, mergePolygons, mergePolygonsPath } from '@/utils/MapCompute/cesiumCompute';
+import { handlerComputePoint, mergePolygons, mergePolygonsPath, type Point } from '@/utils/MapCompute/cesiumCompute';
 import { iconData } from '@/utils/MapCompute/dataEnd';
 import { demodulationResultList, interceptResultList, locationResultList } from '@/utils/MapCompute/exportJson';
+import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 // import * as turf from '@turf/turf';
 // import turf from '/public/js/turf.min.js';
-import { pathPointData } from '@/utils/MapCompute/ngeohash/pathPointData';
 import { Alert, Button, message } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 // import RBush from 'rbush';
 import React, { useEffect, useState } from 'react';
 
+setupCesium(Cesium);
+
+const pathPointDataUrl = `${CESIUM_BASE_URL.replace(/\/Cesium\/?$/, '')}/data/pathPointData.json`;
+
+const loadPathPointData = async (): Promise<Point[][]> => {
+  const response = await fetch(pathPointDataUrl);
+  if (!response.ok) {
+    throw new Error(`路径点数据加载失败: ${response.status}`);
+  }
+  return (await response.json()) as Point[][];
+};
+
 const Trajectory: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
-  const [viewer, setViewer] = useState(null as any);
+  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
   // let turf = window.turf;
   // console.log(turf);
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesiumContainer', {
+    const viewer = new Cesium.Viewer('cesium-container', {
       // 去除所有的控件
       animation: false, // 是否显示动画控件
       // baseLayerPicker: false, // 是否显示图层选择控件
@@ -63,7 +75,7 @@ const Trajectory: React.FC = () => {
   }, []);
 
   // NOTE 添加图标
-  const handlerIcon = (viewer: any) => {
+  const handlerIcon = (viewer: Cesium.Viewer) => {
     // 添加图标
     let item = iconData[0];
     let entity = viewer.entities.add({
@@ -74,28 +86,33 @@ const Trajectory: React.FC = () => {
         scale: 0.3,
       },
     });
-    entity.properties = {
+    entity.properties = new Cesium.PropertyBag({
       text: item.label,
-    };
+    });
   };
 
   // NOTE 绘制开始
   const [drawing, setDrawing] = useState(false);
   const drawingRef = React.useRef(false);
-  const positionsArrRef = React.useRef([] as any[]);
-  const positionsGeoRef = React.useRef([] as any[]);
-  const handlerRef = React.useRef(null as any);
+  const positionsArrRef = React.useRef<Cesium.Cartesian3[]>([]);
+  const positionsGeoRef = React.useRef<Point[]>([]);
+  const handlerRef = React.useRef<Cesium.ScreenSpaceEventHandler | null>(null);
   const handlerDraw = () => {
+    if (!viewer) return;
+
     // 1, 点击按钮开始绘制
     drawingRef.current = true;
     setDrawing(true);
-    viewer.cesiumWidget._element.style.cursor = 'crosshair'; // 鼠标样式为十字
+    (viewer.container as HTMLElement).style.cursor = 'crosshair'; // 鼠标样式为十字
 
     // 获取所有实体
     let entities = viewer.entities.values;
-    let entity = entities.find((item: any) => item.properties.text._value === 'A');
+    let entity = entities.find((item) => item.properties?.getValue(Cesium.JulianDate.now())?.text === 'A');
+    if (!entity) return;
     // 计算entity的经纬度
-    let cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(entity.position._value);
+    const entityPosition = entity.position?.getValue(Cesium.JulianDate.now());
+    if (!entityPosition) return;
+    let cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(entityPosition);
     let lng = Cesium.Math.toDegrees(cartographic.longitude);
     let lat = Cesium.Math.toDegrees(cartographic.latitude);
 
@@ -107,7 +124,7 @@ const Trajectory: React.FC = () => {
     // 2, 点击地图后, 在点击处绘制圆形的形状, 并且在地图上显示坐标
     handlerRef.current = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas); // 鼠标事件处理器
 
-    handlerRef.current.setInputAction((movement: any) => {
+    handlerRef.current.setInputAction((movement: { position: Cesium.Cartesian2 }) => {
       // 获取鼠标位置的笛卡尔坐标
       let cartesian = viewer.camera.pickEllipsoid(
         movement.position, // 鼠标位置
@@ -118,7 +135,6 @@ const Trajectory: React.FC = () => {
         let cartographic = Cesium.Cartographic.fromCartesian(cartesian); // 笛卡尔坐标转经纬度
         let longitudeString = Cesium.Math.toDegrees(cartographic.longitude); // 经度
         let latitudeString = Cesium.Math.toDegrees(cartographic.latitude); // 纬度
-        let heightString = cartographic.height.toFixed(2); // 高度
 
         // 绘制圆形
         viewer.entities.add({
@@ -162,11 +178,13 @@ const Trajectory: React.FC = () => {
 
   // NOTE 绘制完成回调
   const handlerDrawOk = () => {
+    if (!viewer) return;
+
     setDrawing(false);
     drawingRef.current = false;
-    viewer.cesiumWidget._element.style.cursor = 'default'; // 鼠标样式为默认
+    (viewer.container as HTMLElement).style.cursor = 'default'; // 鼠标样式为默认
 
-    handlerRef.current.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    handlerRef.current?.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     let dataPath = handlerComputePoint(positionsGeoRef.current, 1000);
 
@@ -197,6 +215,8 @@ const Trajectory: React.FC = () => {
 
   // NOTE 相交合并/包含去重, 组成新的路径渲染
   const handlerLatLon = () => {
+    if (!viewer) return;
+
     let intercept = structuredClone(interceptResultList);
     let location = structuredClone(locationResultList);
     let demodulation = structuredClone(demodulationResultList);
@@ -208,22 +228,22 @@ const Trajectory: React.FC = () => {
     // ];
 
     // 数组1
-    let interceptPath = [] as any[];
-    intercept.forEach((item: any) => {
+    let interceptPath: Point[] = [];
+    intercept.forEach((item) => {
       interceptPath.push({ longitude: item.longitude, latitude: item.latitude });
     });
     interceptPath.push({ longitude: intercept[0].longitude, latitude: intercept[0].latitude });
 
     // 数组2
-    let locationPath = [] as any[];
-    location.forEach((item: any) => {
+    let locationPath: Point[] = [];
+    location.forEach((item) => {
       locationPath.push({ longitude: item.longitude, latitude: item.latitude });
     });
     locationPath.push({ longitude: location[0].longitude, latitude: location[0].latitude });
 
     // 数组3
-    let demodulationPath = [] as any[];
-    demodulation.forEach((item: any) => {
+    let demodulationPath: Point[] = [];
+    demodulation.forEach((item) => {
       demodulationPath.push({ longitude: item.longitude, latitude: item.latitude });
     });
     demodulationPath.push({ longitude: demodulationPath[0].longitude, latitude: demodulationPath[0].latitude }); // 添加第一个点, 形成闭合路径
@@ -234,7 +254,7 @@ const Trajectory: React.FC = () => {
     polygonArrays.forEach((item) => {
       viewer.entities.add({
         polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p: any) => [p.longitude, p.latitude])), // 传入的是一个数组
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
           material: Cesium.Color.RED.withAlpha(0.3),
         },
       });
@@ -247,7 +267,7 @@ const Trajectory: React.FC = () => {
       // 在 Cesium 中显示合并后的多边形
       viewer.entities.add({
         polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p: any) => [p.longitude, p.latitude])), // 传入的是一个数组
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
           // material: Cesium.Color.RED.withAlpha(0.5),
           material: Cesium.Color.YELLOW.withAlpha(0.3),
           height: 50000,
@@ -259,36 +279,47 @@ const Trajectory: React.FC = () => {
   };
 
   // NOTE 相交合并/包含去重, 组成新的路径渲染 200+ (214)
-  const handlerMergeNum = () => {
-    let polygonArrays = pathPointData;
+  const handlerMergeNum = async () => {
+    if (!viewer) return;
+
     try {
+      const polygonArrays = await loadPathPointData();
       const mergedPolygon = mergePolygonsPath(polygonArrays);
 
       // 在 Cesium 中显示合并后的多边形
       viewer.entities.add({
         polygon: {
           // hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])),
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p: any) => [p.longitude, p.latitude])),
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])),
           material: Cesium.Color.RED.withAlpha(0.5),
         },
       });
     } catch (error) {
       console.error('合并多边形错误:', error);
+      messageApi.error(error instanceof Error ? error.message : '路径点数据处理失败');
     }
   };
 
   // NOTE 不合并渲染 200+ (214)
-  const handlerFalseMerge = () => {
-    // 全部渲染不做合并
-    pathPointData.forEach((item, index) => {
-      viewer.entities.add({
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p: any) => [p.longitude, p.latitude])), // 传入的是一个数组
-          material: Cesium.Color.RED.withAlpha(0.3),
-          height: index * 1000,
-        },
+  const handlerFalseMerge = async () => {
+    if (!viewer) return;
+
+    try {
+      const pathPointData = await loadPathPointData();
+      // 全部渲染不做合并
+      pathPointData.forEach((item, index) => {
+        viewer.entities.add({
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
+            material: Cesium.Color.RED.withAlpha(0.3),
+            height: index * 1000,
+          },
+        });
       });
-    });
+    } catch (error) {
+      console.error('加载多边形数据错误:', error);
+      messageApi.error(error instanceof Error ? error.message : '路径点数据加载失败');
+    }
   };
 
   return (
@@ -296,7 +327,7 @@ const Trajectory: React.FC = () => {
       {contextHolder}
       <Alert className="mb-2" message="轨迹" type="success" />
       <ProCard>
-        <div id="cesiumContainer" className="static" />
+        <div id="cesium-container" className="static" />
         <div className="absolute top-8 left-8">
           {drawing ? (
             <Button id="startDrawing" className="text-cyan-50 hover:text-gray-900" onClick={() => handlerDrawOk()}>

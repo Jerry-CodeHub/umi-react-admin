@@ -9,18 +9,21 @@ import {
 } from '@/utils/MapCompute/cesiumCompute';
 import { dataPath } from '@/utils/MapCompute/dataEnd';
 import { demodulationResultList, interceptResultList, locationResultList } from '@/utils/MapCompute/exportJson';
+import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 import { Alert, Button, Tooltip } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import React, { useEffect, useState } from 'react';
 
+setupCesium(Cesium);
+
 const DirectionDistance: React.FC = () => {
-  const [viewer, setViewer] = useState(null as any);
+  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesiumContainer', {
+    const viewer = new Cesium.Viewer('cesium-container', {
       // 去除所有的控件
       animation: false, // 是否显示动画控件
       // baseLayerPicker: false, // 是否显示图层选择控件
@@ -60,6 +63,8 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 根据方向(度)和距离(km)生成路径
   const handlePolygonPath = () => {
+    if (!viewer) return;
+
     let startLongitude = 116.3974;
     let startLatitude = 39.9093;
     let startHeight = 0;
@@ -78,6 +83,8 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 每一个点的终点为下一个点的起点
   const handlePointPath = () => {
+    if (!viewer) return;
+
     let startLongitude = 116.3974;
     let startLatitude = 39.9093;
     let startHeight = 0;
@@ -95,6 +102,8 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 经纬度渲染
   const handlerLatLon = () => {
+    if (!viewer) return;
+
     let intercept = structuredClone(interceptResultList);
     let location = structuredClone(locationResultList);
     let demodulation = structuredClone(demodulationResultList);
@@ -103,7 +112,6 @@ const DirectionDistance: React.FC = () => {
     viewer.entities.add({
       polygon: {
         hierarchy: interceptList,
-        width: 2,
         // 内部填充颜色 透明度
         material: Cesium.Color.RED.withAlpha(0.5),
         // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
@@ -116,7 +124,6 @@ const DirectionDistance: React.FC = () => {
     viewer.entities.add({
       polygon: {
         hierarchy: locationList,
-        width: 2,
         // 内部填充颜色 透明度
         material: Cesium.Color.BLUE.withAlpha(0.5),
         // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
@@ -129,7 +136,6 @@ const DirectionDistance: React.FC = () => {
     viewer.entities.add({
       polygon: {
         hierarchy: demodulationList,
-        width: 2,
         // 内部填充颜色 透明度
         material: Cesium.Color.GREEN.withAlpha(0.5),
         // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
@@ -141,6 +147,8 @@ const DirectionDistance: React.FC = () => {
 
   // NOTE 方向距离渲染
   const handlerDistance = () => {
+    if (!viewer) return;
+
     let intercept = structuredClone(interceptResultList);
     let location = structuredClone(locationResultList);
     let demodulation = structuredClone(demodulationResultList);
@@ -178,7 +186,7 @@ const DirectionDistance: React.FC = () => {
     <>
       <Alert className="mb-2" message="方向距离算法" type="success" />
       <ProCard>
-        <div id="cesiumContainer" />
+        <div id="cesium-container" />
         <Tooltip title="根据方向(度)和距离(km)生成路径 (起始点为固定点路径完成连接终点)">
           <Button onClick={() => handlePolygonPath()} className="mt-2">
             以固定点为原点连接终点

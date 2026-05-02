@@ -1,4 +1,7 @@
+import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import * as Cesium from 'cesium';
+
+setupCesium(Cesium);
 
 class CesiumMap {
   private viewer: Cesium.Viewer;
@@ -10,8 +13,6 @@ class CesiumMap {
   }
 
   private initViewer() {
-    // 每个 Viewer 实例需独立设置 token，确保在 app.tsx 全局初始化之外也能正常鉴权
-    Cesium.Ion.defaultAccessToken = process.env.CESIUM_ION_TOKEN as string;
     return new Cesium.Viewer(this.cesiumContainer, {
       animation: false,
       baseLayerPicker: false,

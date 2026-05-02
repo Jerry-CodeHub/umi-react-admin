@@ -2,7 +2,7 @@ import { ProCard } from '@ant-design/pro-components';
 import * as d3 from 'd3';
 import { axisBottom, axisTop, pointer, select } from 'd3';
 import { useEffect, useRef } from 'react';
-import { data, frequencyTicks } from './components/DataUnit.ts';
+import { data, frequencyTicks, type FrequencyMatch, type FrequencyRange } from './components/DataUnit.ts';
 
 const Frequency = () => {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -15,10 +15,52 @@ const Frequency = () => {
     return `${(hz / 1e3).toFixed(0)}kHz`;
   };
 
+  const escapeHtml = (value: unknown) =>
+    String(value).replace(/[&<>"']/g, (char) => {
+      const entities: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      };
+      return entities[char] || char;
+    });
+
+  const safeTooltipColor = (color: string) => (/^#[0-9a-f]{3,8}$/i.test(color) ? color : '#1677ff');
+
+  const renderMatchDetail = (match: FrequencyMatch) => `
+    <div style="margin-bottom: 8px;">
+      <div style="color: ${safeTooltipColor(match.color)}; font-weight: bold;">
+        ${escapeHtml(match.typeName)} - ${escapeHtml(match.frequencyName)}
+      </div>
+      <div>
+        频率范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
+      </div>
+      <pre style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0 0 0; white-space: pre-wrap;">
+        ${escapeHtml(JSON.stringify(match.customInfo, null, 2))}
+      </pre>
+    </div>
+  `;
+
+  const renderFrequencyDetail = (typeName: string, range: FrequencyRange) => `
+    <div>
+      <div style="font-weight: bold; margin-bottom: 4px;">
+        ${escapeHtml(typeName)} - ${escapeHtml(range.frequencyName)}
+      </div>
+      <div style="margin-bottom: 4px;">
+        频率范围: ${formatFrequency(range.range[0])} - ${formatFrequency(range.range[1])}
+      </div>
+      <pre style="background: #f5f5f5; padding: 8px; margin-top: 4px; border-radius: 4px; white-space: pre-wrap;">
+        ${escapeHtml(JSON.stringify(range.customInfo, null, 2))}
+      </pre>
+    </div>
+  `;
+
   // 首先定义一个函数来计算每个类型组所需的实际高度
-  const calculateTypeHeight = (ranges: any[]) => {
+  const calculateTypeHeight = (ranges: FrequencyRange[]) => {
     // 创建一个更精确的重叠检测算法
-    const levels = new Map();
+    const levels = new Map<number, FrequencyRange[]>();
     ranges.forEach((range) => {
       let level = 0;
       let placed = false;
@@ -26,7 +68,7 @@ const Frequency = () => {
       while (!placed) {
         const currentLevel = levels.get(level) || [];
         // 检查当前级别是否有重叠
-        const hasOverlap = currentLevel.some((existing: any) => {
+        const hasOverlap = currentLevel.some((existing: FrequencyRange) => {
           const [start1, end1] = range.range;
           const [start2, end2] = existing.range;
           return !(end1 < start2 || start1 > end2);
@@ -37,7 +79,7 @@ const Frequency = () => {
           if (!levels.has(level)) {
             levels.set(level, []);
           }
-          levels.get(level).push(range);
+          levels.get(level)!.push(range);
           range.level = level; // 存储级别信息
           placed = true;
         } else {
@@ -56,7 +98,7 @@ const Frequency = () => {
   };
 
   useEffect(() => {
-    if (!svgRef.current || !data?.length) return;
+    if (!svgRef.current || !containerRef.current || !data?.length) return;
 
     // 清除现有内容
     select(svgRef.current).selectAll('*').remove();
@@ -68,9 +110,7 @@ const Frequency = () => {
     // const height = data.length * typeHeight + margin.top + margin.bottom;
 
     // 计算每个类型的高度并存储
-    const typeHeights = data.map((typeData: { ranges: { range: [number, number]; level?: number }[] }) =>
-      calculateTypeHeight(typeData.ranges),
-    );
+    const typeHeights = data.map((typeData) => calculateTypeHeight(typeData.ranges));
 
     // 计算总高度
     const totalHeight =
@@ -105,16 +145,17 @@ const Frequency = () => {
     const frequencyMarkerGroup = svg.append('g').attr('class', 'frequency-markers').style('pointer-events', 'none');
 
     // 创建等距比例尺
-    const xScale: any = d3
-      .scalePoint()
-      .domain(frequencyTicks.map((t: any) => t.label))
+    const xScale = d3
+      .scalePoint<string>()
+      .domain(frequencyTicks.map((t) => t.label))
       .range([0, width])
       .padding(0.5);
+    const getTickPosition = (label: string) => xScale(label) ?? 0;
 
     // 创建频率值映射
-    const valueMap = new Map(frequencyTicks.map((t: any) => [t.label, t.value])); // 创建频率值映射
+    const valueMap = new Map(frequencyTicks.map((t) => [t.label, t.value] as const)); // 创建频率值映射
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const labelMap = new Map(frequencyTicks.map((t: any) => [t.value, t.label])); // 创建标签映射
+    const labelMap = new Map(frequencyTicks.map((t) => [t.value, t.label] as const)); // 创建标签映射
 
     // 创建tooltip
     const tooltip = d3
@@ -151,6 +192,7 @@ const Frequency = () => {
 
     // 添加鼠标移动事件监听
     backgroundLayer.on('mousemove', function (event) {
+      const mouseEvent = event as MouseEvent;
       // 1. 获取鼠标位置并调整到正确的坐标系
       const [mouseX] = pointer(event);
 
@@ -160,8 +202,8 @@ const Frequency = () => {
       let rightTick = frequencyTicks[1];
 
       for (let i = 0; i < frequencyTicks.length - 1; i++) {
-        const currentTickX = xScale(frequencyTicks[i].label);
-        const nextTickX = xScale(frequencyTicks[i + 1].label);
+        const currentTickX = getTickPosition(frequencyTicks[i].label);
+        const nextTickX = getTickPosition(frequencyTicks[i + 1].label);
 
         if (mouseX >= currentTickX && mouseX <= nextTickX) {
           leftTick = frequencyTicks[i];
@@ -172,8 +214,8 @@ const Frequency = () => {
 
       // 3. 计算当前位置对应的频率值
       // 使用线性插值计算鼠标位置对应的频率值
-      const leftX = xScale(leftTick.label);
-      const rightX = xScale(rightTick.label);
+      const leftX = getTickPosition(leftTick.label);
+      const rightX = getTickPosition(rightTick.label);
       const progress = (mouseX - leftX) / (rightX - leftX);
 
       // 使用对数插值来处理频率值，因为频率范围是对数刻度
@@ -182,13 +224,13 @@ const Frequency = () => {
       );
 
       // 4. 查找匹配的频率范围
-      const matches = data.flatMap((type: any) =>
+      const matches = data.flatMap((type) =>
         type.ranges
-          .filter((range: any) => {
+          .filter((range) => {
             // 精确的范围匹配
             return currentFrequency >= range.range[0] && currentFrequency <= range.range[1];
           })
-          .map((range: any) => ({
+          .map((range) => ({
             typeName: type.typeName,
             ...range,
           })),
@@ -214,23 +256,7 @@ const Frequency = () => {
           </div>
           ${
             matches.length > 0
-              ? matches
-                  .map(
-                    (match: any) => `
-              <div style="margin-bottom: 8px;">
-                <div style="color: ${match.color}; font-weight: bold;">
-                  ${match.typeName} - ${match.frequencyName}
-                </div>
-                <div>
-                  频率范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
-                </div>
-                <pre style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0 0 0;">
-                  ${JSON.stringify(match.customInfo, null, 2)}
-                </pre>
-              </div>
-            `,
-                  )
-                  .join('<hr style="margin: 8px 0;">')
+              ? matches.map((match: FrequencyMatch) => renderMatchDetail(match)).join('<hr style="margin: 8px 0;">')
               : '<div style="color: #666;">当前频率范围内无匹配项</div>'
           }
         </div>
@@ -238,8 +264,8 @@ const Frequency = () => {
 
       tooltip
         .style('visibility', 'visible')
-        .style('left', `${event.pageX - 240}px`)
-        .style('top', `${event.pageY - 70}px`)
+        .style('left', `${mouseEvent.pageX - 240}px`)
+        .style('top', `${mouseEvent.pageY - 70}px`)
         .html(tooltipContent);
     });
 
@@ -251,6 +277,7 @@ const Frequency = () => {
 
     // 处理鼠标点击事件
     backgroundLayer.on('click', function (event) {
+      const mouseEvent = event as MouseEvent;
       // 1. 获取鼠标位置并调整到正确的坐标系
       const [mouseX] = pointer(event);
 
@@ -260,8 +287,8 @@ const Frequency = () => {
       let rightTick = frequencyTicks[1];
 
       for (let i = 0; i < frequencyTicks.length - 1; i++) {
-        const currentTickX = xScale(frequencyTicks[i].label);
-        const nextTickX = xScale(frequencyTicks[i + 1].label);
+        const currentTickX = getTickPosition(frequencyTicks[i].label);
+        const nextTickX = getTickPosition(frequencyTicks[i + 1].label);
 
         if (mouseX >= currentTickX && mouseX <= nextTickX) {
           leftTick = frequencyTicks[i];
@@ -272,8 +299,8 @@ const Frequency = () => {
 
       // 3. 计算当前位置对应的频率值
       // 使用线性插值计算鼠标位置对应的频率值
-      const leftX = xScale(leftTick.label);
-      const rightX = xScale(rightTick.label);
+      const leftX = getTickPosition(leftTick.label);
+      const rightX = getTickPosition(rightTick.label);
       const progress = (mouseX - leftX) / (rightX - leftX);
 
       // 使用对数插值来处理频率值，因为频率范围是对数刻度
@@ -282,13 +309,13 @@ const Frequency = () => {
       );
 
       // 4. 查找匹配的频率范围
-      const matches = data.flatMap((type: any) =>
+      const matches = data.flatMap((type) =>
         type.ranges
-          .filter((range: any) => {
+          .filter((range) => {
             // 精确的范围匹配
             return currentFrequency >= range.range[0] && currentFrequency <= range.range[1];
           })
-          .map((range: any) => ({
+          .map((range) => ({
             typeName: type.typeName,
             ...range,
           })),
@@ -311,7 +338,7 @@ const Frequency = () => {
             //           matches.length > 0
             //             ? matches
             //                 .map(
-            //                   (match: any) => `
+            //                   (match: FrequencyMatch) => `
             //             <div style="margin-bottom: 8px;">
             //               <div style="color: ${match.color}; font-weight: bold;">
             //                 ${match.typeName} - ${match.frequencyName}
@@ -333,16 +360,17 @@ const Frequency = () => {
 
       tooltip
         .style('visibility', 'visible')
-        .style('left', `${event.pageX - 240}px`)
-        .style('top', `${event.pageY - 70}px`)
+        .style('left', `${mouseEvent.pageX - 240}px`)
+        .style('top', `${mouseEvent.pageY - 70}px`)
         .html(tooltipContent);
     });
 
     // 创建频率查找函数
-    const findMatchingFrequencies = (hz: any) => {
-      const matches: any = [];
-      data.forEach((type: any) => {
-        type.ranges.forEach((range: any) => {
+    const findMatchingFrequencies = (hz: number | undefined) => {
+      const matches: FrequencyMatch[] = [];
+      if (hz === undefined) return matches;
+      data.forEach((type) => {
+        type.ranges.forEach((range) => {
           if (hz >= range.range[0] && hz <= range.range[1]) {
             matches.push({
               typeName: type.typeName,
@@ -355,7 +383,7 @@ const Frequency = () => {
     };
 
     // 创建轴
-    const createAxis = (position: any) => {
+    const createAxis = (position: 'top' | 'bottom') => {
       const axis = position === 'top' ? axisTop(xScale) : axisBottom(xScale); // 创建轴
       const yPos = position === 'top' ? 0 : totalHeight - margin.top; // 计算轴的位置
 
@@ -369,17 +397,18 @@ const Frequency = () => {
       axisGroup
         .selectAll('.tick')
         .style('cursor', 'pointer')
-        .each(function (tickValue: any) {
+        .each(function (tickValue) {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
-          const tickNode = this as any;
-          tickNode.addEventListener('mousemove', (event: any) => {
-            event.stopPropagation();
+          const tickNode = this as Element;
+          tickNode.addEventListener('mousemove', (event) => {
+            const mouseEvent = event as MouseEvent;
+            mouseEvent.stopPropagation();
 
             // 清除之前的虚线
             guidelineGroup.selectAll('*').remove();
 
             // 获取刻度的x位置
-            const xPos: any = xScale(tickValue);
+            const xPos = getTickPosition(String(tickValue)) ?? 0;
 
             // 添加新的虚线
             guidelineGroup
@@ -395,11 +424,11 @@ const Frequency = () => {
               .style('pointer-events', 'none');
 
             // 查找匹配的频率
-            const tickHz = frequencyTicks.find((t: any) => t.label === tickValue)?.value;
+            const tickHz = frequencyTicks.find((t) => t.label === tickValue)?.value;
             if (tickHz) {
-              const matches: any = [];
-              data.forEach((type: any) => {
-                type.ranges.forEach((range: any) => {
+              const matches: FrequencyMatch[] = [];
+              data.forEach((type) => {
+                type.ranges.forEach((range) => {
                   if (tickHz >= range.range[0] && tickHz <= range.range[1]) {
                     matches.push({
                       typeName: type.typeName,
@@ -411,28 +440,14 @@ const Frequency = () => {
               if (matches.length > 0) {
                 tooltip
                   .style('visibility', 'visible')
-                  .style('left', `${event.pageX - 240}px`)
-                  .style('top', `${event.pageY - 60}px`).html(`
+                  .style('left', `${mouseEvent.pageX - 240}px`)
+                  .style('top', `${mouseEvent.pageY - 60}px`).html(`
                     <div>
                       <div style="font-weight: bold; margin-bottom: 8px;">
-                        频率: ${tickValue}
+                        频率: ${escapeHtml(String(tickValue))}
                       </div>
                       ${matches
-                        .map(
-                          (match: any) => `
-                        <div style="margin-bottom: 8px;">
-                          <div style="color: ${match.color};">
-                            ${match.typeName} - ${match.frequencyName}
-                          </div>
-                          <div>
-                            范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
-                          </div>
-                          <pre style="background: #f5f5f5; padding: 8px; margin-top: 4px; border-radius: 4px;">
-                            ${JSON.stringify(match.customInfo, null, 2)}
-                                    </pre>
-                                  </div>
-                                `,
-                        )
+                        .map((match: FrequencyMatch) => renderMatchDetail(match))
                         .join('<hr style="margin: 8px 0;">')}
                               </div>
                             `);
@@ -440,33 +455,20 @@ const Frequency = () => {
             }
           });
         })
-        .on('click', function (event, label: any) {
-          const hz = valueMap.get(label);
+        .on('click', function (event, label: unknown) {
+          const mouseEvent = event as MouseEvent;
+          const hz = valueMap.get(String(label));
           const matches = findMatchingFrequencies(hz);
 
           if (matches.length > 0) {
             const content = matches
-              .map(
-                (match: any) => `
-              <div style="margin-bottom: 8px;">
-                <div style="font-weight: bold; margin-bottom: 4px;">
-                  ${match.typeName} - ${match.frequencyName}
-                </div>
-                <div style="margin-bottom: 4px;">
-                  频率范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
-                </div>
-                <pre style="background: #f5f5f5; padding: 8px; margin-top: 4px; border-radius: 4px; white-space: pre-wrap;">
-                  ${JSON.stringify(match.customInfo, null, 2)}
-                </pre>
-              </div>
-            `,
-              )
+              .map((match: FrequencyMatch) => renderMatchDetail(match))
               .join('<hr style="margin: 8px 0;">');
 
             tooltip
               .style('visibility', 'visible')
-              .style('left', `${event.pageX + 10}px`)
-              .style('top', `${event.pageY + 10}px`)
+              .style('left', `${mouseEvent.pageX + 10}px`)
+              .style('top', `${mouseEvent.pageY + 10}px`)
               .html(content);
           }
         })
@@ -482,7 +484,7 @@ const Frequency = () => {
 
     // 处理每个类型组
     let currentY = 0;
-    data.forEach((typeData: any, typeIndex: any) => {
+    data.forEach((typeData, typeIndex) => {
       const typeHeight = typeHeights[typeIndex];
       const typeGroup = mainGroup.append('g').attr('class', 'type-group').attr('transform', `translate(0,${currentY})`);
 
@@ -503,12 +505,12 @@ const Frequency = () => {
 
       // 处理频率重叠
       const overlapGroups = new Map();
-      typeData.ranges.forEach((range: any) => {
-        let level: any = 0;
+      typeData.ranges.forEach((range) => {
+        let level = 0;
         while (true) {
           const currentLevel = overlapGroups.get(level) || [];
           const hasOverlap = currentLevel.some(
-            (r: any) => !(range.range[1] < r.range[0] || range.range[0] > r.range[1]),
+            (r: FrequencyRange) => !(range.range[1] < r.range[0] || range.range[0] > r.range[1]),
           );
 
           if (!hasOverlap) {
@@ -527,10 +529,10 @@ const Frequency = () => {
       const getXPosition = (hz: number) => {
         // 处理边界情况
         if (hz <= frequencyTicks[0].value) {
-          return xScale(frequencyTicks[0].label);
+          return getTickPosition(frequencyTicks[0].label);
         }
         if (hz >= frequencyTicks[frequencyTicks.length - 1].value) {
-          return xScale(frequencyTicks[frequencyTicks.length - 1].label);
+          return getTickPosition(frequencyTicks[frequencyTicks.length - 1].label);
         }
 
         // 找到包含该频率值的刻度区间
@@ -550,8 +552,8 @@ const Frequency = () => {
         }
 
         // 获取刻度点的位置
-        const leftPos = xScale(leftTick.label);
-        const rightPos = xScale(rightTick.label);
+        const leftPos = getTickPosition(leftTick.label);
+        const rightPos = getTickPosition(rightTick.label);
 
         // 在对数空间中计算相对位置
         const logHz = Math.log10(hz);
@@ -564,7 +566,7 @@ const Frequency = () => {
       };
 
       const targetFrequencyRange = [1900000, 140000000];
-      // const targetFrequencyRange: any = [];
+      // const targetFrequencyRange: number[] = [];
 
       // 如果是第一个类型组，添加频率标记
       if (targetFrequencyRange.length > 0) {
@@ -615,11 +617,12 @@ const Frequency = () => {
       }
 
       // 绘制频率块
-      typeData.ranges.forEach((freq: any, i: any) => {
+      typeData.ranges.forEach((freq, i) => {
         const startX = getXPosition(freq.range[0]);
         const endX = getXPosition(freq.range[1]);
         const blockHeight = 25; // 频率块高度
-        const yOffset = 35 + freq.level * (blockHeight + 5); // 计算频率块的垂直位置
+        if (startX === null || endX === null) return;
+        const yOffset = 35 + (freq.level ?? 0) * (blockHeight + 5); // 计算频率块的垂直位置
 
         // 创建频率块组
         const freqGroup = typeGroup
@@ -643,7 +646,8 @@ const Frequency = () => {
         // 添加鼠标事件监听
         // 鼠标悬停时显示tooltip
         rect.on('mouseover', function (event) {
-          event.stopPropagation(); // 阻止事件冒泡
+          const mouseEvent = event as MouseEvent;
+          mouseEvent.stopPropagation(); // 阻止事件冒泡
           // 高亮显示当前频率块
           select(this).attr('opacity', 0.9).attr('stroke', '#000').attr('stroke-width', 1);
 
@@ -654,20 +658,9 @@ const Frequency = () => {
           // 显示hover tooltip
           hoverTooltip
             .style('visibility', 'visible')
-            .style('left', `${event.pageX - 240}px`)
-            .style('top', `${event.pageY - 60}px`).html(`
-              <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">
-                  ${typeData.typeName} - ${freq.frequencyName}
-                </div>
-                <div style="margin-bottom: 4px;">
-                  频率范围: ${formatFrequency(freq.range[0])} - ${formatFrequency(freq.range[1])}
-                </div>
-                <pre style="background: #f5f5f5; padding: 8px; margin-top: 4px; border-radius: 4px;">
-                  ${JSON.stringify(freq.customInfo, null, 2)}
-                </pre>
-              </div>
-            `);
+            .style('left', `${mouseEvent.pageX - 240}px`)
+            .style('top', `${mouseEvent.pageY - 60}px`)
+            .html(renderFrequencyDetail(typeData.typeName, freq));
         });
 
         // 鼠标移出时隐藏tooltip
@@ -728,6 +721,7 @@ const Frequency = () => {
     // 清理函数
     return () => {
       tooltip.remove();
+      hoverTooltip.remove();
     };
   }, []);
 

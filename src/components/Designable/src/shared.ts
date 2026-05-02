@@ -1,8 +1,8 @@
 import { Engine, TreeNode } from '@pind/designable-core';
 
-export type ComponentNameMatcher = string | string[] | ((name: string, node: TreeNode, context?: any) => boolean);
+export type ComponentNameMatcher = string | string[] | ((name: string, node: TreeNode, context?: unknown) => boolean);
 
-export const matchComponent = (node: TreeNode, name: ComponentNameMatcher, context?: any) => {
+export const matchComponent = (node: TreeNode, name: ComponentNameMatcher, context?: unknown) => {
   if (name === '*') return true;
   const componentName = node?.props?.['x-component'];
   if (typeof name === 'function') return name(componentName || '', node, context);
@@ -10,7 +10,7 @@ export const matchComponent = (node: TreeNode, name: ComponentNameMatcher, conte
   return componentName === name;
 };
 
-export const matchChildComponent = (node: TreeNode, name: ComponentNameMatcher, context?: any) => {
+export const matchChildComponent = (node: TreeNode, name: ComponentNameMatcher, context?: unknown) => {
   if (name === '*') return true;
   const componentName = node?.props?.['x-component'];
   if (!componentName) return false;

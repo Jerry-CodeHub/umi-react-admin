@@ -39,14 +39,14 @@ const NeedShownExpression = {
   'x-value': true,
 };
 
-const isExpression = (val: any) => isStr(val) && /^\{\{.*\}\}$/.test(val);
+const isExpression = (val: unknown) => isStr(val) && /^\{\{.*\}\}$/.test(val);
 
-const filterExpression = (val: any) => {
+const filterExpression = (val: unknown): unknown => {
   if (typeof val === 'object') {
     const isArray = isArr(val);
     const results = reduce(
       val,
-      (buf: any, value, key) => {
+      (buf: Record<string, unknown> | unknown[], value, key) => {
         if (isExpression(value)) {
           return buf;
         } else {
@@ -69,8 +69,13 @@ const filterExpression = (val: any) => {
   return val;
 };
 
-const toDesignableFieldProps = (schema: ISchema, components: any, nodeIdAttrName: string, id: string) => {
-  const results: any = {};
+const toDesignableFieldProps = (
+  schema: ISchema,
+  components: Record<string, unknown>,
+  nodeIdAttrName: string,
+  id: string,
+) => {
+  const results: Record<string, unknown> = {};
   each(SchemaStateMap, (fieldKey, schemaKey) => {
     const value = schema[schemaKey];
     if (isExpression(value)) {
@@ -98,9 +103,9 @@ const toDesignableFieldProps = (schema: ISchema, components: any, nodeIdAttrName
     results.component = [component, toJS(componentProps)];
   }
   if (decorator) {
-    FormPath.setIn(results['decorator'][1], nodeIdAttrName, id);
+    FormPath.setIn((results.decorator as [unknown, Record<string, unknown>])[1], nodeIdAttrName, id);
   } else if (component) {
-    FormPath.setIn(results['component'][1], nodeIdAttrName, id);
+    FormPath.setIn((results.component as [unknown, Record<string, unknown>])[1], nodeIdAttrName, id);
   }
   results.title = results.title && <span data-content-editable="title">{results.title}</span>;
   results.description = results.description && <span data-content-editable="description">{results.description}</span>;

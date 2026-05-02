@@ -3,7 +3,7 @@ import { Input } from './Input';
 export const Password: ISchema = {
   type: 'object',
   properties: {
-    ...(Input.properties as any),
+    ...((Input.properties || {}) as unknown as Record<string, ISchema>),
     checkStrength: {
       type: 'boolean',
       'x-decorator': 'FormItem',

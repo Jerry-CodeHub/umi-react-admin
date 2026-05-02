@@ -3,9 +3,13 @@ import ArtPlayer from 'artplayer';
 import { useEffect, useRef } from 'react';
 
 const VideoArtPlayer = () => {
-  const artRef = useRef(null) as any;
+  const artRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!artRef.current) {
+      return;
+    }
+
     const art = new ArtPlayer({
       url: 'https://artplayer.org/assets/sample/video.mp4',
       // url: require('@/assets/video.mp4'),

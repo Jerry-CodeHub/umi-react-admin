@@ -39,6 +39,17 @@ import { Item } from './Item';
 import { List } from './List';
 import { Wrapper } from './Wrapper';
 
+type SortableItemStyleArgs = {
+  id: UniqueIdentifier;
+  index: number;
+  isSorting: boolean;
+  isDragOverlay: boolean;
+  overIndex: number;
+  isDragging: boolean;
+};
+
+type SortableRenderItem = React.ComponentProps<typeof Item>['renderItem'];
+
 export function SortableItem({
   disabled,
   animateLayoutChanges,
@@ -91,6 +102,7 @@ export function SortableItem({
         index,
         id,
         isDragging,
+        isDragOverlay: false,
         isSorting,
         overIndex,
       })}
@@ -113,7 +125,7 @@ export interface Props {
   adjustScale?: boolean;
   collisionDetection?: CollisionDetection;
   coordinateGetter?: KeyboardCoordinateGetter;
-  Container?: any; // To-do: Fix me
+  Container?: React.ComponentType<{ children: React.ReactNode }>;
   dropAnimation?: DropAnimation | null;
   getNewIndex?: NewIndexGetter;
   handle?: boolean;
@@ -121,20 +133,13 @@ export interface Props {
   items?: UniqueIdentifier[];
   measuring?: MeasuringConfiguration;
   modifiers?: Modifiers;
-  renderItem?: any;
+  renderItem?: SortableRenderItem;
   removable?: boolean;
   reorderItems?: typeof arrayMove;
   strategy?: SortingStrategy;
   style?: React.CSSProperties;
   useDragOverlay?: boolean;
-  getItemStyles?(args: {
-    id: UniqueIdentifier;
-    index: number;
-    isSorting: boolean;
-    isDragOverlay: boolean;
-    overIndex: number;
-    isDragging: boolean;
-  }): React.CSSProperties;
+  getItemStyles?(args: SortableItemStyleArgs): React.CSSProperties;
   wrapperStyle?(args: {
     active: Pick<Active, 'id'> | null;
     index: number;
@@ -344,7 +349,7 @@ interface SortableItemProps {
   handle: boolean;
   useDragOverlay?: boolean;
   onRemove?(id: UniqueIdentifier): void;
-  style(values: any): React.CSSProperties;
-  renderItem?(args: any): React.ReactElement;
+  style(values: SortableItemStyleArgs): React.CSSProperties;
+  renderItem?: SortableRenderItem;
   wrapperStyle: Props['wrapperStyle'];
 }

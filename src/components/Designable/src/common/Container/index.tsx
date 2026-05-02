@@ -7,8 +7,8 @@ export const Container: ReactFC = observer((props) => {
   return <DroppableWidget>{props.children}</DroppableWidget>;
 });
 
-export const withContainer = (Target: React.JSXElementConstructor<any>) => {
-  return (props: any) => {
+export const withContainer = <P extends object>(Target: React.JSXElementConstructor<P>) => {
+  return (props: P) => {
     return (
       <DroppableWidget>
         <Target {...props} />

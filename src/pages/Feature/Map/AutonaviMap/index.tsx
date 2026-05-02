@@ -12,11 +12,18 @@ import { useState } from 'react';
 
 import { AutonaviMapStyle } from './AutonaviMapStyle';
 
+type AMapClickEvent = {
+  lnglat: {
+    getLng: () => number;
+    getLat: () => number;
+  };
+};
+
 export default function AutonaviMap() {
   const [position, setPosition] = useState<[number, number] | undefined>();
 
   const mapEvents: MapProps['events'] = {
-    click: (event: any) => {
+    click: (event: AMapClickEvent) => {
       const position: [number, number] = [event.lnglat.getLng(), event.lnglat.getLat()];
       message.success(`获取的坐标点位置为${position}`);
       setPosition(position);

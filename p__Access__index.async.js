@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[8755],{89442:function(e,s,c){c.r(s);var n=c(29039),i=c(25286),r=c(52378),t=c(62086);s.default=function(){var e=(0,i.useAccess)();return(0,t.jsx)(n._z,{ghost:!0,header:{title:"权限示例"},children:(0,t.jsx)(i.Access,{accessible:e.canSeeAdmin,children:(0,t.jsx)(r.ZP,{children:"只有 Admin 可以看到这个按钮"})})})}}}]);

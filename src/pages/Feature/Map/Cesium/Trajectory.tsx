@@ -4,7 +4,6 @@ import { demodulationResultList, interceptResultList, locationResultList } from 
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 // import * as turf from '@turf/turf';
-// import turf from '/public/js/turf.min.js';
 import { Alert, Button, message } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';

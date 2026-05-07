@@ -5,7 +5,9 @@ import { configureSplitChunks } from './splitChunks';
 
 export default defineConfig({
   chainWebpack(config) {
-    configureSplitChunks(config);
+    if (process.env.NODE_ENV === 'production') {
+      configureSplitChunks(config);
+    }
   },
   copy: [
     {

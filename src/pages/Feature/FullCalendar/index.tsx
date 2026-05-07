@@ -37,14 +37,14 @@ function renderSidebarEvent(event: EventApi) {
 export default () => {
   const [state, setState] = useState({
     weekendsVisible: true,
-    currentEvents: [],
+    currentEvents: [] as EventApi[],
   });
 
   const handleWeekendsToggle = () => {
-    setState({
-      ...state,
-      weekendsVisible: !state.weekendsVisible,
-    });
+    setState((prevState) => ({
+      ...prevState,
+      weekendsVisible: !prevState.weekendsVisible,
+    }));
   };
 
   const renderSidebar = () => {
@@ -96,11 +96,11 @@ export default () => {
     }
   };
 
-  const handleEvents = (events: any) => {
-    setState({
-      ...state,
+  const handleEvents = (events: EventApi[]) => {
+    setState((prevState) => ({
+      ...prevState,
       currentEvents: events,
-    });
+    }));
   };
 
   return (

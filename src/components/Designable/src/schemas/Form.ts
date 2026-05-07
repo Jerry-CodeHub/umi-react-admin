@@ -5,7 +5,7 @@ import { FormLayout } from './FormLayout';
 export const Form: ISchema = {
   type: 'object',
   properties: {
-    ...(FormLayout.properties as any),
+    ...((FormLayout.properties || {}) as unknown as Record<string, ISchema>),
     style: CSSStyle,
   },
 };

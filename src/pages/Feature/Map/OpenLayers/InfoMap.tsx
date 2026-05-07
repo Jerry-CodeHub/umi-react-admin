@@ -44,7 +44,12 @@ const InfoMap = () => {
     return () => map.setTarget(undefined); // 清理 map 对象
   }, []);
 
-  const handleClick = () => {};
+  const handleClick = () => {
+    map?.getView().animate({
+      center: fromLonLat([0, 0]),
+      zoom: 2,
+    });
+  };
 
   return (
     <>

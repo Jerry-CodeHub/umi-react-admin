@@ -1,6 +1,6 @@
 import { Form as FormilyForm } from '@formily/antd-v5';
 import { createForm } from '@formily/core';
-import { observer } from '@formily/react';
+import { ISchema, observer } from '@formily/react';
 import { createBehavior, createResource } from '@pind/designable-core';
 import { DnFC, usePrefix } from '@pind/designable-react';
 import React, { useMemo } from 'react';
@@ -36,7 +36,7 @@ Form.Behavior = createBehavior({
       propsSchema: {
         type: 'object',
         properties: {
-          ...(AllSchemas.FormLayout.properties as any),
+          ...((AllSchemas.FormLayout.properties || {}) as unknown as Record<string, ISchema>),
           style: AllSchemas.CSSStyle,
         },
       },

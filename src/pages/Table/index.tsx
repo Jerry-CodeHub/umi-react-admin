@@ -1,5 +1,13 @@
 import services from '@/services/demo';
-import { ActionType, FooterToolbar, PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
+import {
+  ActionType,
+  FooterToolbar,
+  PageContainer,
+  ProColumns,
+  ProDescriptions,
+  ProDescriptionsItemProps,
+  ProTable,
+} from '@ant-design/pro-components';
 import { Button, Divider, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
@@ -59,11 +67,20 @@ const handleUpdate = async (fields: FormValueType) => {
  */
 const handleRemove = async (selectedRows: API.UserInfo[]) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
+  if (!selectedRows.length) {
+    hide();
+    return true;
+  }
+
+  const userIds = selectedRows.map((row) => row.id).filter(Boolean);
+  if (!userIds.length) {
+    hide();
+    message.warning('未找到可删除的数据');
+    return false;
+  }
+
   try {
-    await deleteUser({
-      userId: selectedRows.find((row) => row.id)?.id || '',
-    });
+    await Promise.all(userIds.map((userId) => deleteUser({ userId })));
     hide();
     message.success('删除成功，即将刷新');
     return true;
@@ -81,8 +98,7 @@ const TableList: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [row, setRow] = useState<API.UserInfo>();
   const [selectedRowsState, setSelectedRows] = useState<API.UserInfo[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const columns: any[] = [
+  const baseColumns: ProColumns<API.UserInfo>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -110,11 +126,14 @@ const TableList: React.FC<unknown> = () => {
         1: { text: '女', status: 'FEMALE' },
       },
     },
+  ];
+  const columns: ProColumns<API.UserInfo>[] = [
+    ...baseColumns,
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_: any, record: API.UserInfo) => (
+      render: (_, record) => (
         <>
           <a
             onClick={() => {
@@ -125,9 +144,23 @@ const TableList: React.FC<unknown> = () => {
             配置
           </a>
           <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          <Button type="link" className="p-0">
+            订阅警报
+          </Button>
         </>
       ),
+    },
+  ];
+  const descriptionColumns: ProDescriptionsItemProps<API.UserInfo>[] = [
+    { title: '名称', dataIndex: 'name' },
+    { title: '昵称', dataIndex: 'nickName', valueType: 'text' },
+    {
+      title: '性别',
+      dataIndex: 'gender',
+      valueEnum: {
+        0: { text: '男', status: 'MALE' },
+        1: { text: '女', status: 'FEMALE' },
+      },
     },
   ];
 
@@ -236,7 +269,7 @@ const TableList: React.FC<unknown> = () => {
             params={{
               id: row?.name,
             }}
-            columns={columns}
+            columns={descriptionColumns}
           />
         )}
       </Drawer>

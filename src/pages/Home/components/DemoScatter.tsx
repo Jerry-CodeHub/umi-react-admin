@@ -1,6 +1,10 @@
 import { Scatter } from '@ant-design/plots';
 import { useEffect, useState } from 'react';
 
+type ScatterDatum = {
+  date: string | number | Date;
+};
+
 const DemoScatter = () => {
   const [config, setConfig] = useState({});
 
@@ -11,7 +15,7 @@ const DemoScatter = () => {
         type: 'fetch',
         value: 'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/scatter-point-sequential.json',
       },
-      xField: (d: any) => new Date(d.date),
+      xField: (d: ScatterDatum) => new Date(d.date),
       yField: 'value',
       colorField: 'value',
       shapeField: 'point',
@@ -22,14 +26,14 @@ const DemoScatter = () => {
       scale: {
         color: {
           palette: 'rdBu',
-          offset: (t: any) => 1 - t,
+          offset: (t: number) => 1 - t,
         },
       },
       tooltip: [
         {
           channel: 'x',
           name: 'year',
-          valueFormatter: (d: any) => d.getFullYear(),
+          valueFormatter: (d: Date) => d.getFullYear(),
         },
         { channel: 'y' },
       ],

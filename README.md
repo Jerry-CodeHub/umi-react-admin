@@ -8,11 +8,11 @@
 
 ## 简介
 
-`umi-react-admin` 是一个基于 `react` 和 `umi max` 的模版系统, 一款开源免费且开箱即用的系统模版, 使用了最新的 `Umi4.x`, `React18.x` , `antd5.x` , `Tailwindcss` , `CSS in JS` , `TypeScript` , `ProComponents` 等主流技术开发。目前已包括, `Formily(低代码设计器)`, `日历`, `富文本(tinymce)`, `拖放界面`, `地图(Cesium, 高德, OpenLayers)`, `音频/视频播放器`, `签名`, `音频可视化`, `多语言`等模块功能。
+`umi-react-admin` 是一个基于 `react` 和 `umi max` 的模板系统, 一款开源免费且开箱即用的系统模板, 使用了最新的 `Umi4.x`, `React18.x` , `antd5.x` , `Tailwindcss` , `CSS in JS` , `TypeScript` , `ProComponents` 等主流技术开发。目前已包括, `Formily(低代码设计器)`, `日历`, `富文本(tinymce)`, `拖放界面`, `地图(Cesium, 高德, OpenLayers)`, `音频/视频播放器`, `签名`, `音频可视化`, `多语言`等模块功能。
 
 ## 安装使用
 
-首先得有 node，并确保 node 版本是 14 或以上。（推荐用 nvm 来管理 node 版本，windows 下推荐用 nvm-windows）
+首先得有 Node.js，并确保 Node.js 版本是 18 或以上。（推荐用 nvm 来管理 Node.js 版本，Windows 下推荐用 nvm-windows）
 
 - 获取项目代码
 
@@ -32,6 +32,16 @@ pnpm install
 
 ```bash
 pnpm start
+```
+
+## 常用脚本
+
+```bash
+pnpm lint        # 运行 Umi Max lint
+pnpm typecheck   # TypeScript 类型检查
+pnpm test        # 运行项目测试
+pnpm check       # 依次运行类型检查、lint 和测试
+pnpm build       # 生产构建
 ```
 
 ## Contributors ✨

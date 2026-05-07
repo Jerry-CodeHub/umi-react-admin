@@ -1,5 +1,8 @@
 export default {
   'menu.home': 'home',
+  'menu.login': 'login',
+  'menu.access': 'access',
+  'menu.table': 'table',
   'menu.NotFound': 'NotFound',
   'menu.NotAccessible': 'NotAccessible',
   // NOTE 功能

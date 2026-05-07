@@ -13,7 +13,7 @@ export interface Props {
   disabled?: boolean;
   dragging?: boolean;
   handle?: boolean;
-  handleProps?: any;
+  handleProps?: React.HTMLAttributes<HTMLButtonElement> & React.RefAttributes<HTMLButtonElement>;
   height?: number;
   index?: number;
   fadeIn?: boolean;

@@ -1,4 +1,6 @@
 import { iconData } from '@/utils/MapCompute/dataEnd';
+import { loadThermalMapData, type ThermalPoint } from '@/utils/MapCompute/loadThermalMapData';
+import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 import { Button, message } from 'antd';
 import * as Cesium from 'cesium';
@@ -6,12 +8,13 @@ import CesiumNavigation from 'cesium-navigation-es6';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useState } from 'react';
 
+setupCesium(Cesium);
+
 const HaiAirPosture = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [viewer, setViewer] = useState(null as any);
+  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<ThermalPoint[][]>([]);
   // setTimeout(() => {
   //   let CesiumNavigation = window.CesiumNavigation;
   //   console.log('CesiumNavigation:', window);
@@ -19,7 +22,7 @@ const HaiAirPosture = () => {
   // }, 1000);
 
   // NOTE 添加图标
-  const handleIcon = (viewer: any) => {
+  const handleIcon = (viewer: Cesium.Viewer) => {
     iconData.forEach((item) => {
       let entity = viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(item.longitude, item.latitude),
@@ -46,15 +49,15 @@ const HaiAirPosture = () => {
         },
       });
       // 额外参数
-      entity.properties = {
+      entity.properties = new Cesium.PropertyBag({
         text: item.label,
-      };
+      });
     });
   };
 
   // NOTE 添加线
-  const handlePolyline = (viewer: any) => {
-    let data: any = [
+  const handlePolyline = (viewer: Cesium.Viewer) => {
+    let data: Array<{ longitude: number; latitude: number }> = [
       {
         longitude: 117.33,
         latitude: 37.52,
@@ -77,7 +80,7 @@ const HaiAirPosture = () => {
 
     viewer.entities.add({
       polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(data.flatMap((item: any) => [item.longitude, item.latitude])),
+        positions: Cesium.Cartesian3.fromDegreesArray(data.flatMap((item) => [item.longitude, item.latitude])),
         width: 2,
         material: Cesium.Color.RED,
       },
@@ -86,7 +89,7 @@ const HaiAirPosture = () => {
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesiumContainer', {
+    const viewer = new Cesium.Viewer('cesium-container', {
       // 去除所有的控件
       animation: false, // 是否显示动画控件
       baseLayerPicker: false, // 是否显示图层选择控件
@@ -127,11 +130,14 @@ const HaiAirPosture = () => {
     viewer.camera.flyTo(initView);
 
     // 动态加载热力图数据
-    import('@/utils/MapCompute/ThermalMapData.json').then((thermal) => {
-      const obj = JSON.parse(JSON.stringify(thermal.default));
-      const arrayResult = obj.coverageData.arrayResult;
-      setData(arrayResult);
-    });
+    loadThermalMapData()
+      .then((thermal) => {
+        setData(thermal.coverageData.arrayResult);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load thermal data:', error);
+        messageApi.error(error instanceof Error ? error.message : '加载热力图数据失败');
+      });
 
     // 2, 添加一个点击事件来显示位置坐标：
     viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement: { position: Cesium.Cartesian2 }) {
@@ -146,7 +152,6 @@ const HaiAirPosture = () => {
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     setViewer(viewer);
-
     handleIcon(viewer);
     handlePolyline(viewer);
 
@@ -157,6 +162,8 @@ const HaiAirPosture = () => {
   }, []);
 
   const handleLonLat = () => {
+    if (!viewer) return;
+
     function convertDMSToDD(dmsStr: string) {
       try {
         // 移除空格,保留数字、正负号和度分秒符号
@@ -217,7 +224,7 @@ const HaiAirPosture = () => {
         <Button className="mb-2" onClick={() => handleLonLat()}>
           经纬度
         </Button>
-        <div id="cesiumContainer" />
+        <div id="cesium-container" />
       </ProCard>
     </>
   );

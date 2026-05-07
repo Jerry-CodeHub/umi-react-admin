@@ -11,3 +11,7 @@
 /dist
 /.mfsu
 .swc
+
+# OS and editor artifacts
+.DS_Store
+.idea/

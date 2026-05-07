@@ -6,7 +6,7 @@ import { Sortable, Props as SortableProps } from './components/Sortable';
 
 const props: Partial<SortableProps> = {
   adjustScale: true,
-  Container: (props: any) => <GridContainer {...props} columns={5} />,
+  Container: ({ children }) => <GridContainer columns={5}>{children}</GridContainer>,
   strategy: rectSortingStrategy,
   wrapperStyle: () => ({
     width: 140,

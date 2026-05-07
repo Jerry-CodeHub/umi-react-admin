@@ -1,0 +1,18 @@
+#cesium-container {
+  width: 100%;
+  height: calc(100vh - 220px);
+  min-height: 560px;
+}
+
+#cesium-container .cesium-widget,
+#cesium-container .cesium-widget canvas {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  #cesium-container {
+    height: calc(100vh - 260px);
+    min-height: 420px;
+  }
+}

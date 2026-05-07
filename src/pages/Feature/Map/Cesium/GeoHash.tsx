@@ -2,6 +2,7 @@
  * InfoIndex.tsx
  */
 import { centerGeoHash, geohashBounds } from '@/utils/MapCompute/geoHash';
+import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 import type { InputNumberProps } from 'antd';
 import { Alert, Button, InputNumber, Spin, message } from 'antd';
@@ -9,13 +10,39 @@ import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useState } from 'react';
 
+setupCesium(Cesium);
+
+type GeoHashBounds = {
+  longitudeMin: number;
+  latitudeMin: number;
+  longitudeMax: number;
+  latitudeMax: number;
+};
+
+type MapViewRectangle = {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+};
+
+type SubArea = {
+  geohash: string;
+  bounds: {
+    subWest: number;
+    subSouth: number;
+    subEast: number;
+    subNorth: number;
+  };
+};
+
 const InfoGeoHash: React.FC = () => {
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesiumContainer', {
+    const viewer = new Cesium.Viewer('cesium-container', {
       // 去除所有的控件
       animation: false, // 是否显示动画控件
       // baseLayerPicker: false, // 是否显示图层选择控件
@@ -59,7 +86,7 @@ const InfoGeoHash: React.FC = () => {
 
     // 监听相机高度变化
     viewer.camera.moveEnd.addEventListener(() => {
-      const cameraHeight = viewer.camera.positionCartographic.height;
+      // const cameraHeight = viewer.camera.positionCartographic.height;
       // messageApi.success(`相机高度变化: ${cameraHeight}`);
     });
 
@@ -110,7 +137,7 @@ const InfoGeoHash: React.FC = () => {
       // 如何根据 geohash 字符串手动实现显示范围 画出范围
       viewer.entities.removeAll(); // 移除所有实体
 
-      const bounds: any = geohashBounds(geohash);
+      const bounds = geohashBounds(geohash) as GeoHashBounds;
       const rectangles = Cesium.Rectangle.fromDegrees(
         bounds.longitudeMin,
         bounds.latitudeMin,
@@ -198,12 +225,12 @@ const InfoGeoHash: React.FC = () => {
   }
 
   // 将范围分成6个子区域，并计算每个子区域的 GeoHash
-  function splitAndComputeGeohashes(rect: any, precision: number) {
+  function splitAndComputeGeohashes(rect: MapViewRectangle, precision: number) {
     const { west, south, east, north } = rect;
     const lonStep = (east - west) / 3;
     const latStep = (north - south) / 2;
 
-    const geohashes = [];
+    const geohashes: SubArea[] = [];
 
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 2; j++) {
@@ -237,7 +264,7 @@ const InfoGeoHash: React.FC = () => {
     return geohashes;
   }
 
-  const [subAreas, setSubAreas] = useState([] as any[]);
+  const [subAreas, setSubAreas] = useState<SubArea[]>([]);
   const handleRange = () => {
     const viewRect = getMapViewRectangle();
     if (viewRect) {
@@ -258,7 +285,7 @@ const InfoGeoHash: React.FC = () => {
       <ProCard>
         {contextHolder}
         {viewer === null && <Spin spinning={true} />}
-        <div id="cesiumContainer" />
+        <div id="cesium-container" />
         <Button className="mt-2" onClick={() => handleRemoveAll()}>
           清除所有
         </Button>

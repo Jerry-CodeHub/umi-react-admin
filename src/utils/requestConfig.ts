@@ -1,27 +1,58 @@
+import { AUTH_TOKEN_KEY } from '@/constants';
 import type { RequestConfig } from '@umijs/max';
 import { history } from '@umijs/max';
 import { message } from 'antd';
 
-// TODO: 请根据实际项目替换鉴权逻辑和错误处理策略
+type RequestOptionsWithUrl = {
+  url?: string;
+  headers?: HeadersInit;
+  [key: string]: unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+
+const getErrorMessage = async (response: Response, fallback: string) => {
+  const data = await response
+    .clone()
+    .json()
+    .catch(() => undefined);
+
+  if (!isRecord(data)) {
+    return fallback;
+  }
+
+  const error = data.error;
+  if (isRecord(error) && typeof error.message === 'string') {
+    return error.message;
+  }
+
+  return typeof data.message === 'string' ? data.message : fallback;
+};
+
+const getAuthToken = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+};
+
 export const requestConfig: RequestConfig = {
   timeout: 15000,
   errorConfig: {
-    errorThrower: (res: any) => {
+    errorThrower: (res: unknown) => {
       throw res;
     },
-    errorHandler: (error: any, opts: any) => {
-      const { response } = error;
+    errorHandler: async (error: unknown) => {
+      const response = isRecord(error) && error.response instanceof Response ? error.response : undefined;
 
       if (!!response && response.status === 400) {
-        const data = response.clone().json();
-        message.error(data.error.message);
+        message.error(await getErrorMessage(response, '请求参数错误。'));
         history.push('/404');
         return;
       }
 
       if (!!response && response.status === 500) {
-        const data = response.clone().json();
-        message.error(data.error.message);
+        message.error(await getErrorMessage(response, '服务器错误，请稍后重试。'));
         return;
       }
 
@@ -33,17 +64,29 @@ export const requestConfig: RequestConfig = {
 
       if (!!response && response.status === 401) {
         message.error('登录失效，即将跳转至登录页面');
-        //  getAuthService().login();
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(AUTH_TOKEN_KEY);
+        }
+        history.push('/login');
         return;
       }
     },
   },
 
   requestInterceptors: [
-    (config: any) => {
-      // TODO: 替换为真实 token 鉴权逻辑，如从 localStorage 读取并注入 Authorization header
-      const url = config.url.concat('?token = 123');
-      return { ...config, url };
+    (config: RequestOptionsWithUrl) => {
+      const token = getAuthToken();
+      if (!token) {
+        return config;
+      }
+
+      return {
+        ...config,
+        headers: {
+          ...(config.headers || {}),
+          Authorization: `Bearer ${token}`,
+        },
+      };
     },
   ],
 

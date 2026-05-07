@@ -1,5 +1,35 @@
 // 频率刻度点数组
-export const frequencyTicks: any = [
+export type FrequencyTick = {
+  value: number;
+  label: string;
+};
+
+export type FrequencyRange = {
+  frequencyName: string;
+  range: [number, number];
+  color: string;
+  level?: number;
+  slashStyle: {
+    forward: boolean;
+    backward: boolean;
+  };
+  customInfo: {
+    description: string;
+    power: string;
+    status: string;
+  };
+};
+
+export type FrequencyGroup = {
+  typeName: string;
+  ranges: FrequencyRange[];
+};
+
+export type FrequencyMatch = FrequencyRange & {
+  typeName: string;
+};
+
+export const frequencyTicks: FrequencyTick[] = [
   { value: 0, label: '0kHz' },
   { value: 500000, label: '500kHz' },
   { value: 1000000, label: '1000kHz' },
@@ -20,7 +50,7 @@ export const frequencyTicks: any = [
 ];
 
 // 频率数组
-export const data: any = [
+export const data: FrequencyGroup[] = [
   {
     typeName: '无线设备1',
     ranges: [

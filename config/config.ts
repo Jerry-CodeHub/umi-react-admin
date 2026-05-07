@@ -1,8 +1,14 @@
 import { defineConfig } from '@umijs/max';
 // import path from 'path';
 import { routes } from './routes';
+import { configureSplitChunks } from './splitChunks';
 
 export default defineConfig({
+  chainWebpack(config) {
+    if (process.env.NODE_ENV === 'production') {
+      configureSplitChunks(config);
+    }
+  },
   copy: [
     {
       from: 'node_modules/cesium/Build/Cesium/Workers',

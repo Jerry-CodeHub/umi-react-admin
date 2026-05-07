@@ -13,6 +13,26 @@ export const routes = [
     component: './Home',
   },
   {
+    name: 'login',
+    path: '/login',
+    component: './Login',
+    hideInMenu: true,
+  },
+  {
+    name: 'access',
+    path: '/access',
+    icon: 'LockOutlined',
+    component: './Access',
+    access: 'canSeeAdmin',
+  },
+  {
+    name: 'table',
+    path: '/table',
+    icon: 'TableOutlined',
+    component: './Table',
+    access: 'canSeeAdmin',
+  },
+  {
     name: 'feature',
     path: '/feature',
     icon: 'ToolFilled',

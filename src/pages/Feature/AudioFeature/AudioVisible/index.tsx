@@ -1,13 +1,15 @@
 import { ProCard } from '@ant-design/pro-components';
 import { Button } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import WaveSurfer from 'wavesurfer.js';
+import WaveSurfer, { type WaveSurferOptions } from 'wavesurfer.js';
 import Timeline from 'wavesurfer.js/plugins/timeline';
 
 import { AudioVisibleStyles } from './AudioVisible.style';
 
 // WaveSurfer hook
-const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: any) => {
+type WaveSurferPlayerProps = Omit<WaveSurferOptions, 'container'>;
+
+const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: WaveSurferPlayerProps) => {
   const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
 
   // Initialize wavesurfer when the container mounts
@@ -25,14 +27,14 @@ const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: a
     return () => {
       ws.destroy();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [containerRef, options.url]);
 
   return wavesurfer;
 };
 
 // Create a React component that will render wavesurfer.
 // Props are wavesurfer options.
-const WaveSurferPlayer = (props: any) => {
+const WaveSurferPlayer = (props: WaveSurferPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -83,8 +85,7 @@ export default function AudioVisible() {
 
   // Swap the audio URL
   const onUrlChange = useCallback(() => {
-    urls.reverse();
-    setAudioUrl(urls[0]);
+    setAudioUrl((currentUrl) => (currentUrl === urls[0] ? urls[1] : urls[0]));
   }, []);
 
   return (

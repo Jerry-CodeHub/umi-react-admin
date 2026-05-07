@@ -2,8 +2,9 @@ import { UserInfo } from './userInfo';
 
 export async function getInitialState(): Promise<UserInfo> {
   const user: UserInfo = new UserInfo({
-    userName: 'admin',
-    userEmail: '',
+    name: 'admin',
+    email: '',
+    nickName: 'Admin',
   });
 
   return user;

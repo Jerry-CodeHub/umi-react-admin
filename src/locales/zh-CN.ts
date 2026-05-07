@@ -1,5 +1,8 @@
 export default {
   'menu.home': '首页',
+  'menu.login': '登录',
+  'menu.access': '权限',
+  'menu.table': '表格',
   'menu.NotFound': '找不到页面',
   'menu.NotAccessible': '无权限访问',
   // NOTE 功能

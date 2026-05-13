@@ -1,13 +1,7 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
-import type { RequestConfig } from '@umijs/max';
+import type { RequestConfig, RequestOptions } from '@umijs/max';
 import { history } from '@umijs/max';
 import { message } from 'antd';
-
-type RequestOptionsWithUrl = {
-  url?: string;
-  headers?: HeadersInit;
-  [key: string]: unknown;
-};
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
@@ -74,7 +68,7 @@ export const requestConfig: RequestConfig = {
   },
 
   requestInterceptors: [
-    (config: RequestOptionsWithUrl) => {
+    (config: RequestOptions) => {
       const token = getAuthToken();
       if (!token) {
         return config;

@@ -2,7 +2,7 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
   "framework": "umijs",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --frozen-lockfile",
   "github": {
     "silent": true
   }

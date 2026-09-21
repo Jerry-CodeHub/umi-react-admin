@@ -39,23 +39,58 @@ const getAuthToken = () => {
   return localStorage.getItem(AUTH_TOKEN_KEY) || '';
 };
 
+/** 请求是否发往本应用自己的后端（同源或配置的 baseURL）：第三方地址不附带登录 token */
+const isOwnApi = (url?: string, baseURL?: string) => {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+  try {
+    const target = new URL(url || '', baseURL || window.location.href);
+    const trusted = new Set([window.location.origin]);
+    if (baseURL) {
+      trusted.add(new URL(baseURL, window.location.href).origin);
+    }
+    return trusted.has(target.origin);
+  } catch {
+    return false;
+  }
+};
+
+/** 主动取消的请求（AbortController / CancelToken）不是错误，无需提示 */
+const isCanceled = (error: unknown) =>
+  isRecord(error) && (error.code === 'ERR_CANCELED' || error.name === 'CanceledError');
+
 export const requestConfig: RequestConfig = {
   timeout: 15000,
-  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_KEY 全局常量，
-  // 未配置时为 undefined 走相对路径（dev 由 umi mock 接管，静态演示走 userService 适配层）
+  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_BASE 全局常量，
+  // 未配置时为 undefined 走相对路径（dev 由 umi mock 接管，静态演示走 services/demo 的本地实现）
   baseURL: UMI_APP_API_BASE,
   errorConfig: {
     // 后端 success:false 的业务错误统一转成 BizError 抛给调用方
     errorThrower: (res) => {
       throw new BizError(isRecord(res) ? res : {});
     },
-    errorHandler: async (error: unknown) => {
+    /**
+     * umi request 运行时的调用约定（见 src/.umi/plugin-request/request.ts）：
+     * handler(error, opts) 同步调用、返回值被丢弃，随后运行时自行 reject(error) 给调用方。
+     * 所以这里只负责提示与跳转：不能写成 async 或返回 rejected promise——那样每个失败请求
+     * 都会多出一个无人处理的 rejection（控制台 Uncaught (in promise)）。
+     * 传了 skipErrorHandler 的请求原样抛出，由调用方自行处理（运行时同样会 reject 给调用方）。
+     */
+    errorHandler: (error: unknown, opts?: { skipErrorHandler?: boolean }) => {
+      if (opts?.skipErrorHandler) {
+        throw error;
+      }
+      if (isCanceled(error)) {
+        return;
+      }
+
       const message = getMessage();
 
-      // 业务错误：由调用方按上下文处理，这里统一提示后原样抛回
+      // 业务错误：统一提示，调用方可 instanceof BizError 精确捕获
       if (error instanceof BizError) {
         message.error(error.message);
-        return Promise.reject(error);
+        return;
       }
 
       // HTTP 状态错误：@umijs/max 的 request 运行时基于 axios，
@@ -89,9 +124,9 @@ export const requestConfig: RequestConfig = {
             message.error(getErrorMessage(data, t('request.serverError', '服务器错误，请稍后重试。')));
             break;
           default:
-            message.error(`${t('request.failed', '请求失败')}（HTTP ${status}）。`);
+            message.error(`${t('request.failed', '请求失败')}（HTTP ${status}）`);
         }
-        return Promise.reject(error);
+        return;
       }
 
       // 网络层错误（超时 / 断网）
@@ -102,13 +137,12 @@ export const requestConfig: RequestConfig = {
       } else {
         message.error(t('request.network', '网络异常，请稍后重试。'));
       }
-      return Promise.reject(error);
     },
   },
   requestInterceptors: [
     (config: RequestOptions) => {
       const token = getAuthToken();
-      if (!token) {
+      if (!token || !isOwnApi(config.url, config.baseURL)) {
         return config;
       }
 

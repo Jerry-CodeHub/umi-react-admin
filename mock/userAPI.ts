@@ -5,6 +5,33 @@ let users = [
   { id: '1', name: 'Fish', nickName: 'B', gender: 'FEMALE', email: 'fish@example.com' },
 ];
 
+export type DemoUserRecord = {
+  id: string;
+  name: string;
+  nickName: string;
+  gender: string;
+  email: string;
+};
+
+/** 过滤（keyword/gender）+ 分页（current/pageSize，含缺省），供 handler 与单测共用 */
+export function filterAndPaginate(
+  users: DemoUserRecord[],
+  options: { current?: number | string; pageSize?: number | string; keyword?: string; gender?: string },
+) {
+  const { current = 1, pageSize = 20, keyword, gender } = options;
+  let list = keyword ? users.filter((user) => user.name.includes(keyword) || user.nickName.includes(keyword)) : users;
+  if (gender) {
+    list = list.filter((user) => user.gender === gender);
+  }
+  const start = (Number(current) - 1) * Number(pageSize);
+  return {
+    current: Number(current),
+    pageSize: Number(pageSize),
+    total: list.length,
+    list: list.slice(start, start + Number(pageSize)),
+  };
+}
+
 /** 过滤掉 undefined 字段，防止未出现在表单里的字段被 undefined 覆盖（双保险，前端提交层已挑拣） */
 const filterUndefined = (body: unknown): Record<string, unknown> =>
   Object.fromEntries(Object.entries((body as Record<string, unknown>) || {}).filter(([, v]) => v !== undefined));
@@ -55,21 +82,9 @@ export default {
       keyword?: string;
       gender?: string;
     };
-    let list = keyword ? users.filter((user) => user.name.includes(keyword) || user.nickName.includes(keyword)) : users;
-    if (gender) {
-      list = list.filter((user) => user.gender === gender);
-    }
-    const start = (Number(current) - 1) * Number(pageSize);
-    const end = start + Number(pageSize);
-
     res.json({
       success: true,
-      data: {
-        current: Number(current),
-        pageSize: Number(pageSize),
-        total: list.length,
-        list: list.slice(start, end),
-      },
+      data: filterAndPaginate(users, { current, pageSize, keyword, gender }),
       errorCode: 0,
     });
   },

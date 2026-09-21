@@ -7,3 +7,5 @@ dist
 pnpm-lock.yaml
 .claude
 
+
+coverage

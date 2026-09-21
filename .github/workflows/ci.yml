@@ -1,0 +1,50 @@
+name: CI
+
+# PR 与非 master 分支 push 时执行质量门禁；master 的部署由 deploy.yml 负责
+on:
+  pull_request:
+  push:
+    branches-ignore: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# 注：actions 使用次版本钉住的标签；后续可升级为 commit SHA 钉固（供应链加固 TODO）
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup pnpm（读 packageManager 字段）
+        uses: pnpm/action-setup@v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Quality gates（typecheck + 严格 lint + vitest）
+        run: pnpm check
+
+      - name: Build smoke（无需任何 secrets）
+        run: pnpm build
+
+      - name: 产物 JWT 泄露扫描
+        # 补审计 security-6 的盲区：曾发生 token 经 define 注入构建产物并部署到 gh-pages
+        run: |
+          if grep -rq 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' dist/; then
+            echo '::error::dist 产物中发现 JWT 形态字符串，疑似秘钥泄露'
+            exit 1
+          fi
+
+      - name: Dependency audit（非阻断观察期）
+        # 两段式策略（决策 D7/D30）：先建立可见性，high 存量清零后转强制阻断
+        # 注意 .npmrc 的 npmmirror 不支持 audit 通道，必须显式走官方源
+        run: pnpm audit --registry=https://registry.npmjs.org/ || true

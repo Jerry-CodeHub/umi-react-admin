@@ -24,6 +24,10 @@ pnpm start            # 启动开发服务器 (端口 8000)
 pnpm build            # 生产构建
 pnpm build:github     # GitHub Pages 构建
 pnpm preview          # 构建并预览 (端口 8001)
+pnpm check            # typecheck + 严格 lint + vitest（提交前必跑）
+pnpm test             # vitest 单测（test:watch 监听 / test:coverage 覆盖率）
+pnpm size             # 构建并执行体积预算门禁（size-budget.json）
+pnpm analyze          # 构建并生成 bundle 组成分析
 pnpm format           # Prettier 格式化代码
 ```
 
@@ -69,6 +73,7 @@ config/
 - React 组件: PascalCase (`Home.tsx`)
 - 工具函数: camelCase (`format.ts`)
 - 组件目录: PascalCase (`FullCalendar/index.tsx`)
+- 样式辅助文件: Xxx.style.ts（styled-components 样式常量）
 
 ## Git 工作流
 

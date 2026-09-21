@@ -28,20 +28,19 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "format": "prettier --cache --write .",
     "postinstall": "max setup",
-    "lint": "max lint",
+    "lint": "pnpm lint:eslint && pnpm lint:style",
+    "lint:eslint": "eslint . --max-warnings=0",
+    "lint:style": "max lint --stylelint-only",
     "prepare": "husky install",
     "preview": "pnpm build && pnpm max preview --port 8001",
     "setup": "max setup",
     "size": "pnpm build && node scripts/check-bundle-size.mjs",
     "start": "cross-env max dev",
     "start:github": "cross-env UMI_ENV=github max dev",
-    "test": "node --test scripts/*.test.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,css,less}": [
-      "max lint"
-    ]
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
@@ -80,16 +79,19 @@
     "@types/express": "^5.0.6",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^5.0.1",
     "all-contributors-cli": "^6.26.1",
     "cross-env": "^7.0.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "husky": "^8.0.3",
+    "jsdom": "^30.1.0",
     "lint-staged": "^13.2.3",
     "prettier": "^3.0.1",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-packagejson": "^2.4.5",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   },
   "packageManager": "pnpm@10.33.0",
   "engines": {

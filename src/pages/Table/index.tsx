@@ -107,13 +107,14 @@ const TableList: React.FC<unknown> = () => {
       dataIndex: 'name',
       tooltip: '名称是唯一的 key',
       render: (_, record) => (
-        <a
+        <Button
+          type="link"
           onClick={() => {
             setRow(record);
           }}
         >
           {record.name}
-        </a>
+        </Button>
       ),
       formItemProps: {
         rules: [
@@ -147,14 +148,15 @@ const TableList: React.FC<unknown> = () => {
       valueType: 'option',
       render: (_, record) => (
         <>
-          <a
+          <Button
+            type="link"
             onClick={() => {
               handleUpdateModalVisible(true);
               setStepFormValues(record);
             }}
           >
             配置
-          </a>
+          </Button>
         </>
       ),
     },
@@ -212,7 +214,7 @@ const TableList: React.FC<unknown> = () => {
         <FooterToolbar
           extra={
             <div>
-              已选择 <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> 项&nbsp;&nbsp;
+              已选择 <strong>{selectedRowsState.length}</strong> 项&nbsp;&nbsp;
             </div>
           }
         >

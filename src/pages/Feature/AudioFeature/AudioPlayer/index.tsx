@@ -4,7 +4,7 @@ import Player from 'xgplayer';
 import MusicPreset, { Analyze, Lyric } from 'xgplayer-music';
 import 'xgplayer-music/dist/index.min.css';
 import 'xgplayer/dist/index.min.css';
-import { AudioPlayerStyles } from './AudioPlayerStyle';
+import { AudioPlayerStyles } from './AudioPlayer.style';
 import lyricData from './lyrics.json';
 
 declare global {

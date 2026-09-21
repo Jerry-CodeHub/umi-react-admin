@@ -23,3 +23,6 @@
 # 内部审计/修复方案文档（不随仓库分发）
 docs/audit-report-*.md
 docs/remediation-plan-*.md
+
+# 测试覆盖率产物
+coverage/

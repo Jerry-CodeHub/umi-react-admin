@@ -10,7 +10,7 @@ import { Map, Marker } from '@pansy/react-amap';
 import type { MapProps } from '@pansy/react-amap/es/map';
 import { useState } from 'react';
 
-import { AutonaviMapStyle } from './AutonaviMapStyle';
+import { AutonaviMapStyle } from './AutonaviMap.style';
 
 type AMapClickEvent = {
   lnglat: {

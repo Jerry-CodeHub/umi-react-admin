@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterAndPaginate, type DemoUserRecord } from './userAPI';
+import { filterAndPaginate, type DemoUserRecord } from './userQuery';
 
 const users: DemoUserRecord[] = [
   { id: '0', name: 'Umi', nickName: 'U', gender: 'MALE', email: 'umi@example.com' },
@@ -20,6 +20,12 @@ describe('filterAndPaginate', () => {
     expect(filterAndPaginate(users, { keyword: 'Fish' }).list).toHaveLength(2);
     expect(filterAndPaginate(users, { keyword: 'F' }).total).toBe(2);
     expect(filterAndPaginate(users, { keyword: 'U' }).list.map((u) => u.name)).toEqual(['Umi']);
+  });
+
+  it('查询表单的 name / nickName 列生效（ProTable 按 dataIndex 传参）', () => {
+    expect(filterAndPaginate(users, { name: 'Fish' }).list.map((u) => u.name)).toEqual(['Fish', 'Fisher']);
+    expect(filterAndPaginate(users, { nickName: 'B' }).list.map((u) => u.name)).toEqual(['Fish']);
+    expect(filterAndPaginate(users, { name: 'Umi', nickName: 'B' }).total).toBe(0);
   });
 
   it('gender 过滤', () => {

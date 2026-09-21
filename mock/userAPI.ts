@@ -1,36 +1,12 @@
 import type { Request, Response } from 'express';
+// 注意：umi 会把 mock/ 下所有 .ts/.js 当作 mock 文件加载（mock/**/*.[jt]s），
+// 测试与共享逻辑不要放在这里——查询逻辑在 src/services/demo/userQuery.ts，与静态演示层共用。
+import { filterAndPaginate, type DemoUserRecord } from '../src/services/demo/userQuery';
 
-let users = [
+let users: DemoUserRecord[] = [
   { id: '0', name: 'Umi', nickName: 'U', gender: 'MALE', email: 'umi@example.com' },
   { id: '1', name: 'Fish', nickName: 'B', gender: 'FEMALE', email: 'fish@example.com' },
 ];
-
-export type DemoUserRecord = {
-  id: string;
-  name: string;
-  nickName: string;
-  gender: string;
-  email: string;
-};
-
-/** 过滤（keyword/gender）+ 分页（current/pageSize，含缺省），供 handler 与单测共用 */
-export function filterAndPaginate(
-  users: DemoUserRecord[],
-  options: { current?: number | string; pageSize?: number | string; keyword?: string; gender?: string },
-) {
-  const { current = 1, pageSize = 20, keyword, gender } = options;
-  let list = keyword ? users.filter((user) => user.name.includes(keyword) || user.nickName.includes(keyword)) : users;
-  if (gender) {
-    list = list.filter((user) => user.gender === gender);
-  }
-  const start = (Number(current) - 1) * Number(pageSize);
-  return {
-    current: Number(current),
-    pageSize: Number(pageSize),
-    total: list.length,
-    list: list.slice(start, start + Number(pageSize)),
-  };
-}
 
 /** 过滤掉 undefined 字段，防止未出现在表单里的字段被 undefined 覆盖（双保险，前端提交层已挑拣） */
 const filterUndefined = (body: unknown): Record<string, unknown> =>
@@ -71,20 +47,13 @@ export default {
     res.json({ success: true, data: null, errorCode: 0 });
   },
   'GET /api/v1/queryUserList': (req: Request, res: Response) => {
-    const {
-      current = 1,
-      pageSize = 20,
-      keyword,
-      gender,
-    } = (req.query || {}) as {
-      current?: string;
-      pageSize?: string;
-      keyword?: string;
-      gender?: string;
-    };
+    const { current, pageSize, keyword, name, nickName, gender } = (req.query || {}) as Record<
+      string,
+      string | undefined
+    >;
     res.json({
       success: true,
-      data: filterAndPaginate(users, { current, pageSize, keyword, gender }),
+      data: filterAndPaginate(users, { current, pageSize, keyword, name, nickName, gender }),
       errorCode: 0,
     });
   },
@@ -102,7 +71,7 @@ export default {
       id: `${Date.now()}`,
       gender: 'MALE',
       ...filterUndefined(req.body),
-    } as (typeof users)[number];
+    } as DemoUserRecord;
     users = [user, ...users];
     res.json({
       success: true,

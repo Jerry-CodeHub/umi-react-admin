@@ -1,4 +1,5 @@
 import { defineConfig } from '@umijs/max';
+import { mockConfig } from './mock';
 import { routes } from './routes';
 import { configureSplitChunks } from './splitChunks';
 
@@ -62,6 +63,8 @@ export default defineConfig({
     configProvider: {},
   },
   access: {},
+  // mock 目录只放接口定义；测试文件排除见 config/mock.ts
+  mock: mockConfig,
   model: {},
   initialState: {},
   request: {},

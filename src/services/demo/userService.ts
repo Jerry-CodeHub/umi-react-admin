@@ -1,5 +1,6 @@
 import { BizError } from '@/utils/BizError';
 import * as UserController from './UserController';
+import { filterAndPaginate, type UserQuery } from './userQuery';
 
 /**
  * 用户数据服务适配层（审计 extra-1-2：演示站 /table 生产降级）。
@@ -60,26 +61,9 @@ const findUser = async (userId: string) => {
 };
 
 const staticImpl = {
-  async queryUserList(params: { keyword?: string; gender?: string; current?: number; pageSize?: number }) {
-    const { keyword, gender, current = 1, pageSize = 20 } = params;
-    let list = await loadUsers();
-    if (keyword) {
-      list = list.filter((user) => user.name.includes(keyword) || user.nickName.includes(keyword));
-    }
-    if (gender) {
-      list = list.filter((user) => user.gender === gender);
-    }
-    const start = (Number(current) - 1) * Number(pageSize);
-    return {
-      success: true,
-      data: {
-        current: Number(current),
-        pageSize: Number(pageSize),
-        total: list.length,
-        list: list.slice(start, start + Number(pageSize)),
-      },
-      errorCode: 0,
-    };
+  async queryUserList(params: UserQuery) {
+    // 与 mock 接口共用同一份查询逻辑（keyword / name / nickName / gender + 分页）
+    return { success: true, data: filterAndPaginate(await loadUsers(), params), errorCode: 0 };
   },
   async addUser(body?: Partial<DemoUser>) {
     const list = await loadUsers();

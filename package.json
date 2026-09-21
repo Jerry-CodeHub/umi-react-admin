@@ -30,7 +30,7 @@
     "format": "prettier --cache --write .",
     "postinstall": "max setup",
     "lint": "pnpm lint:eslint && pnpm lint:style",
-    "lint:eslint": "eslint . --max-warnings=0",
+    "lint:eslint": "eslint . --ext .js,.jsx,.ts,.tsx,.mjs,.cjs --max-warnings=0",
     "lint:style": "max lint --stylelint-only",
     "prepare": "husky install",
     "preview": "pnpm build && pnpm max preview --port 8001",
@@ -123,7 +123,7 @@
       "yaml@<1.10.3": "1.10.3",
       "react-router@>=6.0.0 <6.30.4": "6.30.4",
       "@remix-run/router@<1.23.3": "1.23.3",
-      "brace-expansion@>=1.0.0 <1.1.17": "1.1.17",
+      "brace-expansion@>=1.0.0 <1.1.21": "1.1.21",
       "brace-expansion@>=2.0.0 <2.1.4": "2.1.4",
       "js-yaml@>=4.0.0 <4.3.2": "4.3.2",
       "js-yaml@>=3.0.0 <3.15.2": "3.15.2",
@@ -142,7 +142,9 @@
       "colord@<2.9.4": "2.9.4",
       "baseline-browser-mapping@<2.11.0": "2.11.0",
       "@babel/core@<7.29.6": "7.29.6",
-      "body-parser@>=1.20.0 <1.20.6": "1.20.6"
+      "body-parser@>=1.20.0 <1.20.6": "1.20.6",
+      "hono@>=4.0.0 <4.12.34": "4.12.34",
+      "tmp@<0.2.6": "0.2.7"
     }
   }
 }

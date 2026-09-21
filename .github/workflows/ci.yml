@@ -6,8 +6,9 @@ on:
   push:
     branches-ignore: [master]
 
+# 同一分支的 push 与 PR 共用并发组（后到的取消先到的），避免同仓库分支开 PR 时双跑
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 # 注：actions 使用次版本钉住的标签；后续可升级为 commit SHA 钉固（供应链加固 TODO）
@@ -30,11 +31,43 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Quality gates（typecheck + 严格 lint + vitest）
+      - name: Quality gates（typecheck + 严格 lint + vitest，含 mock 可加载性）
         run: pnpm check
 
-      - name: Build smoke（无需任何 secrets）
-        run: pnpm build
+      - name: Dependency audit（非阻断观察期）
+        # 两段式策略（决策 D7/D30）：先建立可见性，high 存量清零后转强制阻断
+        run: pnpm audit --registry=https://registry.npmjs.org/ || true
+
+  build:
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 两条产线都冒烟：主产线（Vercel/Docker）与 GitHub Pages 子路径产线
+        script: [build, 'build:github']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup pnpm（读 packageManager 字段）
+        uses: pnpm/action-setup@v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build smoke（${{ matrix.script }}，无需任何 secrets）
+        run: pnpm run ${{ matrix.script }}
+
+      - name: 体积预算与样式覆盖门禁
+        if: matrix.script == 'build'
+        run: node scripts/check-bundle-size.mjs
 
       - name: 产物 JWT 泄露扫描
         # 补审计 security-6 的盲区：曾发生 token 经 define 注入构建产物并部署到 gh-pages
@@ -43,8 +76,3 @@ jobs:
             echo '::error::dist 产物中发现 JWT 形态字符串，疑似秘钥泄露'
             exit 1
           fi
-
-      - name: Dependency audit（非阻断观察期）
-        # 两段式策略（决策 D7/D30）：先建立可见性，high 存量清零后转强制阻断
-        # 注意 .npmrc 的 npmmirror 不支持 audit 通道，必须显式走官方源
-        run: pnpm audit --registry=https://registry.npmjs.org/ || true

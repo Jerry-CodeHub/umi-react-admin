@@ -1,5 +1,8 @@
 /node_modules
-/.env.local
+# 本地环境变量（umi 会加载 .env、.env.local 等），只提交模板 .env.example
+/.env
+/.env.*
+!/.env.example
 /.umirc.local.ts
 /config/config.local.ts
 /src/.umi

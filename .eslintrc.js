@@ -24,4 +24,11 @@ module.exports = {
     'jsx-a11y/role-supports-aria-props': 'error',
     'jsx-a11y/anchor-is-valid': 'warn',
   },
+  overrides: [
+    {
+      // 构建与门禁脚本是命令行工具，向终端输出是本职
+      files: ['scripts/**/*.{js,mjs,cjs,ts}'],
+      rules: { 'no-console': 'off' },
+    },
+  ],
 };

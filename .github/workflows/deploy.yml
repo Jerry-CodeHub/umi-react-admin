@@ -50,3 +50,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          # 孤儿化部署：gh-pages 历史不累积（曾达 71 个提交/33MiB），
+          # 且旧产物（含已泄露未轮换的历史 token）不再被新克隆拉取。
+          # 注意：开启后首次部署将重建整棵部署树。
+          force_orphan: true

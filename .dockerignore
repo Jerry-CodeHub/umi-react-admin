@@ -1,0 +1,20 @@
+node_modules
+.git
+.github
+.claude
+.kilo
+.idea
+.vscode
+.husky
+dist
+coverage
+docs
+.pnpm-store
+LsDocs
+
+# 本地秘钥绝不进镜像（构建 token 走 build-arg）
+.env*
+
+# 本地报告与临时文件
+*.log
+.DS_Store

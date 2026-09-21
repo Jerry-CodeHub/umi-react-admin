@@ -15,9 +15,11 @@ ENV CESIUM_ION_TOKEN=$CESIUM_ION_TOKEN
 RUN pnpm build
 
 # ---------- 阶段二：运行（全程非 root） ----------
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+# 固定到稳定线 1.30 的具体镜像摘要（多架构 index），升级时显式更新 tag 与摘要
+FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:04a3275f25d766cff8926d2e57b2ff34a783d6b12a702dc98bb82226d2d9a508
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 8080

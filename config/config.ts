@@ -57,6 +57,8 @@ export default defineConfig({
     TINYMCE_API_KEY: process.env.TINYMCE_API_KEY,
   },
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
+  // 产物文件名带内容哈希：配合 nginx 对哈希文件的长缓存（nginx/default.conf），发版后不会命中旧脚本
+  hash: true,
   jsMinifier: 'terser',
   // 只注入 core-js 稳定特性（默认 `import 'core-js'` 会带上 176 个 esnext 提案 polyfill）。
   // umi 锁定的 core-js 3.34 中约 95 个提案实现带 forced:true，会强制覆盖浏览器原生实现，

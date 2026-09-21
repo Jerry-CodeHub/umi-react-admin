@@ -15,6 +15,13 @@ LsDocs
 # 本地秘钥绝不进镜像（构建 token 走 build-arg）
 .env*
 
+# umi 本地生成物（含宿主机绝对路径，构建时会重新生成）
+src/.umi
+src/.umi-production
+src/.umi-test
+.mfsu
+.swc
+
 # 本地报告与临时文件
 *.log
 .DS_Store

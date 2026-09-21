@@ -17,6 +17,7 @@ export default {
   'menu.feature.AudioFeature': 'Audio',
   'menu.feature.AudioFeature.AudioPlayer': 'AudioPlayer',
   'menu.feature.AudioFeature.AudioVisible': 'AudioVisible',
+  'menu.feature.D3': 'D3 Charts',
   'menu.feature.D3.Frequency': 'Frequency',
   'menu.feature.Map': 'Map',
   'menu.feature.Map.AutonaviMap': 'AutonaviMap',

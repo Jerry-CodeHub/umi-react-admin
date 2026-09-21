@@ -55,8 +55,6 @@ export default defineConfig({
   },
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   jsMinifier: 'terser',
-  // 开启 valtio 数据流方案 https://umijs.org/docs/max/valtio
-  valtio: {},
   antd: {
     theme: {},
     appConfig: {},

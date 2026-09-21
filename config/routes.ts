@@ -179,6 +179,12 @@ export const routes = [
       },
     ],
   },
+  { path: '/feature/Map', redirect: '/feature/Map/AutonaviMap' },
+  { path: '/feature/Cesium', redirect: '/feature/Cesium/geoHash' },
+  { path: '/feature/D3', redirect: '/feature/D3/Frequency' },
+  { path: '/feature/AudioFeature', redirect: '/feature/AudioFeature/AudioPlayer' },
+  { path: '/feature/VideoPlayer', redirect: '/feature/VideoPlayer/xgplayer' },
+  { path: '/feature/OpenLayers', redirect: '/feature/OpenLayers/InfoMap' },
   {
     name: 'Office',
     path: '/Office',

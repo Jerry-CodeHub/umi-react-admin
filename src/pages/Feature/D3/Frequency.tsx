@@ -329,31 +329,8 @@ const Frequency = () => {
           </div>
           ${
             matches.length > 0
-              ? `
-              <div>已经获取到数据: matches;</div>
-            `
-              : `
-              <div style="color: #666;">当前频率范围内无匹配项</div>
-            `
-            //           matches.length > 0
-            //             ? matches
-            //                 .map(
-            //                   (match: FrequencyMatch) => `
-            //             <div style="margin-bottom: 8px;">
-            //               <div style="color: ${match.color}; font-weight: bold;">
-            //                 ${match.typeName} - ${match.frequencyName}
-            //               </div>
-            //               <div>
-            //                 频率范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
-            //               </div>
-            //               <pre style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0 0 0;">
-            // ${JSON.stringify(match.customInfo, null, 2)}
-            //               </pre>
-            //             </div>
-            //           `,
-            //                 )
-            //                 .join('<hr style="margin: 8px 0;">')
-            //             : '<div style="color: #666;">当前频率范围内无匹配项</div>'
+              ? matches.map((match: FrequencyMatch) => renderMatchDetail(match)).join('<hr style="margin: 8px 0;">')
+              : '<div style="color: #666;">当前频率范围内无匹配项</div>'
           }
         </div>
       `;

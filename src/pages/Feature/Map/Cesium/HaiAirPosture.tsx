@@ -2,7 +2,7 @@ import { iconData } from '@/utils/MapCompute/dataEnd';
 import { loadThermalMapData, type ThermalPoint } from '@/utils/MapCompute/loadThermalMapData';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
-import { Button, message } from 'antd';
+import { Button, message, Result } from 'antd';
 import * as Cesium from 'cesium';
 import CesiumNavigation from 'cesium-navigation-es6';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
@@ -12,6 +12,7 @@ setupCesium(Cesium);
 
 const HaiAirPosture = () => {
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
+  const [initError, setInitError] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState<ThermalPoint[][]>([]);
@@ -89,27 +90,33 @@ const HaiAirPosture = () => {
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesium-container', {
-      // 去除所有的控件
-      animation: false, // 是否显示动画控件
-      baseLayerPicker: false, // 是否显示图层选择控件
-      // fullscreenButton: false, // 是否显示全屏按钮
-      // geocoder: false, // 是否显示地名查找控件
-      // homeButton: false, // 是否显示Home按钮
-      infoBox: false, // 是否显示信息框
-      sceneModePicker: true, // 是否显示3D/2D选择器
-      selectionIndicator: false, // 是否显示选取指示器组件
-      timeline: false, // 是否显示时间轴
-      navigationHelpButton: false, // 是否显示帮助信息按钮
-      navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-      // scene3DOnly: true, // 是否只显示3D
-      shouldAnimate: true, // 是否显示动画
-      skyAtmosphere: false, // 是否显示大气层
-      skyBox: false, // 是否显示天空盒
-      vrButton: false, // 是否显示VR按钮
-      // sceneMode: Cesium.SceneMode.SCENE2D, // 2D 模式
-    });
-
+    let viewer: Cesium.Viewer;
+    try {
+      viewer = new Cesium.Viewer('cesium-container', {
+        // 去除所有的控件
+        animation: false, // 是否显示动画控件
+        baseLayerPicker: false, // 是否显示图层选择控件
+        // fullscreenButton: false, // 是否显示全屏按钮
+        // geocoder: false, // 是否显示地名查找控件
+        // homeButton: false, // 是否显示Home按钮
+        infoBox: false, // 是否显示信息框
+        sceneModePicker: true, // 是否显示3D/2D选择器
+        selectionIndicator: false, // 是否显示选取指示器组件
+        timeline: false, // 是否显示时间轴
+        navigationHelpButton: false, // 是否显示帮助信息按钮
+        navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
+        // scene3DOnly: true, // 是否只显示3D
+        shouldAnimate: true, // 是否显示动画
+        skyAtmosphere: false, // 是否显示大气层
+        skyBox: false, // 是否显示天空盒
+        vrButton: false, // 是否显示VR按钮
+        // sceneMode: Cesium.SceneMode.SCENE2D, // 2D 模式
+      });
+    } catch (error) {
+      console.error('Cesium Viewer 初始化失败:', error);
+      setInitError(true);
+      return;
+    }
     // 初始化导航插件
     const options = {
       enableCompass: true,
@@ -224,7 +231,11 @@ const HaiAirPosture = () => {
         <Button className="mb-2" onClick={() => handleLonLat()}>
           经纬度
         </Button>
-        <div id="cesium-container" />
+        {initError ? (
+          <Result status="warning" title="地图初始化失败" subTitle="WebGL 不可用或当前浏览器不支持 Cesium 渲染" />
+        ) : (
+          <div id="cesium-container" />
+        )}
       </ProCard>
     </>
   );

@@ -5,7 +5,7 @@ import { centerGeoHash, geohashBounds } from '@/utils/MapCompute/geoHash';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 import type { InputNumberProps } from 'antd';
-import { Alert, Button, InputNumber, Spin, message } from 'antd';
+import { Alert, Button, InputNumber, message, Result, Spin } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useState } from 'react';
@@ -38,30 +38,37 @@ type SubArea = {
 
 const InfoGeoHash: React.FC = () => {
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
+  const [initError, setInitError] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesium-container', {
-      // 去除所有的控件
-      animation: false, // 是否显示动画控件
-      // baseLayerPicker: false, // 是否显示图层选择控件
-      // fullscreenButton: false, // 是否显示全屏按钮
-      // geocoder: false, // 是否显示地名查找控件
-      // homeButton: false, // 是否显示Home按钮
-      infoBox: false, // 是否显示信息框
-      sceneModePicker: true, // 是否显示3D/2D选择器
-      selectionIndicator: false, // 是否显示选取指示器组件
-      timeline: false, // 是否显示时间轴
-      navigationHelpButton: false, // 是否显示帮助信息按钮
-      navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-      // scene3DOnly: true, // 是否只显示3D
-      shouldAnimate: true, // 是否显示动画
-      skyAtmosphere: false, // 是否显示大气层
-      skyBox: false, // 是否显示天空盒
-      vrButton: false, // 是否显示VR按钮
-    });
-
+    let viewer: Cesium.Viewer;
+    try {
+      viewer = new Cesium.Viewer('cesium-container', {
+        // 去除所有的控件
+        animation: false, // 是否显示动画控件
+        // baseLayerPicker: false, // 是否显示图层选择控件
+        // fullscreenButton: false, // 是否显示全屏按钮
+        // geocoder: false, // 是否显示地名查找控件
+        // homeButton: false, // 是否显示Home按钮
+        infoBox: false, // 是否显示信息框
+        sceneModePicker: true, // 是否显示3D/2D选择器
+        selectionIndicator: false, // 是否显示选取指示器组件
+        timeline: false, // 是否显示时间轴
+        navigationHelpButton: false, // 是否显示帮助信息按钮
+        navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
+        // scene3DOnly: true, // 是否只显示3D
+        shouldAnimate: true, // 是否显示动画
+        skyAtmosphere: false, // 是否显示大气层
+        skyBox: false, // 是否显示天空盒
+        vrButton: false, // 是否显示VR按钮
+      });
+    } catch (error) {
+      console.error('Cesium Viewer 初始化失败:', error);
+      setInitError(true);
+      return;
+    }
     // 1, 去除版权信息
     (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
 
@@ -134,6 +141,8 @@ const InfoGeoHash: React.FC = () => {
     setCenterHash(geohash);
 
     setTimeout(() => {
+      // 组件已卸载守卫：此时 viewer 可能已销毁
+      if (viewer.isDestroyed()) return;
       // 如何根据 geohash 字符串手动实现显示范围 画出范围
       viewer.entities.removeAll(); // 移除所有实体
 
@@ -284,7 +293,11 @@ const InfoGeoHash: React.FC = () => {
       <ProCard>
         {contextHolder}
         {viewer === null && <Spin spinning={true} />}
-        <div id="cesium-container" />
+        {initError ? (
+          <Result status="warning" title="地图初始化失败" subTitle="WebGL 不可用或当前浏览器不支持 Cesium 渲染" />
+        ) : (
+          <div id="cesium-container" />
+        )}
         <Button className="mt-2" onClick={() => handleRemoveAll()}>
           清除所有
         </Button>

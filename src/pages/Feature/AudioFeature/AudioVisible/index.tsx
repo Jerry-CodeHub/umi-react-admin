@@ -11,14 +11,15 @@ type WaveSurferPlayerProps = Omit<WaveSurferOptions, 'container'>;
 
 const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: WaveSurferPlayerProps) => {
   const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
+  // 依赖数组只含 url（重建触发器），其余配置经 ref 取最新值，避免陈旧配置
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
-  // Initialize wavesurfer when the container mounts
-  // or any of the props change
   useEffect(() => {
     if (!containerRef.current) return;
 
     const ws = WaveSurfer.create({
-      ...options,
+      ...optionsRef.current,
       container: containerRef.current,
     });
 

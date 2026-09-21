@@ -4,7 +4,7 @@ import { demodulationResultList, interceptResultList, locationResultList } from 
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 // import * as turf from '@turf/turf';
-import { Alert, Button, message } from 'antd';
+import { Alert, Button, message, Result } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import React, { useEffect, useState } from 'react';
@@ -24,31 +24,41 @@ const loadPathPointData = async (): Promise<Point[][]> => {
 const Trajectory: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
+  const [initError, setInitError] = useState(false);
   // let turf = window.turf;
   // console.log(turf);
 
+  // 绘制事件处理器（声明先于 useEffect，卸载清理需引用）
+  const handlerRef = React.useRef<Cesium.ScreenSpaceEventHandler | null>(null);
+
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesium-container', {
-      // 去除所有的控件
-      animation: false, // 是否显示动画控件
-      // baseLayerPicker: false, // 是否显示图层选择控件
-      // fullscreenButton: false, // 是否显示全屏按钮
-      // geocoder: false, // 是否显示地名查找控件
-      // homeButton: false, // 是否显示Home按钮
-      infoBox: false, // 是否显示信息框
-      sceneModePicker: true, // 是否显示3D/2D选择器
-      selectionIndicator: false, // 是否显示选取指示器组件
-      timeline: false, // 是否显示时间轴
-      navigationHelpButton: false, // 是否显示帮助信息按钮
-      navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-      // scene3DOnly: true, // 是否只显示3D
-      shouldAnimate: true, // 是否显示动画
-      skyAtmosphere: false, // 是否显示大气层
-      skyBox: false, // 是否显示天空盒
-      vrButton: false, // 是否显示VR按钮
-    });
-
+    let viewer: Cesium.Viewer;
+    try {
+      viewer = new Cesium.Viewer('cesium-container', {
+        // 去除所有的控件
+        animation: false, // 是否显示动画控件
+        // baseLayerPicker: false, // 是否显示图层选择控件
+        // fullscreenButton: false, // 是否显示全屏按钮
+        // geocoder: false, // 是否显示地名查找控件
+        // homeButton: false, // 是否显示Home按钮
+        infoBox: false, // 是否显示信息框
+        sceneModePicker: true, // 是否显示3D/2D选择器
+        selectionIndicator: false, // 是否显示选取指示器组件
+        timeline: false, // 是否显示时间轴
+        navigationHelpButton: false, // 是否显示帮助信息按钮
+        navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
+        // scene3DOnly: true, // 是否只显示3D
+        shouldAnimate: true, // 是否显示动画
+        skyAtmosphere: false, // 是否显示大气层
+        skyBox: false, // 是否显示天空盒
+        vrButton: false, // 是否显示VR按钮
+      });
+    } catch (error) {
+      console.error('Cesium Viewer 初始化失败:', error);
+      setInitError(true);
+      return;
+    }
     // 1, 去除版权信息
     (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
 
@@ -61,13 +71,17 @@ const Trajectory: React.FC = () => {
 
     setViewer(viewer);
 
-    setTimeout(() => {
+    const iconTimer = window.setTimeout(() => {
+      if (viewer.isDestroyed()) return;
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       handlerIcon(viewer);
     }, 100);
 
-    // 销毁
+    // 销毁（含绘制事件处理器，viewer.destroy 不代劳外部 handler）
     return () => {
+      window.clearTimeout(iconTimer);
+      handlerRef.current?.destroy?.();
+      handlerRef.current = null;
       if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
@@ -94,7 +108,6 @@ const Trajectory: React.FC = () => {
   const drawingRef = React.useRef(false);
   const positionsArrRef = React.useRef<Cesium.Cartesian3[]>([]);
   const positionsGeoRef = React.useRef<Point[]>([]);
-  const handlerRef = React.useRef<Cesium.ScreenSpaceEventHandler | null>(null);
   const handlerDraw = () => {
     if (!viewer) return;
 
@@ -327,7 +340,11 @@ const Trajectory: React.FC = () => {
       {contextHolder}
       <Alert className="mb-2" message="轨迹" type="success" />
       <ProCard>
-        <div id="cesium-container" className="static" />
+        {initError ? (
+          <Result status="warning" title="地图初始化失败" subTitle="WebGL 不可用或当前浏览器不支持 Cesium 渲染" />
+        ) : (
+          <div id="cesium-container" className="static" />
+        )}
         <div className="absolute top-8 left-8">
           {drawing ? (
             <Button id="startDrawing" className="text-cyan-50 hover:text-gray-900" onClick={() => handlerDrawOk()}>

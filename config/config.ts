@@ -56,6 +56,8 @@ export default defineConfig({
   antd: {
     theme: {},
     appConfig: {},
+    // 挂载 ConfigProvider 上下文：useAntdConfigSetter 热切换主题算法的前提
+    configProvider: {},
   },
   access: {},
   model: {},
@@ -75,10 +77,5 @@ export default defineConfig({
     baseSeparator: '-',
   },
   tailwindcss: {},
-  lessLoader: {
-    modifyVars: {
-      'root-entry-name': 'default',
-    },
-  },
   esbuildMinifyIIFE: true, // 开启 esbuild 压缩
 });

@@ -11,7 +11,7 @@ export default function VideoPlayer() {
       url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-360p.mp4',
       poster: '//lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/poster.jpg',
       height: '70vh',
-      width: '100vh',
+      width: '100%',
     });
 
     return () => {

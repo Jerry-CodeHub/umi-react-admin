@@ -1,4 +1,5 @@
 import { userService } from '@/services/demo/userService';
+import { getMessage } from '@/utils/antdMessage';
 import {
   ActionType,
   FooterToolbar,
@@ -8,7 +9,7 @@ import {
   ProDescriptionsItemProps,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message } from 'antd';
+import { Button, Drawer } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
 import UpdateForm, { FormValueType } from './components/UpdateForm';
@@ -20,15 +21,15 @@ const { addUser, queryUserList, deleteUser, modifyUser } = userService;
  * @param fields
  */
 const handleAdd = async (fields: API.UserInfo) => {
-  const hide = message.loading('正在添加');
+  const hide = getMessage().loading('正在添加');
   try {
     await addUser({ ...fields });
     hide();
-    message.success('添加成功');
+    getMessage().success('添加成功');
     return true;
   } catch (error) {
     hide();
-    message.error('添加失败请重试！');
+    getMessage().error('添加失败请重试！');
     return false;
   }
 };
@@ -38,7 +39,7 @@ const handleAdd = async (fields: API.UserInfo) => {
  * @param fields
  */
 const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('正在配置');
+  const hide = getMessage().loading('正在配置');
   try {
     // 只提交表单实际字段：值为 undefined 的键不进请求体（JSON.stringify 自动丢弃），
     // 杜绝「表单里没有的字段被空串覆盖」（此前 || '' 兜底会清空 nickName/email）
@@ -54,11 +55,11 @@ const handleUpdate = async (fields: FormValueType) => {
     );
     hide();
 
-    message.success('配置成功');
+    getMessage().success('配置成功');
     return true;
   } catch (error) {
     hide();
-    message.error('配置失败请重试！');
+    getMessage().error('配置失败请重试！');
     return false;
   }
 };
@@ -68,7 +69,7 @@ const handleUpdate = async (fields: FormValueType) => {
  * @param selectedRows
  */
 const handleRemove = async (selectedRows: API.UserInfo[]) => {
-  const hide = message.loading('正在删除');
+  const hide = getMessage().loading('正在删除');
   if (!selectedRows.length) {
     hide();
     return true;
@@ -77,18 +78,18 @@ const handleRemove = async (selectedRows: API.UserInfo[]) => {
   const userIds = selectedRows.map((row) => row.id).filter(Boolean);
   if (!userIds.length) {
     hide();
-    message.warning('未找到可删除的数据');
+    getMessage().warning('未找到可删除的数据');
     return false;
   }
 
   try {
     await Promise.all(userIds.map((userId) => deleteUser({ userId })));
     hide();
-    message.success('删除成功，即将刷新');
+    getMessage().success('删除成功，即将刷新');
     return true;
   } catch (error) {
     hide();
-    message.error('删除失败，请重试');
+    getMessage().error('删除失败，请重试');
     return false;
   }
 };

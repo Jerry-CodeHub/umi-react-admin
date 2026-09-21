@@ -298,7 +298,7 @@ const InfoGeoHash: React.FC = () => {
         </div>
         <div className="mt-2">
           <Button onClick={() => getRectangle()}>获取视图范围</Button>
-          <div className="ml-4 text-red-600 text-success">{extent}</div>
+          <div className="ml-4 text-red-600">{extent}</div>
         </div>
         <div className="mt-2">
           <InputNumber
@@ -311,11 +311,11 @@ const InfoGeoHash: React.FC = () => {
             onChange={inputNumberChange}
           />
           <Button onClick={() => handleCenterGeoHash()}>生成 GeoHash</Button>
-          <span className="ml-4 text-red-600 text-success">{centerHash}</span>
+          <span className="ml-4 text-red-600">{centerHash}</span>
         </div>
         <div className="mt-2">
           <Button onClick={() => getCenterPosition()}>获取中心点坐标</Button>
-          <span className="ml-4 text-red-600 text-success">{centerPosition}</span>
+          <span className="ml-4 text-red-600">{centerPosition}</span>
         </div>
       </ProCard>
     </>

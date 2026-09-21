@@ -1,4 +1,5 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
+import { useIntl } from '@umijs/max';
 import { Alert } from 'antd';
 import { useState } from 'react';
 
@@ -22,6 +23,7 @@ const options = {
 type PDFFile = string | File | null;
 
 export default function Pdf() {
+  const intl = useIntl();
   const [file, setFile] = useState<PDFFile>(`${PUBLIC_PATH}react-dev.pdf`);
   const [numPages, setNumPages] = useState<number>();
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -45,11 +47,12 @@ export default function Pdf() {
         <ProCard className="shadow-2xl" headerBordered>
           <div className="Example">
             <header>
-              <h1>示例页面</h1>
+              <h1>{intl.formatMessage({ id: 'pdf.title' })}</h1>
             </header>
             <div className="Example__container">
               <div className="Example__container__load">
-                <label htmlFor="file">Load from file:</label> <input onChange={onFileChange} type="file" />
+                <label htmlFor="file">{intl.formatMessage({ id: 'pdf.loadFile' })}</label>{' '}
+                <input onChange={onFileChange} type="file" />
               </div>
               <div className="Example__container__document">
                 {loadError && (

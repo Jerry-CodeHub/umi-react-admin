@@ -1,6 +1,6 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
 import type { RequestConfig, RequestOptions } from '@umijs/max';
-import { history } from '@umijs/max';
+import { getIntl, history } from '@umijs/max';
 import { BizError } from './BizError';
 import { getMessage } from './antdMessage';
 
@@ -21,6 +21,15 @@ const getErrorMessage = (data: unknown, fallback: string) => {
     }
   }
   return fallback;
+};
+
+/** 非组件环境取 intl 文案，locale 插件未就绪或键缺失时回退中文默认值 */
+const t = (id: string, fallback: string) => {
+  try {
+    return getIntl().formatMessage({ id, defaultMessage: fallback });
+  } catch {
+    return fallback;
+  }
 };
 
 const getAuthToken = () => {
@@ -59,39 +68,39 @@ export const requestConfig: RequestConfig = {
         switch (status) {
           case 400:
             // 参数错误：仅提示，保留表单上下文
-            message.error(getErrorMessage(data, '请求参数错误。'));
+            message.error(getErrorMessage(data, t('request.badRequest', '请求参数错误。')));
             break;
           case 401:
-            message.error('登录失效，即将跳转至登录页面');
+            message.error(t('request.unauthorized', '登录失效，即将跳转至登录页面'));
             if (typeof window !== 'undefined') {
               localStorage.removeItem(AUTH_TOKEN_KEY);
             }
             history.push('/login');
             break;
           case 403:
-            message.error(getErrorMessage(data, '没有权限访问该资源。'));
+            message.error(getErrorMessage(data, t('request.forbidden', '没有权限访问该资源。')));
             history.push('/403');
             break;
           case 404:
             // 资源不存在：仅提示，停留当前页
-            message.error(getErrorMessage(data, '请求的资源不存在。'));
+            message.error(getErrorMessage(data, t('request.notFound', '请求的资源不存在。')));
             break;
           case 500:
-            message.error(getErrorMessage(data, '服务器错误，请稍后重试。'));
+            message.error(getErrorMessage(data, t('request.serverError', '服务器错误，请稍后重试。')));
             break;
           default:
-            message.error(`请求失败（HTTP ${status}）。`);
+            message.error(`${t('request.failed', '请求失败')}（HTTP ${status}）。`);
         }
         return Promise.reject(error);
       }
 
       // 网络层错误（超时 / 断网）
       if (isRecord(error) && error.code === 'ECONNABORTED') {
-        message.error('请求超时，请稍后重试。');
+        message.error(t('request.timeout', '请求超时，请稍后重试。'));
       } else if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        message.error('网络异常，请检查网络连接。');
+        message.error(t('request.offline', '网络异常，请检查网络连接。'));
       } else {
-        message.error('网络异常，请稍后重试。');
+        message.error(t('request.network', '网络异常，请稍后重试。'));
       }
       return Promise.reject(error);
     },

@@ -5,13 +5,13 @@ import { appList } from '@/layouts/_defaultProps';
 import { registerMessage } from '@/utils/antdMessage';
 import type { RequestConfig, RunTimeLayoutConfig, RuntimeAntdConfig } from '@umijs/max';
 import { Navigate, useLocation, useModel } from '@umijs/max';
-import { App as AntdApp } from 'antd';
+import { App as AntdApp, theme as antdTheme } from 'antd';
 import { useEffect } from 'react';
-import { getInitialState as libGetInitialState } from './utils/Auth/initialState';
+import { getInitialState as libGetInitialState, readTheme, type AppInitialState } from './utils/Auth/initialState';
 import { requestConfig } from './utils/requestConfig';
 
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState() {
+export async function getInitialState(): Promise<AppInitialState | undefined> {
   return await libGetInitialState();
 }
 
@@ -50,8 +50,9 @@ const AuthGuard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const layout: RunTimeLayoutConfig = (initialState) => {
+  // 回调参数是 initialState 插件的 model 对象（{ initialState, refresh, ... }）
+  const themeMode = initialState?.initialState?.theme;
   return {
     title: 'React Admin',
     logo: '/logo.svg',
@@ -59,6 +60,8 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     menuHeaderRender: undefined,
     appList,
     layout: 'mix',
+    // 主题与 antd 运行时算法同源（localStorage），避免首帧闪烁
+    navTheme: themeMode === 'realDark' ? 'realDark' : 'light',
     splitMenus: true,
     fixSiderbar: true,
     fixHeader: true,
@@ -74,9 +77,10 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
 
 export const antd: RuntimeAntdConfig = (memo) => {
   memo.theme ??= {};
-  // 如需切换主题算法，取消对应行注释：
-  // theme.defaultAlgorithm（默认）/ theme.darkAlgorithm（暗色）/ theme.compactAlgorithm（紧凑）
-  // 也可组合使用：algorithm: [theme.darkAlgorithm, theme.compactAlgorithm]
+  // 启动初始算法与 layout 的 navTheme 同源（读同一 localStorage 键）
+  memo.theme.algorithm = readTheme() === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
+  // 开启 CSS 变量注入（:root 上的 --ant-* 变量），tailwind 侧 token 类经 var() 桥接随算法联动
+  memo.theme.cssVar = true;
   memo.appConfig = {
     message: {
       maxCount: 3,

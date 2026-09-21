@@ -1,12 +1,18 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
 import { logout } from '@/services/auth';
+import { THEME_STORAGE_KEY, type AppInitialState, type ThemeMode } from '@/utils/Auth/initialState';
 import { GithubOutlined, GlobalOutlined, SkinOutlined, UserOutlined } from '@ant-design/icons';
-import { history, setLocale, useIntl, useModel } from '@umijs/max';
-import { Avatar, Button, Divider, Popover, message } from 'antd';
+import { history, setLocale, useAntdConfigSetter, useIntl, useModel } from '@umijs/max';
+import { Avatar, Button, Divider, Popover, Tooltip, theme as antdTheme, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 const safeLocalStorage = {
   getItem: (key: string) => (typeof window !== 'undefined' ? localStorage.getItem(key) : null),
+  setItem: (key: string, value: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  },
   removeItem: (key: string) => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(key);
@@ -18,6 +24,7 @@ const RightContent = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const intl = useIntl();
   const { initialState, setInitialState } = useModel('@@initialState');
+  const setAntdConfig = useAntdConfigSetter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [localeType, setLocaleType] = useState(safeLocalStorage.getItem('umi_locale') || 'zh-CN');
 
@@ -26,6 +33,7 @@ const RightContent = () => {
       setLocale('zh-CN');
     }
   }, []);
+
   const localeTypeData = [
     {
       label: '中文',
@@ -37,18 +45,29 @@ const RightContent = () => {
     },
   ];
 
-  const themeType = [
-    {
-      label: intl.formatMessage({ id: 'undertone' }),
-      icons: 'GlobalOutlined',
-      value: 'defaultAlgorithm',
-    },
-    {
-      label: intl.formatMessage({ id: 'DarkColor' }),
-      icons: 'GlobalOutlined',
-      value: 'darkAlgorithm',
-    },
+  /** 切换主题：antd 算法经 useAntdConfigSetter 热切换，ProLayout navTheme 与持久化经 initialState 同步 */
+  const applyTheme = (mode: ThemeMode) => {
+    safeLocalStorage.setItem(THEME_STORAGE_KEY, mode);
+    setAntdConfig({
+      theme: { algorithm: mode === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm },
+    });
+    setInitialState((prev: AppInitialState | undefined) => ({
+      name: '',
+      email: '',
+      nickName: '',
+      ...prev,
+      theme: mode,
+    }));
+  };
+
+  const themeActions = [
+    { label: intl.formatMessage({ id: 'undertone' }), mode: 'light' as ThemeMode },
+    { label: intl.formatMessage({ id: 'DarkColor' }), mode: 'realDark' as ThemeMode },
   ];
+
+  const themeLabel = intl.formatMessage({ id: 'header.theme' });
+  const languageLabel = intl.formatMessage({ id: 'header.language' });
+  const githubLabel = intl.formatMessage({ id: 'header.github' });
 
   return (
     <>
@@ -60,7 +79,7 @@ const RightContent = () => {
         className="flex items-center justify-center mr-5 "
         content={
           <div
-            className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-zinc-200"
+            className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-fill-tertiary"
             onClick={async () => {
               try {
                 await logout();
@@ -93,13 +112,13 @@ const RightContent = () => {
         className="mr-5 text-2xl"
         content={
           <div>
-            {themeType.map((item, index) => (
+            {themeActions.map((item) => (
               <div
-                className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-zinc-200"
-                key={index}
-                onClick={() => {
-                  messageApi.info(intl.formatMessage({ id: 'solution' }));
-                }}
+                className={`w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-fill-tertiary ${
+                  (initialState?.theme ?? 'light') === item.mode ? 'font-semibold' : ''
+                }`}
+                key={item.mode}
+                onClick={() => applyTheme(item.mode)}
               >
                 {item.label}
               </div>
@@ -107,7 +126,9 @@ const RightContent = () => {
           </div>
         }
       >
-        <Button className="flex items-center justify-center" icon={<SkinOutlined />} />
+        <Tooltip title={themeLabel}>
+          <Button aria-label={themeLabel} className="flex items-center justify-center" icon={<SkinOutlined />} />
+        </Tooltip>
       </Popover>
 
       <Popover
@@ -116,14 +137,14 @@ const RightContent = () => {
         placement="bottom"
         content={
           <div>
-            {localeTypeData.map((item, index) => (
+            {localeTypeData.map((item) => (
               <div
-                className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-zinc-200"
+                className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-fill-tertiary"
+                key={item.value}
                 onClick={() => {
                   setLocale(item.value);
                   setLocaleType(item.value);
                 }}
-                key={index}
               >
                 {item.label}
               </div>
@@ -131,16 +152,21 @@ const RightContent = () => {
           </div>
         }
       >
-        <Button className="flex items-center justify-center" icon={<GlobalOutlined />} />
+        <Tooltip title={languageLabel}>
+          <Button aria-label={languageLabel} className="flex items-center justify-center" icon={<GlobalOutlined />} />
+        </Tooltip>
       </Popover>
 
-      <Button
-        className="mr-6"
-        icon={<GithubOutlined />}
-        onClick={() => {
-          window.open('https://github.com/Jerry-CodeHub/umi-react-admin');
-        }}
-      />
+      <Tooltip title={githubLabel}>
+        <Button
+          aria-label={githubLabel}
+          className="mr-6"
+          icon={<GithubOutlined />}
+          onClick={() => {
+            window.open('https://github.com/Jerry-CodeHub/umi-react-admin');
+          }}
+        />
+      </Tooltip>
     </>
   );
 };

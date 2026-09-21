@@ -58,7 +58,7 @@ const InfoMap = () => {
         <Button className="mb-2" onClick={() => handleClick()}>
           click
         </Button>
-        <div id="map" style={{ width: '100%', height: '100vh' }} />
+        <div id="map" style={{ width: '100%', height: 'calc(100vh - 220px)' }} />
       </ProCard>
     </>
   );

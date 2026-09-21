@@ -1,23 +1,14 @@
 import { defineConfig } from '@umijs/max';
-import path from 'path';
+import { applyCesiumStripPragma } from './chainWebpack';
 import { configureSplitChunks } from './splitChunks';
 // import { routes } from './routes';
 
 export default defineConfig({
   chainWebpack(config) {
     configureSplitChunks(config);
-    config.module
-      .rule('cesium')
-      .test(/\.js$/)
-      .include.add(path.resolve(__dirname, 'node_modules/cesium/Source'))
-      .end()
-      .use('strip-pragma-loader')
-      .loader('strip-pragma-loader')
-      .options({
-        pragmas: {
-          debug: false,
-        },
-      });
+    if (process.env.NODE_ENV === 'production') {
+      applyCesiumStripPragma(config);
+    }
   },
   define: {
     CESIUM_BASE_URL: '/umi-react-admin/Cesium',

@@ -1,0 +1,53 @@
+{
+  "name": "技术栈",
+  "children": [
+    {
+      "name": "前端",
+      "children": [
+        { "name": "React", "sum": 76 },
+        { "name": "Vue", "sum": 63 },
+        { "name": "Angular", "sum": 24 },
+        { "name": "Svelte", "sum": 93 },
+        { "name": "Solid", "sum": 53 }
+      ]
+    },
+    {
+      "name": "后端",
+      "children": [
+        { "name": "Node.js", "sum": 12 },
+        { "name": "Java", "sum": 97 },
+        { "name": "Go", "sum": 44 },
+        { "name": "Python", "sum": 34 },
+        { "name": "Rust", "sum": 25 }
+      ]
+    },
+    {
+      "name": "数据",
+      "children": [
+        { "name": "PostgreSQL", "sum": 94 },
+        { "name": "MySQL", "sum": 77 },
+        { "name": "Redis", "sum": 53 },
+        { "name": "ClickHouse", "sum": 86 }
+      ]
+    },
+    {
+      "name": "可视化",
+      "children": [
+        { "name": "G2", "sum": 57 },
+        { "name": "ECharts", "sum": 71 },
+        { "name": "D3", "sum": 77 },
+        { "name": "Cesium", "sum": 66 },
+        { "name": "OpenLayers", "sum": 47 }
+      ]
+    },
+    {
+      "name": "工程化",
+      "children": [
+        { "name": "Webpack", "sum": 91 },
+        { "name": "Vite", "sum": 64 },
+        { "name": "pnpm", "sum": 23 },
+        { "name": "Vitest", "sum": 79 }
+      ]
+    }
+  ]
+}

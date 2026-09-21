@@ -11,7 +11,7 @@ const HomePage: React.FC = () => {
     <PageContainer ghost header={{ title: '' }}>
       <Row>
         <Col span={8} className="pr-2">
-          <Card title="折线 · 股价走势">
+          <Card title="折线 · 示例指数走势">
             <DemoLine />
           </Card>
         </Col>

@@ -1,6 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
-import * as d3 from 'd3';
-import { axisBottom, axisTop, pointer, select } from 'd3';
+import { axisBottom, axisTop, pointer, scalePoint, select } from 'd3';
 import { useEffect, useRef } from 'react';
 import { data, frequencyTicks, type FrequencyMatch, type FrequencyRange } from './components/DataUnit.ts';
 
@@ -117,8 +116,7 @@ const Frequency = () => {
       typeHeights.reduce((acc: number, height: number) => acc + height, 0) + margin.top + margin.bottom;
 
     // 创建 SVG
-    const svg = d3
-      .select(svgRef.current)
+    const svg = select(svgRef.current)
       .attr('width', width + margin.left + margin.right)
       .attr('height', totalHeight + margin.top + margin.bottom)
       .append('g')
@@ -145,8 +143,7 @@ const Frequency = () => {
     const frequencyMarkerGroup = svg.append('g').attr('class', 'frequency-markers').style('pointer-events', 'none');
 
     // 创建等距比例尺
-    const xScale = d3
-      .scalePoint<string>()
+    const xScale = scalePoint<string>()
       .domain(frequencyTicks.map((t) => t.label))
       .range([0, width])
       .padding(0.5);
@@ -158,8 +155,7 @@ const Frequency = () => {
     const labelMap = new Map(frequencyTicks.map((t) => [t.value, t.label] as const)); // 创建标签映射
 
     // 创建tooltip
-    const tooltip = d3
-      .select(containerRef.current)
+    const tooltip = select(containerRef.current)
       .append('div')
       .attr('class', 'frequency-tooltip')
       .style('position', 'absolute')
@@ -176,8 +172,7 @@ const Frequency = () => {
       .style('overflow-y', 'auto');
 
     // 创建hover tooltip
-    const hoverTooltip = d3
-      .select(svgRef.current.parentNode as Element)
+    const hoverTooltip = select(svgRef.current.parentNode as Element)
       .append('div')
       .attr('class', 'hover-tooltip')
       .style('position', 'absolute')
@@ -532,13 +527,12 @@ const Frequency = () => {
         const leftPos = getTickPosition(leftTick.label);
         const rightPos = getTickPosition(rightTick.label);
 
-        // 在对数空间中计算相对位置
-        const logHz = Math.log10(hz);
-        const logLeft = Math.log10(leftTick.value);
-        const logRight = Math.log10(rightTick.value);
-
-        // 使用对数插值计算实际位置
-        const progress = (logHz - logLeft) / (logRight - logLeft);
+        // 在对数空间中计算相对位置；左端刻度为 0 Hz 时 log10(0) = -Infinity 会得到 NaN
+        // （此前 35kHz/100kHz 等落在首段的频段 x/width 为 NaN），首段退化为线性插值
+        const progress =
+          leftTick.value > 0
+            ? (Math.log10(hz) - Math.log10(leftTick.value)) / (Math.log10(rightTick.value) - Math.log10(leftTick.value))
+            : (hz - leftTick.value) / (rightTick.value - leftTick.value);
         return leftPos + (rightPos - leftPos) * progress;
       };
 

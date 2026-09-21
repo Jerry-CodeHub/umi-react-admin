@@ -43,7 +43,8 @@ const PUBLIC_PATHS = ['/login', '/403', '/404'];
 /**
  * 路由守卫：包在 layout childrenRender 中，未登录（无 token 或 initialState 未建立）
  * 时重定向到登录页。不走 config/routes.ts 的 wrappers 属性——该属性在
- * @umijs/max 4.6.53 + layout 插件组合下会导致生产构建整站静默不渲染。
+ * @umijs/max 4.6.53 + layout 插件组合下实测会导致生产构建整站静默不渲染（升级 4.7.19 后未复测，
+ * 守卫实现保持不变）。
  */
 const AuthGuard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const { initialState } = useModel('@@initialState');
@@ -64,7 +65,8 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
   const themeMode = initialState?.initialState?.theme;
   return {
     title: 'React Admin',
-    logo: '/logo.svg',
+    // 经 PUBLIC_PATH 拼接：GitHub Pages 部署在 /umi-react-admin/ 子路径下
+    logo: `${PUBLIC_PATH}logo.svg`,
     rightContentRender: () => <RightContent />,
     menuHeaderRender: undefined,
     appList,

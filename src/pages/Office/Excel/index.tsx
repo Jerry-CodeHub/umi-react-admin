@@ -1,21 +1,22 @@
 import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
-import { Button, Upload, message } from 'antd';
+import { App, Button, Upload } from 'antd';
 import { useState } from 'react';
 
 import { ExcelStyle } from './Excel.style';
 
-interface ExcelRow {
+type ExcelField = 'name' | 'nickName' | 'gender' | 'email';
+
+interface ExcelRow extends Partial<Record<ExcelField, string>> {
+  /** 表格行 key：名称可能重复，不能拿来当 rowKey */
+  key: string;
   name: string;
-  nickName?: string;
-  gender?: string;
-  email?: string;
 }
 
 const sampleRows: ExcelRow[] = [
-  { name: 'Umi', nickName: 'U', gender: 'MALE', email: 'umi@example.com' },
-  { name: 'Fish', nickName: 'B', gender: 'FEMALE', email: 'fish@example.com' },
+  { key: 'sample-0', name: 'Umi', nickName: 'U', gender: 'MALE', email: 'umi@example.com' },
+  { key: 'sample-1', name: 'Fish', nickName: 'B', gender: 'FEMALE', email: 'fish@example.com' },
 ];
 
 const columns: ProColumns<ExcelRow>[] = [
@@ -29,8 +30,17 @@ const columns: ProColumns<ExcelRow>[] = [
   { title: '邮箱', dataIndex: 'email' },
 ];
 
+const headerMap: Record<string, ExcelField> = {
+  名称: 'name',
+  昵称: 'nickName',
+  性别: 'gender',
+  邮箱: 'email',
+};
+
 export default function Excel() {
   const [rows, setRows] = useState<ExcelRow[]>(sampleRows);
+  // App 上下文中的 message：随主题算法（暗色）渲染，静态 message 无法消费动态主题
+  const { message } = App.useApp();
 
   /** 导出：exceljs 生成 .xlsx（动态 import，路由级分包不进首屏） */
   const handleExport = async () => {
@@ -44,7 +54,7 @@ export default function Excel() {
       { header: '邮箱', key: 'email', width: 32 },
     ];
     sheet.getRow(1).font = { bold: true };
-    rows.forEach((row) => sheet.addRow(row));
+    rows.forEach(({ key: _key, ...row }) => sheet.addRow(row));
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer as unknown as BlobPart], {
@@ -54,8 +64,11 @@ export default function Excel() {
     const link = document.createElement('a');
     link.href = url;
     link.download = 'users.xlsx';
+    // 挂到文档再点击、下一轮事件循环再释放 URL：部分浏览器在同步 revoke 时会中断下载
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
     message.success('导出成功');
   };
 
@@ -75,17 +88,12 @@ export default function Excel() {
       return false;
     }
 
-    const headerMap: Record<string, keyof ExcelRow> = {
-      名称: 'name',
-      昵称: 'nickName',
-      性别: 'gender',
-      邮箱: 'email',
-    };
-    // 读取表头行，建立列号 → 字段映射（顺序无关）
-    const columnField = new Map<number, keyof ExcelRow>();
-    const headerRow = sheet.getRow(1);
-    headerRow.eachCell((cell, colNumber) => {
-      const field = headerMap[String(cell.value ?? '').trim()];
+    // 读取表头行，建立列号 → 字段映射（顺序无关）。
+    // 一律取 cell.text（单元格显示文本）：邮箱在 Excel 里常被自动转成超链接，富文本、公式单元格的
+    // value 都是对象，String(value) 会得到 "[object Object]"
+    const columnField = new Map<number, ExcelField>();
+    sheet.getRow(1).eachCell((cell, colNumber) => {
+      const field = headerMap[cell.text.trim()];
       if (field) {
         columnField.set(colNumber, field);
       }
@@ -96,10 +104,9 @@ export default function Excel() {
       if (rowNumber === 1) {
         return;
       }
-      const record: ExcelRow = { name: '' };
+      const record: ExcelRow = { key: `row-${rowNumber}`, name: '' };
       columnField.forEach((field, colNumber) => {
-        const value = row.getCell(colNumber).value;
-        record[field] = String(value ?? '');
+        record[field] = row.getCell(colNumber).text.trim();
       });
       if (record.name) {
         parsed.push(record);
@@ -124,7 +131,7 @@ export default function Excel() {
             </Upload>
           </div>
           <ProTable<ExcelRow>
-            rowKey="name"
+            rowKey="key"
             search={false}
             toolBarRender={false}
             dataSource={rows}

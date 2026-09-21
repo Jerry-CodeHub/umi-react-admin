@@ -97,7 +97,7 @@ const handleRemove = async (selectedRows: API.UserInfo[]) => {
 const TableList: React.FC<unknown> = () => {
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
-  const [stepFormValues, setStepFormValues] = useState({});
+  const [editingUser, setEditingUser] = useState({});
   const actionRef = useRef<ActionType>();
   const [row, setRow] = useState<API.UserInfo>();
   const [selectedRowsState, setSelectedRows] = useState<API.UserInfo[]>([]);
@@ -152,7 +152,7 @@ const TableList: React.FC<unknown> = () => {
             type="link"
             onClick={() => {
               handleUpdateModalVisible(true);
-              setStepFormValues(record);
+              setEditingUser(record);
             }}
           >
             配置
@@ -245,13 +245,13 @@ const TableList: React.FC<unknown> = () => {
           columns={columns}
         />
       </CreateForm>
-      {stepFormValues && Object.keys(stepFormValues).length ? (
+      {editingUser && Object.keys(editingUser).length ? (
         <UpdateForm
           onSubmit={async (value) => {
             const success = await handleUpdate(value);
             if (success) {
               handleUpdateModalVisible(false);
-              setStepFormValues({});
+              setEditingUser({});
               if (actionRef.current) {
                 actionRef.current.reload();
               }
@@ -259,10 +259,10 @@ const TableList: React.FC<unknown> = () => {
           }}
           onCancel={() => {
             handleUpdateModalVisible(false);
-            setStepFormValues({});
+            setEditingUser({});
           }}
           updateModalVisible={updateModalVisible}
-          values={stepFormValues}
+          values={editingUser}
         />
       ) : null}
 

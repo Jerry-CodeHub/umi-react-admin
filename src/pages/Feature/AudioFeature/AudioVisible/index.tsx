@@ -81,7 +81,8 @@ const WaveSurferPlayer = (props: WaveSurferPlayerProps) => {
 };
 
 export default function AudioVisible() {
-  const urls = ['/audio/audio.wav', '/audio/stereo.wav'];
+  // 经 PUBLIC_PATH 拼接：GitHub Pages 部署在 /umi-react-admin/ 子路径下
+  const urls = [`${PUBLIC_PATH}audio/audio.wav`, `${PUBLIC_PATH}audio/stereo.wav`];
   const [audioUrl, setAudioUrl] = useState(urls[0]);
 
   // Swap the audio URL

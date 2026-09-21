@@ -1,6 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
-import { DateSelectArg, EventApi, EventClickArg, EventContentArg, formatDate } from '@fullcalendar/core';
-import enLocale from '@fullcalendar/core/locales/en-gb';
+import { DateSelectArg, EventApi, EventClickArg, EventContentArg } from '@fullcalendar/core';
 import zhLocale from '@fullcalendar/core/locales/zh-cn';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -8,7 +7,7 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { useIntl } from '@umijs/max';
-import { Checkbox, Input, List, Modal, Typography } from 'antd';
+import { App, Checkbox, Input, List, Modal, Typography } from 'antd';
 import { useState } from 'react';
 
 import { INITIAL_EVENTS, createEventId } from './event-utils';
@@ -24,6 +23,9 @@ function renderEventContent(eventContent: EventContentArg) {
 
 export default () => {
   const intl = useIntl();
+  // App 上下文中的 modal：随主题算法（暗色）渲染，静态 Modal.confirm 无法消费动态主题
+  const { modal } = App.useApp();
+  const dateFormatter = new Intl.DateTimeFormat(intl.locale, { year: 'numeric', month: 'short', day: 'numeric' });
   const [state, setState] = useState({
     weekendsVisible: true,
     currentEvents: [] as EventApi[],
@@ -69,7 +71,7 @@ export default () => {
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     // 替代 window.confirm 阻塞式交互
-    Modal.confirm({
+    modal.confirm({
       title: `确认删除事件「${clickInfo.event.title}」？`,
       onOk: () => {
         clickInfo.event.remove();
@@ -101,13 +103,7 @@ export default () => {
             dataSource={state.currentEvents}
             renderItem={(event) => (
               <List.Item>
-                <b>
-                  {formatDate(event.start!, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </b>
+                <b>{event.start ? dateFormatter.format(event.start) : ''}</b>
                 <i className="ml-2">{event.title}</i>
               </List.Item>
             )}
@@ -116,7 +112,8 @@ export default () => {
 
         <div className="min-w-0 flex-1">
           <FullCalendar
-            locale={intl.locale === 'en-US' ? enLocale : zhLocale}
+            // 英文用 FullCalendar 内置的 en（美式日期、周日起始），中文用 zh-cn
+            locale={intl.locale === 'en-US' ? 'en' : zhLocale}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin]}
             headerToolbar={{
               left: 'prev,next today',

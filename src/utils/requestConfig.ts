@@ -32,9 +32,9 @@ const getAuthToken = () => {
 
 export const requestConfig: RequestConfig = {
   timeout: 15000,
-  // 注意：不要在此读取未在 config define 中声明的 process.env.*，
-  // umi 构建只替换已定义的键，未定义的键会原样进入浏览器包并在模块初始化时抛 ReferenceError。
-  // UMI_APP_API_BASE 的接入见阶段 4（config.ts define + .env.example）。
+  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_KEY 全局常量，
+  // 未配置时为 undefined 走相对路径（dev 由 umi mock 接管，静态演示走 userService 适配层）
+  baseURL: UMI_APP_API_BASE,
   errorConfig: {
     // 后端 success:false 的业务错误统一转成 BizError 抛给调用方
     errorThrower: (res) => {

@@ -39,6 +39,8 @@ jobs:
       - name: Build
         env:
           CESIUM_ION_TOKEN: ${{ secrets.CESIUM_ION_TOKEN }}
+          # 可选：为演示站开启 Clarity 统计时配置（模板默认不含任何统计脚本）
+          CLARITY_ID: ${{ secrets.CLARITY_ID }}
         run: pnpm run build:github
 
       - name: Deploy to GitHub Pages

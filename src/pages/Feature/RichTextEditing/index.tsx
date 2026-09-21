@@ -14,7 +14,7 @@ export default () => {
   return (
     <ProCard className="shadow-2xl">
       <Editor
-        apiKey={process.env.TINYMCE_API_KEY}
+        apiKey={TINYMCE_API_KEY}
         onInit={(evt, editor) => (editorRef.current = editor)}
         initialValue="<p>This is the initial content of the editor.</p>"
         init={{

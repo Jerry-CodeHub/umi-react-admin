@@ -8,11 +8,11 @@
   "limits": {
     "syncScripts": 25,
     "firstScreenGzipKB": 1024,
-    "distMB": 36,
+    "distMB": 40,
     "publicMB": 18
   },
   "notes": {
-    "distMB": "dist 含 Cesium 全量静态资产（Workers/Assets/Widgets 约 25MB，构建期从 node_modules 复制），36 为现实上限",
+    "distMB": "dist 含 Cesium 全量静态资产（约 25MB）与 pdfjs 的 cmaps/standard_fonts（约 2.4MB，react-pdf 中文文档渲染所需），构建期从 node_modules 复制，40 为现实上限",
     "publicMB": "当前 15.5MB 为演示媒体（4.5MB pdf / 4MB mp3 / 5.3MB 热力图数据）；演示数据瘦身后收紧至 3MB"
   }
 }

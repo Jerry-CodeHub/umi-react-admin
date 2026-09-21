@@ -53,11 +53,12 @@ export const configureSplitChunks = (config: WebpackChainConfig) => {
         priority: 35,
         enforce: true,
       },
+      // pdf（react-pdf/pdfjs-dist）不做强制分组：pdfjs 内部存在动态自引用，
+      // enforce 强组会拆断其模块注册表导致 worker 握手失败（onPull undefined）
       pdf: {
         name: 'vendor-pdf',
         test: /[\\/]node_modules[\\/](react-pdf|pdfjs-dist)[\\/]/,
         priority: 25,
-        enforce: true,
       },
       media: {
         name: 'vendor-media',

@@ -1,4 +1,4 @@
-import services from '@/services/demo';
+import { userService } from '@/services/demo/userService';
 import {
   ActionType,
   FooterToolbar,
@@ -8,12 +8,12 @@ import {
   ProDescriptionsItemProps,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Divider, Drawer, message } from 'antd';
+import { Button, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
 import UpdateForm, { FormValueType } from './components/UpdateForm';
 
-const { addUser, queryUserList, deleteUser, modifyUser } = services.UserController;
+const { addUser, queryUserList, deleteUser, modifyUser } = userService;
 
 /**
  * 添加节点
@@ -40,14 +40,16 @@ const handleAdd = async (fields: API.UserInfo) => {
 const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('正在配置');
   try {
+    // 只提交表单实际字段：值为 undefined 的键不进请求体（JSON.stringify 自动丢弃），
+    // 杜绝「表单里没有的字段被空串覆盖」（此前 || '' 兜底会清空 nickName/email）
     await modifyUser(
       {
         userId: fields.id || '',
       },
       {
-        name: fields.name || '',
-        nickName: fields.nickName || '',
-        email: fields.email || '',
+        name: fields.name,
+        nickName: fields.nickName,
+        email: fields.email,
       },
     );
     hide();
@@ -103,6 +105,15 @@ const TableList: React.FC<unknown> = () => {
       title: '名称',
       dataIndex: 'name',
       tooltip: '名称是唯一的 key',
+      render: (_, record) => (
+        <a
+          onClick={() => {
+            setRow(record);
+          }}
+        >
+          {record.name}
+        </a>
+      ),
       formItemProps: {
         rules: [
           {
@@ -122,8 +133,8 @@ const TableList: React.FC<unknown> = () => {
       dataIndex: 'gender',
       hideInForm: true,
       valueEnum: {
-        0: { text: '男', status: 'MALE' },
-        1: { text: '女', status: 'FEMALE' },
+        MALE: { text: '男', status: 'MALE' },
+        FEMALE: { text: '女', status: 'FEMALE' },
       },
     },
   ];
@@ -143,8 +154,6 @@ const TableList: React.FC<unknown> = () => {
           >
             配置
           </a>
-          <Divider type="vertical" />
-          <Button type="link">订阅警报</Button>
         </>
       ),
     },
@@ -156,8 +165,8 @@ const TableList: React.FC<unknown> = () => {
       title: '性别',
       dataIndex: 'gender',
       valueEnum: {
-        0: { text: '男', status: 'MALE' },
-        1: { text: '女', status: 'FEMALE' },
+        MALE: { text: '男', status: 'MALE' },
+        FEMALE: { text: '女', status: 'FEMALE' },
       },
     },
   ];
@@ -180,12 +189,18 @@ const TableList: React.FC<unknown> = () => {
             新建
           </Button>,
         ]}
-        request={async (params, sorter, filter) => {
-          const { data, success } = await queryUserList({ ...params }, { sorter, filter });
-          return {
-            data: data?.list || [],
-            success,
-          };
+        request={async (params) => {
+          try {
+            const { data, success } = await queryUserList({ ...params });
+            return {
+              data: data?.list || [],
+              total: data?.total,
+              success,
+            };
+          } catch {
+            // 错误提示由全局 errorHandler 统一处理，这里兜底消除 unhandled rejection
+            return { data: [], total: 0, success: false };
+          }
         }}
         columns={columns}
         rowSelection={{
@@ -209,7 +224,6 @@ const TableList: React.FC<unknown> = () => {
           >
             批量删除
           </Button>
-          <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
       <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
@@ -261,9 +275,15 @@ const TableList: React.FC<unknown> = () => {
           <ProDescriptions<API.UserInfo>
             column={2}
             title={row?.name}
-            request={async () => ({
-              data: row || {},
-            })}
+            request={async () => {
+              try {
+                const { data } = await userService.getUserDetail({ userId: row.id });
+                return { data: data || row };
+              } catch {
+                // 详情接口失败（如 404）时回落到行数据，抽屉不留空白
+                return { data: row };
+              }
+            }}
             params={{
               id: row?.name,
             }}

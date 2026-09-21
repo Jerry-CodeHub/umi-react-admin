@@ -3,8 +3,8 @@ import { AUTH_TOKEN_KEY } from '@/constants';
 import RightContent from '@/layouts/RightContent';
 import { appList } from '@/layouts/_defaultProps';
 import { registerMessage } from '@/utils/antdMessage';
-import type { RequestConfig, RunTimeLayoutConfig, RuntimeAntdConfig } from '@umijs/max';
-import { Navigate, useLocation, useModel } from '@umijs/max';
+import type { RequestConfig, RuntimeAntdConfig, RunTimeLayoutConfig } from '@umijs/max';
+import { getLocale, Navigate, useLocation, useModel } from '@umijs/max';
 import { App as AntdApp, theme as antdTheme } from 'antd';
 import { useEffect } from 'react';
 import { getInitialState as libGetInitialState, readTheme, type AppInitialState } from './utils/Auth/initialState';
@@ -16,6 +16,15 @@ export async function getInitialState(): Promise<AppInitialState | undefined> {
 }
 
 export const request: RequestConfig = requestConfig;
+
+/**
+ * 屏幕阅读器按 <html lang> 选择发音与断词（WCAG 3.1.1），umi 默认模板不带 lang。
+ * 切换语言时 setLocale 默认整页刷新，因此启动时同步一次即可覆盖所有情况。
+ */
+export function render(oldRender: () => void) {
+  document.documentElement.lang = getLocale();
+  oldRender();
+}
 
 /** 将 antd App 上下文中的 message 实例注册给全局错误处理（requestConfig）使用 */
 const MessageBridge = () => {
@@ -79,7 +88,8 @@ export const antd: RuntimeAntdConfig = (memo) => {
   memo.theme ??= {};
   // 启动初始算法与 layout 的 navTheme 同源（读同一 localStorage 键）
   memo.theme.algorithm = readTheme() === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
-  // 开启 CSS 变量注入（:root 上的 --ant-* 变量），tailwind 侧 token 类经 var() 桥接随算法联动
+  // 开启 CSS 变量注入：--ant-* 变量挂在 antd 组件根的 .css-var-* 作用域（不在 :root），
+  // tailwind 侧 token 类经 var() 桥接随算法联动，只在 antd 组件树内生效（见 tailwind.config.js）
   memo.theme.cssVar = true;
   memo.appConfig = {
     message: {

@@ -55,6 +55,8 @@ export default defineConfig({
     // process.env.X 会原样进入浏览器包并在模块初始化时抛 ReferenceError）
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
   },
+  // 覆盖 umi 默认的 viewport（user-scalable=no / maximum-scale=1 禁止缩放，违反 WCAG 1.4.4）
+  metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   // 产物文件名带内容哈希：配合 nginx 对哈希文件的长缓存（nginx/default.conf），发版后不会命中旧脚本
   hash: true,

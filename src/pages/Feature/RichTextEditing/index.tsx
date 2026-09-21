@@ -11,11 +11,18 @@ const INITIAL_CONTENT = '<p>This is the initial content of the editor.</p>';
 
 export default () => {
   const editorRef = useRef<TinyMCEEditor | null>(null);
-  // 皮肤只能在初始化时指定：切换主题时按 key 重建编辑器，用 ref 保留已编辑的内容
-  const draftRef = useRef(INITIAL_CONTENT);
   const [content, setContent] = useState('');
   const { initialState } = useModel('@@initialState');
   const dark = initialState?.theme === 'realDark';
+
+  // 皮肤只能在初始化时指定：切换主题时按 key 重建编辑器。重建前（本次渲染、旧编辑器尚未卸载）
+  // 直接从旧实例取最新内容作为新编辑器的初始值——不依赖 change/keyup 事件是否已触发
+  const draftRef = useRef(INITIAL_CONTENT);
+  const renderedDarkRef = useRef(dark);
+  if (renderedDarkRef.current !== dark) {
+    draftRef.current = editorRef.current?.getContent() ?? draftRef.current;
+    renderedDarkRef.current = dark;
+  }
 
   return (
     <ProCard className="shadow-2xl">
@@ -23,9 +30,6 @@ export default () => {
         key={dark ? 'dark' : 'light'}
         licenseKey="gpl"
         onInit={(_evt, editor) => (editorRef.current = editor)}
-        onEditorChange={(value) => {
-          draftRef.current = value;
-        }}
         initialValue={draftRef.current}
         init={{
           height: 500,

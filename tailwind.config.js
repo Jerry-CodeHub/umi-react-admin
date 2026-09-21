@@ -11,8 +11,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // antd5 主题算法（app.tsx 已开 cssVar）注入 :root 的 CSS 变量桥接：
-        // 切换暗色时 antd 重算变量，以下 token 类自动跟随，替代硬编码色板
+        // antd5 CSS 变量桥接（app.tsx 已开 cssVar）：变量不在 :root 上，而是挂在 antd 组件根的
+        // .css-var-* 作用域内（umi 用 antd <App> 包裹整个应用，其容器也带该类，弹层根节点各自带）。
+        // 所以这些 token 类只在 antd 组件树内生效；切换暗色时 antd 重算变量，token 类自动跟随
         text: 'var(--ant-color-text)',
         'text-tertiary': 'var(--ant-color-text-tertiary)',
         'fill-tertiary': 'var(--ant-color-fill-tertiary)',

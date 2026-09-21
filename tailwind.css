@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * preflight 已关闭（见 tailwind.config.js），但 border 系工具类依赖 preflight 的边框基线：
+ * .border 只设 border-width，缺了 border-style: solid 时边框根本不显示。
+ * 这里只补回 preflight 中与边框相关的两条（与 antd 组件显式声明的边框不冲突）。
+ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: theme('borderColor.DEFAULT', currentcolor);
+  }
+
+  /* 上面把 border-width 归零后，hr 需要恢复顶边线（同 preflight） */
+  hr {
+    height: 0;
+    color: inherit;
+    border-top-width: 1px;
+  }
+}

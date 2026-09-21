@@ -24,10 +24,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    // 背景与提示色用 antd token 类（登录页在 umi 包裹的 antd <App> 容器内，变量可用），暗色模式随算法切换
+    <div className="flex min-h-screen items-center justify-center bg-bg-layout px-4">
       {contextHolder}
       <Card className="w-full max-w-sm" title="React Admin">
-        <p className="mb-4 text-center text-xs text-gray-400">{intl.formatMessage({ id: 'login.demoHint' })}</p>
+        <p className="mb-4 text-center text-xs text-text-tertiary">{intl.formatMessage({ id: 'login.demoHint' })}</p>
         <Form initialValues={{ name: 'admin' }} layout="vertical" onFinish={handleFinish}>
           <Form.Item
             label={intl.formatMessage({ id: 'login.username' })}

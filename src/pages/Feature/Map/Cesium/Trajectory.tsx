@@ -7,7 +7,6 @@ import { ProCard } from '@ant-design/pro-components';
 import { Alert, Button, message } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
-// import RBush from 'rbush';
 import React, { useEffect, useState } from 'react';
 
 setupCesium(Cesium);

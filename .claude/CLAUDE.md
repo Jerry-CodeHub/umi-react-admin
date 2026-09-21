@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-umi-react-admin 是一个基于 Umi Max 的企业级 React 后台管理系统模板，包含丰富的功能组件展示，如日历、富文本编辑、地图（Cesium/高德/OpenLayers）、低代码设计器等。
+umi-react-admin 是一个基于 Umi Max 的企业级 React 后台管理系统模板，包含丰富的功能组件展示，如日历、富文本编辑、地图（Cesium/高德/OpenLayers）、播放器、签名等。
 
 ## 技术栈
 
@@ -12,9 +12,8 @@ umi-react-admin 是一个基于 Umi Max 的企业级 React 后台管理系统模
 - **UI**: Ant Design 5 + Ant Design Pro Components
 - **样式**: Tailwind CSS 3 + Less
 - **状态管理**: Valtio (Umi Max 内置)
-- **表单/低代码**: Formily 2 + Designable
 - **地图**: Cesium.js、OpenLayers 9、高德地图
-- **图表**: Ant Design Charts、D3.js
+- **图表**: Ant Design Charts (plots)、D3.js
 - **包管理器**: pnpm
 
 ## 常用命令

@@ -43,13 +43,6 @@ export const configureSplitChunks = (config: WebpackChainConfig) => {
         priority: 35,
         enforce: true,
       },
-      designable: {
-        name: 'vendor-designable',
-        test: /[\\/]node_modules[\\/](@designable|@pind|@formily)[\\/]/,
-        priority: 30,
-        enforce: true,
-        maxSize: 240_000,
-      },
       pdf: {
         name: 'vendor-pdf',
         test: /[\\/]node_modules[\\/](react-pdf|pdfjs-dist)[\\/]/,
@@ -59,14 +52,14 @@ export const configureSplitChunks = (config: WebpackChainConfig) => {
       },
       media: {
         name: 'vendor-media',
-        test: /[\\/]node_modules[\\/](artplayer|wavesurfer\.js|xgplayer|xgplayer-music|html2canvas|tinymce)[\\/]/,
+        test: /[\\/]node_modules[\\/](wavesurfer\.js|xgplayer|xgplayer-music|html2canvas|tinymce)[\\/]/,
         priority: 20,
         enforce: true,
         maxSize: 240_000,
       },
       turf: {
         name: 'vendor-turf',
-        test: /[\\/]node_modules[\\/](@turf|geojson-rbush|rbush)[\\/]/,
+        test: /[\\/]node_modules[\\/]@turf[\\/]/,
         priority: 20,
         enforce: true,
       },

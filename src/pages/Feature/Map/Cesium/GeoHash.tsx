@@ -242,7 +242,6 @@ const InfoGeoHash: React.FC = () => {
         const centerLat = (subSouth + subNorth) / 2;
         const centerLon = (subWest + subEast) / 2;
 
-        // const geohash = ngeohash.encode(centerLat, centerLon, precision);
         const geohash = centerGeoHash(centerLat, centerLon, precision);
         geohashes.push({
           geohash,

@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | React / antd / @ant-design/\* / @umijs/max | MIT |  |
 | Cesium | Apache-2.0 | 构建产物随附许可副本（`dist/Cesium/LICENSE.md`），满足 Apache-2.0 第 4 条再分发要求 |
-| TinyMCE 8 | GPL-2.0-or-later / Tiny 商业双许可 | 见 README「第三方许可说明」；后台系统多数场景不触发 GPL 分发义务，闭源商用请自行评估或购买 Tiny 许可 |
+| TinyMCE 8 | GPL-2.0-or-later / Tiny 商业双许可 | 自托管：随构建产物分发（仅富文本路由的异步 chunk），编辑器以 `license_key: 'gpl'` 运行；对外提供含 TinyMCE 的产物即构成分发，须遵守 GPL，闭源商用请购买 Tiny 许可或替换（见 README「第三方许可说明」） |
 | @turf/union、@turf/helpers | MIT | 按需引入；已避免整包 `@turf/turf` 带来的 AGPL（marchingsquares）/EPL（jsts）传递组件 |
 | OpenLayers | BSD-2-Clause |  |
 | xgplayer / wavesurfer.js / artplayer（已移除） | MIT | 演示页播放器视频/海报素材走第三方 CDN，不随本仓库分发 |

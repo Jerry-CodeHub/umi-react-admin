@@ -16,7 +16,6 @@ export default defineConfig({
     CESIUM_ION_TOKEN: process.env.CESIUM_ION_TOKEN,
     PUBLIC_PATH: '/umi-react-admin/',
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
-    TINYMCE_API_KEY: process.env.TINYMCE_API_KEY,
   },
   favicons: ['/umi-react-admin/favicon.ico'],
   base: '/umi-react-admin/',

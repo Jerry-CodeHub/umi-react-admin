@@ -10,9 +10,6 @@ declare const PUBLIC_PATH: string;
 // 真实后端 API 地址（可选，未配置时 dev 走 umi mock、生产演示走静态数据）
 declare const UMI_APP_API_BASE: string;
 
-// TinyMCE Cloud API Key（可选，未配置时编辑器以无 key 模式加载）
-declare const TINYMCE_API_KEY: string;
-
 interface Window {
   Cesium?: typeof import('cesium');
 }

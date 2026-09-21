@@ -41,7 +41,6 @@ pnpm start
 | --- | --- | --- |
 | `CESIUM_ION_TOKEN` | Cesium 功能需要 | 在 [ion.cesium.com](https://ion.cesium.com/tokens) 获取；缺失时 Cesium Ion 影像/地形不可用（其余功能不受影响） |
 | `UMI_APP_API_BASE` | 可选 | 真实后端 API 地址；不配置时开发环境走 umi mock、纯静态部署走内置静态演示数据（表格 CRUD 经 localStorage 持久化） |
-| `TINYMCE_API_KEY` | 可选 | [tiny.cloud](https://www.tiny.cloud/auth/signup/) 云服务 Key；不配置时富文本以无 key 模式加载 |
 | `CLARITY_ID` | 可选 | [Clarity](https://clarity.microsoft.com) 统计项目 ID；**模板默认不含任何统计脚本**，配置后才按你自己的项目上报（含会话回放，正式站点请履行隐私告知义务） |
 
 ## 常用脚本
@@ -89,7 +88,7 @@ src/
 
 本项目按 **MIT** 分发（见 [LICENSE](./LICENSE)），但以下第三方内容**不随 MIT 一并授权**：
 
-- **TinyMCE 8**：GPL-2.0-or-later 或 Tiny 商业许可双轨。模板按 MIT 分发不等于授予 TinyMCE 闭源商用权利——闭源商用需购买 Tiny 许可或自行评估 GPL 义务（后台管理系统通常不分发软件副本，多数场景不触发 GPL 分发义务，请以自身场景评估）。替代库提示：TipTap（MIT）/ Quill 2（BSD-3）。
+- **TinyMCE 8**：GPL-2.0-or-later 或 Tiny 商业许可双轨。本模板**自托管** npm 中的 TinyMCE（随富文本路由的异步 chunk 分发，不依赖 Tiny Cloud 与 API key），编辑器以 `license_key: 'gpl'` 运行。模板按 MIT 分发不等于授予 TinyMCE 闭源商用权利：对外提供包含 TinyMCE 的构建产物即构成分发，须遵守 GPL；闭源商用请购买 Tiny 商业许可，或替换为 TipTap（MIT）/ Quill 2（BSD-3）。仅内部使用等场景的义务请结合自身情况评估。
 - **Cesium**：Apache-2.0（构建产物已随附许可副本 `dist/Cesium/LICENSE.md`）。
 - **演示媒体**：本仓库内的演示音视频/PDF/数据文件为项目自制，仅作演示用途。
 - 完整依赖许可清单见 [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md)。

@@ -1,22 +1,37 @@
 import { ProCard } from '@ant-design/pro-components';
 import { Editor } from '@tinymce/tinymce-react';
+import { useModel } from '@umijs/max';
 import { Button, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
+// 自托管 TinyMCE（必须先于编辑器渲染执行，挂载全局 tinymce 后 Editor 不再走 Tiny Cloud）
+import './tinymceBundle';
+
+const INITIAL_CONTENT = '<p>This is the initial content of the editor.</p>';
 
 export default () => {
   const editorRef = useRef<TinyMCEEditor | null>(null);
+  // 皮肤只能在初始化时指定：切换主题时按 key 重建编辑器，用 ref 保留已编辑的内容
+  const draftRef = useRef(INITIAL_CONTENT);
   const [content, setContent] = useState('');
+  const { initialState } = useModel('@@initialState');
+  const dark = initialState?.theme === 'realDark';
 
   return (
     <ProCard className="shadow-2xl">
       <Editor
-        apiKey={TINYMCE_API_KEY}
-        onInit={(evt, editor) => (editorRef.current = editor)}
-        initialValue="<p>This is the initial content of the editor.</p>"
+        key={dark ? 'dark' : 'light'}
+        licenseKey="gpl"
+        onInit={(_evt, editor) => (editorRef.current = editor)}
+        onEditorChange={(value) => {
+          draftRef.current = value;
+        }}
+        initialValue={draftRef.current}
         init={{
           height: 500,
           menubar: false,
+          skin: dark ? 'oxide-dark' : 'oxide',
+          content_css: dark ? 'dark' : 'default',
           plugins: [
             'advlist',
             'autolink',
@@ -28,7 +43,6 @@ export default () => {
             'anchor',
             'searchreplace',
             'visualblocks',
-            'code',
             'fullscreen',
             'insertdatetime',
             'media',

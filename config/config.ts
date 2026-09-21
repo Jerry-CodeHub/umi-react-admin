@@ -54,7 +54,6 @@ export default defineConfig({
     // 以下变量经 define 显式注入（umi 仅自动注入 UMI_APP_* 前缀，未显式声明的
     // process.env.X 会原样进入浏览器包并在模块初始化时抛 ReferenceError）
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
-    TINYMCE_API_KEY: process.env.TINYMCE_API_KEY,
   },
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   // 产物文件名带内容哈希：配合 nginx 对哈希文件的长缓存（nginx/default.conf），发版后不会命中旧脚本

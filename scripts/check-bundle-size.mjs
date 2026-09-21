@@ -78,12 +78,11 @@ if (dirSizeMB(join(root.pathname, 'public')) > L.publicMB)
 // ---- 样式管线覆盖检查（审计 extra-3-9）----
 // 源码中使用的 tailwind 工具类必须在构建产物 umi.css 中存在，
 // 否则说明版本锁死/content 漏扫导致类被静默丢弃（min-w-96 案例的根因）。
-const UTILITY_PREFIX = /^(?:!?[a-z:]+-|.+(?:\/|\[).+|flex|grid|block|hidden|relative|absolute|static|fixed|sticky|invisible|visible|italic|underline|truncate|table)$/;
+const UTILITY_PREFIX =
+  /^(?:!?[a-z:]+-|.+(?:\/|\[).+|flex|grid|block|hidden|relative|absolute|static|fixed|sticky|invisible|visible|italic|underline|truncate|table)$/;
 const umiCss = readFileSync(join(distDir, 'umi.css'), 'utf8');
 const cssClasses = new Set(
-  Array.from(umiCss.matchAll(/\.((?:[a-zA-Z0-9_-]|\\.)+)/g)).map((m) =>
-    m[1].replace(/\\([./:[\]()])/g, '$1'),
-  ),
+  Array.from(umiCss.matchAll(/\.((?:[a-zA-Z0-9_-]|\\.)+)/g)).map((m) => m[1].replace(/\\([./:[\]()])/g, '$1')),
 );
 const srcFiles = execFileSync('git', ['ls-files', 'src'], { encoding: 'utf8' })
   .split('\n')
@@ -98,8 +97,25 @@ for (const f of srcFiles) {
   }
 }
 // 只判定"确属 tailwind 工具类"的 token（自定义类如 audio-player/signature-pad 不在范围）
-const BARE_UTILS = new Set(['flex', 'grid', 'block', 'hidden', 'relative', 'absolute', 'static', 'fixed', 'sticky', 'italic', 'underline', 'truncate', 'invisible', 'visible', 'table']);
-const UTILITY_RE = /^(?:!?(?:hover|focus|active|disabled|md|sm|lg|xl|2xl):)!?(?:p|px|py|pt|pb|pl|pr|m|mx|my|ml|mr|mt|mb|w|min-w|max-w|h|min-h|max-h|text|bg|font|flex|grid|items|justify|gap|rounded|border|shadow|z|overflow|top|bottom|left|right|transition|duration|cursor|select|aspect|order|col|leading|tracking|whitespace|list|space|object|opacity|ring|outline|uppercase|lowercase|capitalize)-/;
+const BARE_UTILS = new Set([
+  'flex',
+  'grid',
+  'block',
+  'hidden',
+  'relative',
+  'absolute',
+  'static',
+  'fixed',
+  'sticky',
+  'italic',
+  'underline',
+  'truncate',
+  'invisible',
+  'visible',
+  'table',
+]);
+const UTILITY_RE =
+  /^(?:!?(?:hover|focus|active|disabled|md|sm|lg|xl|2xl):)!?(?:p|px|py|pt|pb|pl|pr|m|mx|my|ml|mr|mt|mb|w|min-w|max-w|h|min-h|max-h|text|bg|font|flex|grid|items|justify|gap|rounded|border|shadow|z|overflow|top|bottom|left|right|transition|duration|cursor|select|aspect|order|col|leading|tracking|whitespace|list|space|object|opacity|ring|outline|uppercase|lowercase|capitalize)-/;
 const utilityLike = (t) => BARE_UTILS.has(t.replace(/^!/, '')) || UTILITY_RE.test(t);
 const missing = Array.from(usedTokens).filter((t) => utilityLike(t) && !cssClasses.has(t));
 // hover: 等变体在产物中为转义形式（hover\:bg-x），按去掉变体前缀的基础类判定

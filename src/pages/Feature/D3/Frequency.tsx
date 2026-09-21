@@ -542,11 +542,13 @@ const Frequency = () => {
         return leftPos + (rightPos - leftPos) * progress;
       };
 
+      // 频率标记（绿色范围区）全图只绘制一次：此前块位于 data.forEach 内但
+      // 缺少"仅第一个类型组"的判断（注释写了条件却未实现），每个类型组重复
+      // 绘制一遍——N 层 0.1 透明度叠加变深、标记线与标签重绘（审计 code-7）
       const targetFrequencyRange = [1900000, 140000000];
       // const targetFrequencyRange: number[] = [];
 
-      // 如果是第一个类型组，添加频率标记
-      if (targetFrequencyRange.length > 0) {
+      if (typeIndex === 0 && targetFrequencyRange.length > 0) {
         const startX = getXPosition(targetFrequencyRange[0]);
         const endX = getXPosition(targetFrequencyRange[1]);
 

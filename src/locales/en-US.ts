@@ -29,9 +29,9 @@ export default {
   'menu.feature.Cesium.ThermalMap': 'ThermalMap',
   'menu.feature.Cesium.Trajectory': 'Trajectory',
   'menu.feature.Cesium.Unit': 'Unit',
+  'menu.feature.Cesium.HaiAirPosture': 'HaiAirPosture',
   'menu.feature.OpenLayers': 'OpenLayers',
   'menu.feature.OpenLayers.InfoMap': 'InfoMap',
-  'menu.feature.OpenLayers.HaiAirPosture': 'HaiAirPossture',
   // NOTE office
   'menu.Office': 'Office',
   'menu.Office.pdf': 'PDF',
@@ -40,4 +40,12 @@ export default {
   undertone: 'undertone',
   DarkColor: 'Dark color',
   solution: 'The solution is under solution !',
+  // NOTE login (framework layer, bilingual required)
+  'login.demoHint': 'Demo environment: any username / password will work',
+  'login.username': 'Username',
+  'login.usernameRequired': 'Please enter your username',
+  'login.password': 'Password',
+  'login.passwordRequired': 'Please enter your password',
+  'login.submit': 'Sign in',
+  'login.success': 'Signed in',
 };

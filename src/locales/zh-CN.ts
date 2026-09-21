@@ -40,4 +40,12 @@ export default {
   undertone: '浅色',
   DarkColor: '深色',
   solution: '该方案解决中 !',
+  // NOTE 登录（框架层，双语必需）
+  'login.demoHint': '演示环境：任意用户名 / 密码均可登录',
+  'login.username': '用户名',
+  'login.usernameRequired': '请输入用户名',
+  'login.password': '密码',
+  'login.passwordRequired': '请输入密码',
+  'login.submit': '登录',
+  'login.success': '登录成功',
 };

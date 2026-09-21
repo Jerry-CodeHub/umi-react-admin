@@ -17,6 +17,8 @@ export const routes = [
     path: '/login',
     component: './Login',
     hideInMenu: true,
+    // 登录页按全屏独立页设计，脱离 ProLayout 管理框架外壳
+    layout: false,
   },
   {
     name: 'access',

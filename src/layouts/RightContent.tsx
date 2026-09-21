@@ -1,6 +1,7 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
+import { logout } from '@/services/auth';
 import { GithubOutlined, GlobalOutlined, SkinOutlined, UserOutlined } from '@ant-design/icons';
-import { history, setLocale, useIntl } from '@umijs/max';
+import { history, setLocale, useIntl, useModel } from '@umijs/max';
 import { Avatar, Button, Popover, message } from 'antd';
 import { useEffect, useState } from 'react';
 
@@ -16,6 +17,7 @@ const safeLocalStorage = {
 const RightContent = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const intl = useIntl();
+  const { initialState, setInitialState } = useModel('@@initialState');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [localeType, setLocaleType] = useState(safeLocalStorage.getItem('umi_locale') || 'zh-CN');
 
@@ -59,8 +61,14 @@ const RightContent = () => {
         content={
           <div
             className="w-24 px-2 py-1 text-center rounded-md cursor-pointer hover:bg-zinc-200"
-            onClick={() => {
+            onClick={async () => {
+              try {
+                await logout();
+              } catch {
+                // best-effort：退出接口失败不阻断本地登出
+              }
               safeLocalStorage.removeItem(AUTH_TOKEN_KEY);
+              await setInitialState(undefined);
               messageApi.success(intl.formatMessage({ id: 'Logout' }));
               history.push('/login');
             }}
@@ -73,7 +81,7 @@ const RightContent = () => {
           className="flex items-center justify-center bg-gray-300 w-7 h-7"
           icon={<UserOutlined className="text-xl" />}
         />
-        <div className="ml-2">Admin</div>
+        <div className="ml-2">{initialState?.nickName ?? 'Admin'}</div>
       </Popover>
 
       <span className="mr-5 border-2 rounded-lg h-7" />
@@ -129,7 +137,7 @@ const RightContent = () => {
         className="mr-6"
         icon={<GithubOutlined />}
         onClick={() => {
-          window.open('https://github.com/JerryHub-dev/umi-react-admin');
+          window.open('https://github.com/Jerry-CodeHub/umi-react-admin');
         }}
       />
     </>

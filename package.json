@@ -100,7 +100,7 @@
     "prettier": "^3.0.1",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-packagejson": "^2.4.5",
-    "tailwindcss": "^3",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.1.6"
   },
   "packageManager": "pnpm@10.33.0",
@@ -109,7 +109,7 @@
   },
   "pnpm": {
     "overrides": {
-      "axios@<=0.31.0": "0.31.1",
+      "axios@<1": "1.20.0",
       "@babel/runtime@<7.26.10": "7.28.4",
       "braces@<3.0.3": "3.0.3",
       "cross-spawn@>=7.0.0 <7.0.5": "7.0.6",

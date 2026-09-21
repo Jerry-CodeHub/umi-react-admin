@@ -1,10 +1,15 @@
 import { defineConfig } from '@umijs/max';
+import { addChunkGraph } from './chunkGraph';
 import { configureSplitChunks } from './splitChunks';
 // import { routes } from './routes';
 
 export default defineConfig({
+  // 与 config.ts 同源：UMI_ENV=github 时本函数整体覆盖 config.ts 的 chainWebpack
   chainWebpack(config) {
-    configureSplitChunks(config);
+    if (process.env.NODE_ENV === 'production') {
+      configureSplitChunks(config);
+      addChunkGraph(config);
+    }
   },
   define: {
     CESIUM_BASE_URL: '/umi-react-admin/Cesium',

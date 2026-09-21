@@ -22,6 +22,7 @@
   "license": "MIT",
   "author": "Jerry - li <lishuai4415@gmail.com>",
   "scripts": {
+    "analyze": "cross-env ANALYZE=1 max build",
     "build": "max build",
     "build:github": "cross-env UMI_ENV=github max build",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
@@ -31,6 +32,7 @@
     "prepare": "husky install",
     "preview": "pnpm build && pnpm max preview --port 8001",
     "setup": "max setup",
+    "size": "pnpm build && node scripts/check-bundle-size.mjs",
     "start": "cross-env max dev",
     "start:github": "cross-env UMI_ENV=github max dev",
     "test": "node --test scripts/*.test.mjs",

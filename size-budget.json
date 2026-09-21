@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "syncScripts": 192,
+    "firstScreenGzipKB": 2400,
+    "recordedAt": "2026-09-20",
+    "note": "审计 perf-1 记录的治理前基线：191-192 个同步脚本、8.29MB raw / 2.40MB gzip。splitChunks 重构后实测 4 个同步脚本 / 728KB gzip。"
+  },
+  "limits": {
+    "syncScripts": 25,
+    "firstScreenGzipKB": 1024,
+    "distMB": 36,
+    "publicMB": 18
+  },
+  "notes": {
+    "distMB": "dist 含 Cesium 全量静态资产（Workers/Assets/Widgets 约 25MB，构建期从 node_modules 复制），36 为现实上限",
+    "publicMB": "当前 15.5MB 为演示媒体（4.5MB pdf / 4MB mp3 / 5.3MB 热力图数据）；演示数据瘦身后收紧至 3MB"
+  }
+}

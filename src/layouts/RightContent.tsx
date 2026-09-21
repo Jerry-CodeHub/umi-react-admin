@@ -2,7 +2,7 @@ import { AUTH_TOKEN_KEY } from '@/constants';
 import { logout } from '@/services/auth';
 import { GithubOutlined, GlobalOutlined, SkinOutlined, UserOutlined } from '@ant-design/icons';
 import { history, setLocale, useIntl, useModel } from '@umijs/max';
-import { Avatar, Button, Popover, message } from 'antd';
+import { Avatar, Button, Divider, Popover, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 const safeLocalStorage = {
@@ -78,13 +78,14 @@ const RightContent = () => {
         }
       >
         <Avatar
-          className="flex items-center justify-center bg-gray-300 w-7 h-7"
-          icon={<UserOutlined className="text-xl" />}
+          className="flex items-center justify-center"
+          icon={<UserOutlined style={{ fontSize: 20 }} />}
+          size={28}
         />
         <div className="ml-2">{initialState?.nickName ?? 'Admin'}</div>
       </Popover>
 
-      <span className="mr-5 border-2 rounded-lg h-7" />
+      <Divider className="mx-5 h-7" type="vertical" />
 
       <Popover
         trigger="hover"

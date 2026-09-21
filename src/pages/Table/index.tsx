@@ -144,9 +144,7 @@ const TableList: React.FC<unknown> = () => {
             配置
           </a>
           <Divider type="vertical" />
-          <Button type="link" className="p-0">
-            订阅警报
-          </Button>
+          <Button type="link">订阅警报</Button>
         </>
       ),
     },

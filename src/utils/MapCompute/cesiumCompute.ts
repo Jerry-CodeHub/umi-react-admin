@@ -1,4 +1,5 @@
-import * as turf from '@turf/turf';
+import { featureCollection, polygon } from '@turf/helpers';
+import { union } from '@turf/union';
 import * as Cesium from 'cesium';
 
 export type Point = {
@@ -294,16 +295,16 @@ export function mergePolygons(polygonArrays: Point[][]) {
 
   // 创建 turf 多边形
   const turfPolygons = validPolygons
-    .map((polygon, index) => {
+    .map((pointSet, index) => {
       try {
-        const coordinates = polygon.map((p): TurfCoordinate => [p.longitude, p.latitude]);
-        return turf.polygon([coordinates]);
+        const coordinates = pointSet.map((p): TurfCoordinate => [p.longitude, p.latitude]);
+        return polygon([coordinates]);
       } catch (error) {
         console.error(`创建 turf 多边形错误 ${index}:`, error);
         return null;
       }
     })
-    .filter((polygon): polygon is ReturnType<typeof turf.polygon> => Boolean(polygon));
+    .filter((poly): poly is ReturnType<typeof polygon> => Boolean(poly));
 
   // 检查是否有有效的 turf 多边形
   if (turfPolygons.length === 0) {
@@ -326,7 +327,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
     // turf.union 对 featureCollection 求并集：相交多边形合并为单个 Polygon（外环），
     // 不相交多边形返回 MultiPolygon（每个多边形一个外环）。
     // 此前误用 turf.combine（仅做几何打包不做合并），多边形合并功能实际未生效。
-    const merged = turf.union(turf.featureCollection(turfPolygons));
+    const merged = union(featureCollection(turfPolygons));
 
     if (!merged || !merged.geometry || !merged.geometry.coordinates) {
       throw new Error('合并结果为空');

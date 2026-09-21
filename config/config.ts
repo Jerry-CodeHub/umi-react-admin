@@ -22,6 +22,10 @@ export default defineConfig({
       to: 'dist/standard_fonts',
     },
     {
+      from: 'node_modules/cesium/LICENSE.md',
+      to: 'dist/Cesium/LICENSE.md',
+    },
+    {
       from: 'node_modules/cesium/Build/Cesium/Workers',
       to: 'dist/Cesium/Workers',
     },

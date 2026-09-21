@@ -24,7 +24,7 @@ type PDFFile = string | File | null;
 
 export default function Pdf() {
   const intl = useIntl();
-  const [file, setFile] = useState<PDFFile>(`${PUBLIC_PATH}react-dev.pdf`);
+  const [file, setFile] = useState<PDFFile>(`${PUBLIC_PATH}demo.pdf`);
   const [numPages, setNumPages] = useState<number>();
   const [loadError, setLoadError] = useState<string | null>(null);
 

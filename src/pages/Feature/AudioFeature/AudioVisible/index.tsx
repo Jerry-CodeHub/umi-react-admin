@@ -80,7 +80,7 @@ const WaveSurferPlayer = (props: WaveSurferPlayerProps) => {
 };
 
 export default function AudioVisible() {
-  const urls = ['/audio/audio.wav', '/audio/stereo.mp3'];
+  const urls = ['/audio/audio.wav', '/audio/stereo.wav'];
   const [audioUrl, setAudioUrl] = useState(urls[0]);
 
   // Swap the audio URL

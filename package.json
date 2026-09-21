@@ -1,5 +1,6 @@
 {
   "private": true,
+  "description": "基于 Umi Max + React 18 + Ant Design 5 的开箱即用后台管理模板（Cesium/OpenLayers 地图、暗色模式、双语、CRUD 演示）",
   "keywords": [
     "react",
     "antd",
@@ -57,7 +58,8 @@
     "@fullcalendar/timegrid": "^6.1.8",
     "@pansy/react-amap": "^2.18.1",
     "@tinymce/tinymce-react": "^6.3.0",
-    "@turf/turf": "^7.0.0",
+    "@turf/helpers": "^7.2.0",
+    "@turf/union": "^7.2.0",
     "@umijs/max": "^4.7.19",
     "antd": "^5.17.3",
     "cesium": "^1.141.0",

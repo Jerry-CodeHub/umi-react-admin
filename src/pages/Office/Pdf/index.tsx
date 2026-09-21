@@ -1,6 +1,6 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { Alert } from 'antd';
+import { Alert, Button } from 'antd';
 import { useState } from 'react';
 
 import type { PDFDocumentProxy } from 'pdfjs-dist';
@@ -27,6 +27,9 @@ export default function Pdf() {
   const [file, setFile] = useState<PDFFile>(`${PUBLIC_PATH}demo.pdf`);
   const [numPages, setNumPages] = useState<number>();
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 可见区分页：一次只渲染当前页与相邻页（此前 15 页 canvas 全量渲染，perf-9）
+  const [pageIndex, setPageIndex] = useState(0);
+  const PAGE_WINDOW = 2;
 
   function onFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const { files } = event.target;
@@ -72,10 +75,31 @@ export default function Pdf() {
                   }}
                   options={options}
                 >
-                  {Array.from(new Array(numPages), (el, index) => (
-                    <Page key={`page_${index + 1}`} pageNumber={index + 1} />
-                  ))}
+                  {Array.from(new Array(numPages), (el, index) => index)
+                    .slice(pageIndex, pageIndex + PAGE_WINDOW)
+                    .map((index) => (
+                      <Page key={`page_${index + 1}`} pageNumber={index + 1} />
+                    ))}
                 </Document>
+                {numPages && numPages > PAGE_WINDOW ? (
+                  <div className="mb-4 flex items-center justify-center gap-3">
+                    <Button
+                      disabled={pageIndex === 0}
+                      onClick={() => setPageIndex((i) => Math.max(0, i - PAGE_WINDOW))}
+                    >
+                      上一组
+                    </Button>
+                    <span>
+                      {pageIndex + 1} - {Math.min(pageIndex + PAGE_WINDOW, numPages)} / {numPages} 页
+                    </span>
+                    <Button
+                      disabled={pageIndex + PAGE_WINDOW >= numPages}
+                      onClick={() => setPageIndex((i) => Math.min(numPages - PAGE_WINDOW, i + PAGE_WINDOW))}
+                    >
+                      下一组
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

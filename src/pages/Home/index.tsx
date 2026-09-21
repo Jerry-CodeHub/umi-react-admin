@@ -11,29 +11,29 @@ const HomePage: React.FC = () => {
     <PageContainer ghost header={{ title: '' }}>
       <Row>
         <Col span={8} className="pr-2">
-          <Card>
+          <Card title="折线 · 股价走势">
             <DemoLine />
           </Card>
         </Col>
         <Col span={8} className="pr-2">
-          <Card>
+          <Card title="柱状图">
             <DemoColumn />
           </Card>
         </Col>
         <Col span={8}>
-          <Card>
+          <Card title="旭日图">
             <DemoSunburst />
           </Card>
         </Col>
       </Row>
       <Row className="mt-2">
         <Col span={16} className="pr-2">
-          <Card>
+          <Card title="桑基图">
             <DemoSankey />
           </Card>
         </Col>
         <Col span={8}>
-          <Card>
+          <Card title="散点 · 时序分布">
             <DemoScatter />
           </Card>
         </Col>

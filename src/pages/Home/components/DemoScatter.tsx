@@ -1,56 +1,62 @@
 import { Scatter } from '@ant-design/plots';
-import { useEffect, useState } from 'react';
+import { Button, Result, Spin } from 'antd';
+import { useChartData } from './useChartData';
 
 type ScatterDatum = {
   date: string | number | Date;
+  value: number;
 };
 
 const DemoScatter = () => {
-  const [config, setConfig] = useState({});
+  // 数据本地化（public/data/charts），加载/错误态可见可重试
+  const { data, loading, error, retry } = useChartData<ScatterDatum[]>(`${PUBLIC_PATH}data/charts/scatter-point.json`);
 
-  useEffect(() => {
-    const config = {
-      paddingLeft: 60,
-      data: {
-        type: 'fetch',
-        value: 'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/scatter-point-sequential.json',
-      },
-      xField: (d: ScatterDatum) => new Date(d.date),
-      yField: 'value',
-      colorField: 'value',
-      shapeField: 'point',
-      style: {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-10">
+        <Spin />
+      </div>
+    );
+  }
+  if (error || !data) {
+    return <Result status="warning" title="数据加载失败" extra={<Button onClick={retry}>重试</Button>} />;
+  }
+
+  return (
+    <Scatter
+      data={data}
+      paddingLeft={60}
+      xField={(d: ScatterDatum) => new Date(d.date)}
+      yField="value"
+      colorField="value"
+      shapeField="point"
+      style={{
         stroke: '#000',
         strokeOpacity: 0.2,
-      },
-      scale: {
+      }}
+      scale={{
         color: {
           palette: 'rdBu',
           offset: (t: number) => 1 - t,
         },
-      },
-      tooltip: [
+      }}
+      tooltip={[
         {
           channel: 'x',
           name: 'year',
           valueFormatter: (d: Date) => d.getFullYear(),
         },
         { channel: 'y' },
-      ],
-      annotations: [
+      ]}
+      annotations={[
         {
           type: 'lineY',
           data: [0],
           style: { stroke: '#000', strokeOpacity: 0.2 },
         },
-      ],
-    };
-    setConfig(config);
-  }, []);
-
-  return <Scatter {...config} />;
+      ]}
+    />
+  );
 };
-
-// ReactDOM.render(<DemoScatter />, document.getElementById('container'));
 
 export default DemoScatter;

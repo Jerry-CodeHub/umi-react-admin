@@ -1,16 +1,13 @@
 import { ProCard } from '@ant-design/pro-components';
 import { Editor } from '@tinymce/tinymce-react';
-import { Button } from 'antd';
-import { useRef } from 'react';
+import { Button, Typography } from 'antd';
+import { useRef, useState } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
 
 export default () => {
   const editorRef = useRef<TinyMCEEditor | null>(null);
-  const log = () => {
-    if (editorRef.current) {
-      console.warn(editorRef.current.getContent());
-    }
-  };
+  const [content, setContent] = useState('');
+
   return (
     <ProCard className="shadow-2xl">
       <Editor
@@ -36,7 +33,6 @@ export default () => {
             'insertdatetime',
             'media',
             'table',
-            'code',
             'help',
             'wordcount',
           ],
@@ -48,9 +44,24 @@ export default () => {
           content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
         }}
       />
-      <Button className="mt-8" onClick={log}>
-        Log editor content
+      <Button
+        className="mt-4"
+        onClick={() => {
+          // 编辑器内容回显到页面（此前仅 console.warn 输出，用户无感知）
+          if (editorRef.current) {
+            setContent(editorRef.current.getContent());
+          }
+        }}
+      >
+        预览内容
       </Button>
+      {content && (
+        <div className="mt-4">
+          <Typography.Title level={5}>内容回显</Typography.Title>
+          {/* 演示页：内容来自页面内编辑器自身（非外部输入），回显直出 */}
+          <div className="rounded-md border border-gray-200 p-4" dangerouslySetInnerHTML={{ __html: content }} />
+        </div>
+      )}
     </ProCard>
   );
 };

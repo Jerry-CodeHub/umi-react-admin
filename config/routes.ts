@@ -80,6 +80,7 @@ export const routes = [
         path: '/feature/VideoPlayer',
         icon: 'VideoCameraAddOutlined',
         routes: [
+          { path: '/feature/VideoPlayer', redirect: '/feature/VideoPlayer/xgplayer' },
           {
             name: 'xgplayer',
             path: '/feature/VideoPlayer/xgplayer',
@@ -92,6 +93,7 @@ export const routes = [
         path: '/feature/D3',
         icon: 'DotChartOutlined',
         routes: [
+          { path: '/feature/D3', redirect: '/feature/D3/Frequency' },
           {
             name: 'Frequency',
             path: '/feature/D3/Frequency',
@@ -104,6 +106,7 @@ export const routes = [
         path: '/feature/AudioFeature',
         icon: 'CustomerServiceOutlined',
         routes: [
+          { path: '/feature/AudioFeature', redirect: '/feature/AudioFeature/AudioPlayer' },
           {
             name: 'AudioPlayer',
             path: '/feature/AudioFeature/AudioPlayer',
@@ -121,6 +124,7 @@ export const routes = [
         path: '/feature/Map',
         icon: 'HeatMapOutlined',
         routes: [
+          { path: '/feature/Map', redirect: '/feature/Map/AutonaviMap' },
           {
             name: 'AutonaviMap',
             path: '/feature/Map/AutonaviMap',
@@ -133,6 +137,7 @@ export const routes = [
         path: '/feature/Cesium',
         icon: 'DeploymentUnitOutlined',
         routes: [
+          { path: '/feature/Cesium', redirect: '/feature/Cesium/geoHash' },
           {
             name: 'geoHash',
             path: '/feature/Cesium/geoHash',
@@ -170,6 +175,7 @@ export const routes = [
         path: '/feature/OpenLayers',
         icon: 'GlobalOutlined',
         routes: [
+          { path: '/feature/OpenLayers', redirect: '/feature/OpenLayers/InfoMap' },
           {
             name: 'InfoMap',
             path: '/feature/OpenLayers/InfoMap',
@@ -179,12 +185,6 @@ export const routes = [
       },
     ],
   },
-  { path: '/feature/Map', redirect: '/feature/Map/AutonaviMap' },
-  { path: '/feature/Cesium', redirect: '/feature/Cesium/geoHash' },
-  { path: '/feature/D3', redirect: '/feature/D3/Frequency' },
-  { path: '/feature/AudioFeature', redirect: '/feature/AudioFeature/AudioPlayer' },
-  { path: '/feature/VideoPlayer', redirect: '/feature/VideoPlayer/xgplayer' },
-  { path: '/feature/OpenLayers', redirect: '/feature/OpenLayers/InfoMap' },
   {
     name: 'Office',
     path: '/Office',

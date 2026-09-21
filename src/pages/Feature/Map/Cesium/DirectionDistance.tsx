@@ -1,6 +1,7 @@
 /**
  * DirectionDistance.tsx
  */
+import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
 import {
   handlerDirectionDistance,
   handlerDistanceKm,
@@ -11,7 +12,7 @@ import { dataPath } from '@/utils/MapCompute/dataEnd';
 import { demodulationResultList, interceptResultList, locationResultList } from '@/utils/MapCompute/exportJson';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Result, Tooltip } from 'antd';
+import { Alert, Button, Tooltip } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import React, { useEffect, useState } from 'react';
@@ -24,34 +25,12 @@ const DirectionDistance: React.FC = () => {
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    let viewer: Cesium.Viewer;
-    try {
-      viewer = new Cesium.Viewer('cesium-container', {
-        // 去除所有的控件
-        animation: false, // 是否显示动画控件
-        // baseLayerPicker: false, // 是否显示图层选择控件
-        // fullscreenButton: false, // 是否显示全屏按钮
-        // geocoder: false, // 是否显示地名查找控件
-        // homeButton: false, // 是否显示Home按钮
-        infoBox: false, // 是否显示信息框
-        sceneModePicker: true, // 是否显示3D/2D选择器
-        selectionIndicator: false, // 是否显示选取指示器组件
-        timeline: false, // 是否显示时间轴
-        navigationHelpButton: false, // 是否显示帮助信息按钮
-        navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-        // scene3DOnly: true, // 是否只显示3D
-        shouldAnimate: true, // 是否显示动画
-        skyAtmosphere: false, // 是否显示大气层
-        skyBox: false, // 是否显示天空盒
-        vrButton: false, // 是否显示VR按钮
-      });
-    } catch (error) {
-      console.error('Cesium Viewer 初始化失败:', error);
+    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
+    const viewer = createDemoViewer('cesium-container');
+    if (!viewer) {
       setInitError(true);
       return;
     }
-    // 1, 去除版权信息
-    (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
 
     // 修改 homeButton 的位置
     let initView = {
@@ -193,11 +172,7 @@ const DirectionDistance: React.FC = () => {
     <>
       <Alert className="mb-2" message="方向距离算法" type="success" />
       <ProCard>
-        {initError ? (
-          <Result status="warning" title="地图初始化失败" subTitle="WebGL 不可用或当前浏览器不支持 Cesium 渲染" />
-        ) : (
-          <div id="cesium-container" />
-        )}
+        {initError ? <CesiumInitError /> : <div id="cesium-container" />}
         <Tooltip title="根据方向(度)和距离(km)生成路径 (起始点为固定点路径完成连接终点)">
           <Button onClick={() => handlePolygonPath()} className="mt-2">
             以固定点为原点连接终点

@@ -1,8 +1,9 @@
+import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
 import { iconData } from '@/utils/MapCompute/dataEnd';
 import { loadThermalMapData, type ThermalData, type ThermalPoint } from '@/utils/MapCompute/loadThermalMapData';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
-import { Alert, Button, message, Modal, Result, Spin } from 'antd';
+import { Alert, Button, message, Modal, Spin } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useRef, useState } from 'react';
@@ -48,6 +49,19 @@ const ThermalMap = () => {
     return dataPromiseRef.current;
   };
 
+  /**
+   * 供按钮回调使用：加载失败时已在 ensureData 内提示，这里吞掉 rejection（避免 unhandled）；
+   * 等待数据期间若组件已卸载、viewer 已销毁，则放弃后续绘制。
+   */
+  const loadDataFor = async (target: Cesium.Viewer) => {
+    try {
+      const loaded = await ensureData();
+      return target.isDestroyed() ? null : loaded;
+    } catch {
+      return null;
+    }
+  };
+
   // 初始化 Cesium Viewer（立即初始化不等待数据；数据在首次使用时按需加载）
   useEffect(() => {
     // 确保 Cesium 容器元素存在
@@ -55,36 +69,12 @@ const ThermalMap = () => {
     if (!container) return;
 
     // 创建一个 Cesium Viewer 实例（WebGL 不可用等初始化失败时给出可见兜底而非整页空白）
-    let newViewer: Cesium.Viewer;
-    try {
-      newViewer = new Cesium.Viewer('cesium-container', {
-        // 去除所有的控件
-        animation: false, // 是否显示动画控件
-        baseLayerPicker: false, // 是否显示图层选择控件
-        // fullscreenButton: false, // 是否显示全屏按钮
-        // geocoder: false, // 是否显示地名查找控件
-        // homeButton: false, // 是否显示Home按钮
-        infoBox: false, // 是否显示信息框
-        sceneModePicker: true, // 是否显示3D/2D选择器
-        selectionIndicator: false, // 是否显示选取指示器组件
-        timeline: false, // 是否显示时间轴
-        navigationHelpButton: false, // 是否显示帮助信息按钮
-        navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-        // scene3DOnly: true, // 是否只显示3D
-        shouldAnimate: true, // 是否显示动画
-        skyAtmosphere: false, // 是否显示大气层
-        skyBox: false, // 是否显示天空盒
-        vrButton: false, // 是否显示VR按钮
-        // sceneMode: Cesium.SceneMode.SCENE2D, // 2D 模式
-      });
-    } catch (error) {
-      console.error('Cesium Viewer 初始化失败:', error);
+    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
+    const newViewer = createDemoViewer('cesium-container', { baseLayerPicker: false });
+    if (!newViewer) {
       setInitError(true);
       return;
     }
-
-    // 1, 去除版权信息
-    (newViewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
 
     // 修改 homeButton 的位置
     let initView = {
@@ -269,7 +259,8 @@ const ThermalMap = () => {
       return;
     }
     // 数据按需加载（首次点击时拉取，后续走缓存）
-    const loaded = await ensureData();
+    const loaded = await loadDataFor(viewer);
+    if (!loaded) return;
 
     // let longitude = 105.658203125;
     // let latitude = 40.658203125;
@@ -369,7 +360,8 @@ const ThermalMap = () => {
       messageApi.warning('地图还未初始化完成');
       return;
     }
-    const loaded = await ensureData();
+    const loaded = await loadDataFor(viewer);
+    if (!loaded) return;
     const dataPoints = loaded.coverageData.arrayResult.flat();
 
     function getColorForStrength(value: number) {
@@ -501,7 +493,7 @@ const ThermalMap = () => {
       <ProCard>
         {contextHolder}
         {initError ? (
-          <Result status="warning" title="地图初始化失败" subTitle="WebGL 不可用或当前浏览器不支持 Cesium 渲染" />
+          <CesiumInitError />
         ) : (
           <>
             <Button className="mb-2" onClick={() => handlePrimary()}>

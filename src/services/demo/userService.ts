@@ -1,5 +1,6 @@
 import { BizError } from '@/utils/BizError';
 import * as UserController from './UserController';
+import { USE_BACKEND } from './mode';
 import { filterAndPaginate, type UserQuery } from './userQuery';
 
 /**
@@ -9,9 +10,8 @@ import { filterAndPaginate, type UserQuery } from './userQuery';
  * 2. 配置了 UMI_APP_API_BASE → 委托并经 requestConfig 的 baseURL 发往真实后端；
  * 3. 其余生产构建（GitHub Pages / Vercel 纯静态托管）→ 拉取 public/data/users.json
  *    静态种子，CRUD 持久化在 localStorage，让演示站的表格页真实可交互。
+ * 模式判定见 ./mode.ts（与鉴权共用）。
  */
-
-const USE_BACKEND = process.env.NODE_ENV === 'development' || !!UMI_APP_API_BASE;
 
 const DEMO_USERS_KEY = 'umi-react-admin-demo-users';
 

@@ -45,6 +45,10 @@ jobs:
           CLARITY_ID: ${{ secrets.CLARITY_ID }}
         run: pnpm run build:github
 
+      - name: SPA fallback（子路由直链/刷新不 404）
+        # GitHub Pages 对不存在的路径返回站点根的 404.html；复制入口页即可让前端路由接管
+        run: cp dist/index.html dist/404.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4.1.0
         with:

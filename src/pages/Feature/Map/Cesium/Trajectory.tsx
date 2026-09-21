@@ -258,18 +258,20 @@ const Trajectory: React.FC = () => {
       });
     });
 
-    // 合并多边形
+    // 合并多边形（返回外环数组：相交多边形合并为单环，不相交为多个环）
     try {
-      const mergedPolygon = mergePolygons(polygonArrays);
+      const mergedRings = mergePolygons(polygonArrays);
 
-      // 在 Cesium 中显示合并后的多边形
-      viewer.entities.add({
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
-          // material: Cesium.Color.RED.withAlpha(0.5),
-          material: Cesium.Color.YELLOW.withAlpha(0.3),
-          height: 50000,
-        },
+      // 在 Cesium 中按环逐个渲染合并结果，使不相交多边形的并集如实呈现
+      mergedRings.forEach((ring) => {
+        viewer.entities.add({
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(ring.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
+            // material: Cesium.Color.RED.withAlpha(0.5),
+            material: Cesium.Color.YELLOW.withAlpha(0.3),
+            height: 50000,
+          },
+        });
       });
     } catch (error) {
       console.error('合并多边形错误:', error);

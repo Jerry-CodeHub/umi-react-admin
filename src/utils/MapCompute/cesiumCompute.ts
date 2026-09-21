@@ -203,6 +203,10 @@ export function handlerPointNew(
  */
 export const handlerComputePoint = (data: Point[], distanceMi: number) => {
   let dataPath: Point[] = [];
+  // 起点先入列，保证补点结果从用户绘制轨迹的起点开始
+  if (data.length > 0) {
+    dataPath.push(data[0]);
+  }
   for (let i = 0; i < data.length - 1; i++) {
     let start = data[i];
     let end = data[i + 1];
@@ -222,17 +226,18 @@ export const handlerComputePoint = (data: Point[], distanceMi: number) => {
         dataPath.push({ longitude, latitude }); // 添加新的点
         step += distanceMi; // 步长递增
       }
-      // 添加最后一个点
-      dataPath.push(end);
     }
+    // 每段终点无条件入列：短段只补终点，长段补插值点后再补终点，
+    // 避免短线段在补点结果中丢失
+    dataPath.push(end);
   }
   return dataPath;
 };
 
 /**
- * 合并多边形数组。
+ * 合并多边形数组（turf.union 求并集）。
  * @param polygonArrays 多边形数组，每个多边形由一组点坐标表示。
- * @returns 合并后的多边形坐标数组。
+ * @returns 合并结果的外环数组：相交多边形合并为一个环；不相交的多边形返回多个环。
  * @throws 如果输入无效或无法合并多边形，则抛出错误。
  */
 export function mergePolygons(polygonArrays: Point[][]) {
@@ -308,42 +313,39 @@ export function mergePolygons(polygonArrays: Point[][]) {
   // 如果只有一个多边形，不需要合并
   if (turfPolygons.length === 1) {
     const coordinates = turfPolygons[0].geometry.coordinates[0];
-    return (coordinates as TurfCoordinate[]).map((coord) => ({
-      longitude: coord[0],
-      latitude: coord[1],
-    }));
+    return [
+      (coordinates as TurfCoordinate[]).map((coord) => ({
+        longitude: coord[0],
+        latitude: coord[1],
+      })),
+    ];
   }
 
   // 尝试合并多边形
   try {
-    const featureCollection = turf.featureCollection(turfPolygons);
-    const combined = turf.combine(featureCollection);
+    // turf.union 对 featureCollection 求并集：相交多边形合并为单个 Polygon（外环），
+    // 不相交多边形返回 MultiPolygon（每个多边形一个外环）。
+    // 此前误用 turf.combine（仅做几何打包不做合并），多边形合并功能实际未生效。
+    const merged = turf.union(turf.featureCollection(turfPolygons));
 
-    if (!combined || !combined.features || combined.features.length === 0) {
-      throw new Error('组合导致没有功能');
+    if (!merged || !merged.geometry || !merged.geometry.coordinates) {
+      throw new Error('合并结果为空');
     }
 
-    // 从组合中获得第一个(希望是唯一的)特性
-    const mergedPolygon = combined.features[0];
+    // 规整为外环数组：Polygon 取唯一外环，MultiPolygon 逐个取外环
+    const ringList: TurfCoordinate[][] =
+      merged.geometry.type === 'MultiPolygon'
+        ? (merged.geometry.coordinates as TurfCoordinate[][][]).map((poly) => poly[0])
+        : [merged.geometry.coordinates[0] as TurfCoordinate[]];
 
-    // 提取多边形坐标
-    if (!mergedPolygon || !mergedPolygon.geometry || !mergedPolygon.geometry.coordinates) {
-      throw new Error('无效的合并多边形结构');
-    }
-
-    // 处理潜在的 MultiPolygon 结果
-    const coordinates =
-      mergedPolygon.geometry.type === 'MultiPolygon'
-        ? mergedPolygon.geometry.coordinates[0][0] // 取第一个多边形的外圈
-        : mergedPolygon.geometry.coordinates[0];
-
-    // 返回多边形坐标
-    return (coordinates as TurfCoordinate[]).map((coord) => ({
-      longitude: coord[0],
-      latitude: coord[1],
-    }));
+    return ringList.map((ring) =>
+      ring.map((coord) => ({
+        longitude: coord[0],
+        latitude: coord[1],
+      })),
+    );
   } catch (error: unknown) {
-    console.error('多边形组合时出错:', error);
+    console.error('多边形合并时出错:', error);
     throw new Error(`合并多边形失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

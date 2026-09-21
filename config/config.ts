@@ -56,6 +56,13 @@ export default defineConfig({
   },
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   jsMinifier: 'terser',
+  // 只注入 core-js 稳定特性（默认 `import 'core-js'` 会带上 176 个 esnext 提案 polyfill）。
+  // umi 锁定的 core-js 3.34 中约 95 个提案实现带 forced:true，会强制覆盖浏览器原生实现，
+  // 例如 Promise.try 被替换成不透传参数的旧提案版本 → pdfjs 5 按 URL 加载 PDF 时
+  // 报 "Cannot set properties of undefined (setting 'onPull')"。
+  polyfill: {
+    imports: ['core-js/stable'],
+  },
   antd: {
     theme: {},
     appConfig: {},

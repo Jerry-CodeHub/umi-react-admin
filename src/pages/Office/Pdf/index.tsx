@@ -36,12 +36,15 @@ export default function Pdf() {
 
     if (files && files[0]) {
       setLoadError(null);
+      // 换文件后回到第一组，避免旧页码超出新文档页数导致空白
+      setPageIndex(0);
       setFile(files[0] || null);
     }
   }
 
   function onDocumentLoadSuccess({ numPages: nextNumPages }: PDFDocumentProxy): void {
     setNumPages(nextNumPages);
+    setPageIndex((index) => (index < nextNumPages ? index : 0));
   }
 
   return (
@@ -55,7 +58,7 @@ export default function Pdf() {
             <div className="Example__container">
               <div className="Example__container__load">
                 <label htmlFor="file">{intl.formatMessage({ id: 'pdf.loadFile' })}</label>{' '}
-                <input onChange={onFileChange} type="file" />
+                <input accept="application/pdf,.pdf" id="file" onChange={onFileChange} type="file" />
               </div>
               <div className="Example__container__document">
                 {loadError && (
@@ -94,7 +97,8 @@ export default function Pdf() {
                     </span>
                     <Button
                       disabled={pageIndex + PAGE_WINDOW >= numPages}
-                      onClick={() => setPageIndex((i) => Math.min(numPages - PAGE_WINDOW, i + PAGE_WINDOW))}
+                      // 按组步进（1-2、3-4、5…），末组可不满，不再回退重叠
+                      onClick={() => setPageIndex((i) => i + PAGE_WINDOW)}
                     >
                       下一组
                     </Button>

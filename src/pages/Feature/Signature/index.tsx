@@ -3,7 +3,7 @@ import { Button, message } from 'antd';
 import { useEffect, useRef } from 'react';
 import SignaturePad from 'signature_pad';
 
-import { SignatureStyle } from './Signature.styles';
+import { SignatureStyle } from './Signature.style';
 
 export default function Signature() {
   const [messageApi, contextHolder] = message.useMessage();

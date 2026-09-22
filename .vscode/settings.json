@@ -1,81 +1,5 @@
 {
-  // todo-tree 标签配置  标签兼容大小写字母(很好的功能!!!)
-  // "todo-tree.regex.regex": "((%|#|//|<!--|^\\s*\\*)\\s*($TAGS)|^\\s*- \\[ \\])",
-  "todo-tree.filtering.excludeGlobs": ["**/node_modules", "*.xml", "*.XML", ".umi", "**.yaml", "**/ios"], // 不检查的文件
-  "todo-tree.filtering.ignoreGitSubmodules": true,
-  "todo-tree.tree.showCountsInTree": true,
-  "todo-tree.general.statusBar": "total",
-  "todo-tree.general.tags": [
-    // //添加自定义的标签成员,将在下面实现它们的样式
-    "BUG",
-    "HACK",
-    "FIXME",
-    "TODO",
-    "INFO",
-    "NOTE",
-    "TAG",
-    "XXX"
-  ],
-  "todo-tree.highlights.defaultHighlight": {
-    //如果相应变量没赋值就会使用这里的默认值
-    "foreground": "black", //字体颜色
-    "background": "yellow", //背景色
-    "icon": "check", //标签样式 check 是一个对号的样式
-    "rulerColour": "yellow", //边框颜色
-    "type": "tag", //填充色类型  可在TODO TREE 细节页面找到允许的值
-    "iconColour": "yellow" //标签颜色
-  },
-  // icon 取值: https://microsoft.github.io/vscode-codicons/dist/codicon.html
-  "todo-tree.highlights.customHighlight": {
-    "TODO": {
-      // 需要做的功能
-      "icon": "check", // 标签 icon 样式
-      "background": "#FFEB38" //背景色
-    },
-    "BUG": {
-      // 需要修复的 bug
-      "icon": "bug",
-      "background": "#F56C6C",
-      "iconColour": "#F56C6C"
-    },
-    "FIXME": {
-      // 需要修复
-      "icon": "flame",
-      "background": "#FF9800",
-      "iconColour": "#FF9800"
-    },
-    "NOTE": {
-      // 添加的说明
-      "icon": "note",
-      "background": "#67C23A",
-      "iconColour": "#67C23A"
-    },
-    "INFO": {
-      // 。。。。
-      "icon": "info",
-      "background": "#909399",
-      "iconColour": "#909399"
-    },
-    "TAG": {
-      // 标签,标记一下
-      "icon": "tag",
-      "background": "#409EFF",
-      "iconColour": "#409EFF"
-    },
-    "HACK": {
-      // 不确定性
-      "icon": "versions",
-      "background": "#E040FB",
-      "iconColour": "#E040FB"
-    },
-    "XXX": {
-      // 继续定义
-      "icon": "unverified",
-      "foreground": "#E91E63",
-      "iconColour": "#E91E63"
-    }
-  },
-  //todo-tree 标签配置 结束
+  // 仅保留对协作者有正收益的共享配置；个人主题偏好请放各自的全局 settings
   // tailwindcss https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss#recommended-vs-code-settings
   "files.associations": {
     "*.css": "tailwindcss"
@@ -86,19 +10,18 @@
   "cSpell.words": [
     "ahooks",
     "antd",
-    "artplayer",
-    "formily",
+    "cesium",
+    "exceljs",
     "fullcalendar",
     "multimonth",
     "packagejson",
-    "pind",
+    "pnpm",
     "tailwindcss",
     "timegrid",
     "tinymce",
     "umijs",
-    "valtio",
+    "vitest",
     "wavesurfer",
     "xgplayer"
-  ],
-  "workbench.editor.wrapTabs": true
+  ]
 }

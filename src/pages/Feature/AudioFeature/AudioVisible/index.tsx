@@ -11,14 +11,15 @@ type WaveSurferPlayerProps = Omit<WaveSurferOptions, 'container'>;
 
 const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: WaveSurferPlayerProps) => {
   const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
+  // 依赖数组只含 url（重建触发器），其余配置经 ref 取最新值，避免陈旧配置
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
-  // Initialize wavesurfer when the container mounts
-  // or any of the props change
   useEffect(() => {
     if (!containerRef.current) return;
 
     const ws = WaveSurfer.create({
-      ...options,
+      ...optionsRef.current,
       container: containerRef.current,
     });
 
@@ -80,7 +81,8 @@ const WaveSurferPlayer = (props: WaveSurferPlayerProps) => {
 };
 
 export default function AudioVisible() {
-  const urls = ['/audio/audio.wav', '/audio/stereo.mp3'];
+  // 经 PUBLIC_PATH 拼接：GitHub Pages 部署在 /umi-react-admin/ 子路径下
+  const urls = [`${PUBLIC_PATH}audio/audio.wav`, `${PUBLIC_PATH}audio/stereo.wav`];
   const [audioUrl, setAudioUrl] = useState(urls[0]);
 
   // Swap the audio URL

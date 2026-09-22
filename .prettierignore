@@ -3,4 +3,9 @@ node_modules
 .umi-production
 public/Cesium/
 .github
+dist
+pnpm-lock.yaml
+.claude
 
+
+coverage

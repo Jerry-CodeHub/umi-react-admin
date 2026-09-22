@@ -1,25 +1,41 @@
 import { ProCard } from '@ant-design/pro-components';
 import { Editor } from '@tinymce/tinymce-react';
-import { Button } from 'antd';
-import { useRef } from 'react';
+import { useModel } from '@umijs/max';
+import { Button, Typography } from 'antd';
+import { useRef, useState } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
+// 自托管 TinyMCE（必须先于编辑器渲染执行，挂载全局 tinymce 后 Editor 不再走 Tiny Cloud）
+import './tinymceBundle';
+
+const INITIAL_CONTENT = '<p>This is the initial content of the editor.</p>';
 
 export default () => {
   const editorRef = useRef<TinyMCEEditor | null>(null);
-  const log = () => {
-    if (editorRef.current) {
-      console.warn(editorRef.current.getContent());
-    }
-  };
+  const [content, setContent] = useState('');
+  const { initialState } = useModel('@@initialState');
+  const dark = initialState?.theme === 'realDark';
+
+  // 皮肤只能在初始化时指定：切换主题时按 key 重建编辑器。重建前（本次渲染、旧编辑器尚未卸载）
+  // 直接从旧实例取最新内容作为新编辑器的初始值——不依赖 change/keyup 事件是否已触发
+  const draftRef = useRef(INITIAL_CONTENT);
+  const renderedDarkRef = useRef(dark);
+  if (renderedDarkRef.current !== dark) {
+    draftRef.current = editorRef.current?.getContent() ?? draftRef.current;
+    renderedDarkRef.current = dark;
+  }
+
   return (
     <ProCard className="shadow-2xl">
       <Editor
-        apiKey={process.env.TINYMCE_API_KEY}
-        onInit={(evt, editor) => (editorRef.current = editor)}
-        initialValue="<p>This is the initial content of the editor.</p>"
+        key={dark ? 'dark' : 'light'}
+        licenseKey="gpl"
+        onInit={(_evt, editor) => (editorRef.current = editor)}
+        initialValue={draftRef.current}
         init={{
           height: 500,
           menubar: false,
+          skin: dark ? 'oxide-dark' : 'oxide',
+          content_css: dark ? 'dark' : 'default',
           plugins: [
             'advlist',
             'autolink',
@@ -31,12 +47,10 @@ export default () => {
             'anchor',
             'searchreplace',
             'visualblocks',
-            'code',
             'fullscreen',
             'insertdatetime',
             'media',
             'table',
-            'code',
             'help',
             'wordcount',
           ],
@@ -48,9 +62,24 @@ export default () => {
           content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
         }}
       />
-      <Button className="mt-8" onClick={log}>
-        Log editor content
+      <Button
+        className="mt-4"
+        onClick={() => {
+          // 编辑器内容回显到页面（此前仅 console.warn 输出，用户无感知）
+          if (editorRef.current) {
+            setContent(editorRef.current.getContent());
+          }
+        }}
+      >
+        预览内容
       </Button>
+      {content && (
+        <div className="mt-4">
+          <Typography.Title level={5}>内容回显</Typography.Title>
+          {/* 演示页：内容来自页面内编辑器自身（非外部输入），回显直出 */}
+          <div className="rounded-md border border-gray-200 p-4" dangerouslySetInnerHTML={{ __html: content }} />
+        </div>
+      )}
     </ProCard>
   );
 };

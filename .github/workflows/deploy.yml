@@ -5,23 +5,25 @@ on:
     branches:
       - master
 
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Setup pnpm（读 packageManager 字段）
+        uses: pnpm/action-setup@v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.0.0
         with:
-          node-version: '18'
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies
@@ -39,10 +41,20 @@ jobs:
       - name: Build
         env:
           CESIUM_ION_TOKEN: ${{ secrets.CESIUM_ION_TOKEN }}
+          # 可选：为演示站开启 Clarity 统计时配置（模板默认不含任何统计脚本）
+          CLARITY_ID: ${{ secrets.CLARITY_ID }}
         run: pnpm run build:github
 
+      - name: SPA fallback（子路由直链/刷新不 404）
+        # GitHub Pages 对不存在的路径返回站点根的 404.html；复制入口页即可让前端路由接管
+        run: cp dist/index.html dist/404.html
+
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          # 孤儿化部署：gh-pages 历史不累积（曾达 71 个提交/33MiB），
+          # 且旧产物（含已泄露未轮换的历史 token）不再被新克隆拉取。
+          # 注意：开启后首次部署将重建整棵部署树。
+          force_orphan: true

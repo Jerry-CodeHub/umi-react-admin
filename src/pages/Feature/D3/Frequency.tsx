@@ -1,6 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
-import * as d3 from 'd3';
-import { axisBottom, axisTop, pointer, select } from 'd3';
+import { axisBottom, axisTop, pointer, scalePoint, select } from 'd3';
 import { useEffect, useRef } from 'react';
 import { data, frequencyTicks, type FrequencyMatch, type FrequencyRange } from './components/DataUnit.ts';
 
@@ -117,8 +116,7 @@ const Frequency = () => {
       typeHeights.reduce((acc: number, height: number) => acc + height, 0) + margin.top + margin.bottom;
 
     // 创建 SVG
-    const svg = d3
-      .select(svgRef.current)
+    const svg = select(svgRef.current)
       .attr('width', width + margin.left + margin.right)
       .attr('height', totalHeight + margin.top + margin.bottom)
       .append('g')
@@ -145,8 +143,7 @@ const Frequency = () => {
     const frequencyMarkerGroup = svg.append('g').attr('class', 'frequency-markers').style('pointer-events', 'none');
 
     // 创建等距比例尺
-    const xScale = d3
-      .scalePoint<string>()
+    const xScale = scalePoint<string>()
       .domain(frequencyTicks.map((t) => t.label))
       .range([0, width])
       .padding(0.5);
@@ -158,8 +155,7 @@ const Frequency = () => {
     const labelMap = new Map(frequencyTicks.map((t) => [t.value, t.label] as const)); // 创建标签映射
 
     // 创建tooltip
-    const tooltip = d3
-      .select(containerRef.current)
+    const tooltip = select(containerRef.current)
       .append('div')
       .attr('class', 'frequency-tooltip')
       .style('position', 'absolute')
@@ -176,8 +172,7 @@ const Frequency = () => {
       .style('overflow-y', 'auto');
 
     // 创建hover tooltip
-    const hoverTooltip = d3
-      .select(svgRef.current.parentNode as Element)
+    const hoverTooltip = select(svgRef.current.parentNode as Element)
       .append('div')
       .attr('class', 'hover-tooltip')
       .style('position', 'absolute')
@@ -329,31 +324,8 @@ const Frequency = () => {
           </div>
           ${
             matches.length > 0
-              ? `
-              <div>已经获取到数据: matches;</div>
-            `
-              : `
-              <div style="color: #666;">当前频率范围内无匹配项</div>
-            `
-            //           matches.length > 0
-            //             ? matches
-            //                 .map(
-            //                   (match: FrequencyMatch) => `
-            //             <div style="margin-bottom: 8px;">
-            //               <div style="color: ${match.color}; font-weight: bold;">
-            //                 ${match.typeName} - ${match.frequencyName}
-            //               </div>
-            //               <div>
-            //                 频率范围: ${formatFrequency(match.range[0])} - ${formatFrequency(match.range[1])}
-            //               </div>
-            //               <pre style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0 0 0;">
-            // ${JSON.stringify(match.customInfo, null, 2)}
-            //               </pre>
-            //             </div>
-            //           `,
-            //                 )
-            //                 .join('<hr style="margin: 8px 0;">')
-            //             : '<div style="color: #666;">当前频率范围内无匹配项</div>'
+              ? matches.map((match: FrequencyMatch) => renderMatchDetail(match)).join('<hr style="margin: 8px 0;">')
+              : '<div style="color: #666;">当前频率范围内无匹配项</div>'
           }
         </div>
       `;
@@ -555,21 +527,22 @@ const Frequency = () => {
         const leftPos = getTickPosition(leftTick.label);
         const rightPos = getTickPosition(rightTick.label);
 
-        // 在对数空间中计算相对位置
-        const logHz = Math.log10(hz);
-        const logLeft = Math.log10(leftTick.value);
-        const logRight = Math.log10(rightTick.value);
-
-        // 使用对数插值计算实际位置
-        const progress = (logHz - logLeft) / (logRight - logLeft);
+        // 在对数空间中计算相对位置；左端刻度为 0 Hz 时 log10(0) = -Infinity 会得到 NaN
+        // （此前 35kHz/100kHz 等落在首段的频段 x/width 为 NaN），首段退化为线性插值
+        const progress =
+          leftTick.value > 0
+            ? (Math.log10(hz) - Math.log10(leftTick.value)) / (Math.log10(rightTick.value) - Math.log10(leftTick.value))
+            : (hz - leftTick.value) / (rightTick.value - leftTick.value);
         return leftPos + (rightPos - leftPos) * progress;
       };
 
+      // 频率标记（绿色范围区）全图只绘制一次：此前块位于 data.forEach 内但
+      // 缺少"仅第一个类型组"的判断（注释写了条件却未实现），每个类型组重复
+      // 绘制一遍——N 层 0.1 透明度叠加变深、标记线与标签重绘（审计 code-7）
       const targetFrequencyRange = [1900000, 140000000];
       // const targetFrequencyRange: number[] = [];
 
-      // 如果是第一个类型组，添加频率标记
-      if (targetFrequencyRange.length > 0) {
+      if (typeIndex === 0 && targetFrequencyRange.length > 0) {
         const startX = getXPosition(targetFrequencyRange[0]);
         const endX = getXPosition(targetFrequencyRange[1]);
 

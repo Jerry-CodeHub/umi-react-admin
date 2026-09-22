@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Length 271 >>
+stream
+BT /F1 28 Tf 72 700 Td (umi-react-admin PDF Demo) Tj ET
+0 0 1 RG 2 w 72 620 m 540 620 l S
+1 0 0 rg 72 500 120 80 re f
+0 1 0 rg 240 500 120 80 re f
+0 0 0 rg 360 500 120 80 re f
+BT /F1 12 Tf 72 440 Td (Page 1 - vector shapes, self-generated, no third-party copyright) Tj ET
+endstream
+endobj
+2 0 obj
+<< /Length 185 >>
+stream
+BT /F1 20 Tf 72 700 Td (ReactPDF cmaps/standard_fonts demo) Tj ET
+0.5 0.5 0.5 rg 72 600 460 4 re f
+BT /F1 12 Tf 72 560 Td (Page 2 - used by /Office/pdf for the react-pdf pipeline) Tj ET
+endstream
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 612 792] /Contents 1 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 612 792] /Contents 2 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+6 0 obj
+<< /Type /Pages /Kids [4 0 R 5 0 R] /Count 2 >>
+endobj
+7 0 obj
+<< /Type /Catalog /Pages 6 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000331 00000 n 
+0000000567 00000 n 
+0000000637 00000 n 
+0000000763 00000 n 
+0000000889 00000 n 
+0000000952 00000 n 
+trailer
+<< /Size 8 /Root 7 0 R >>
+startxref
+1001
+%%EOF

@@ -1,5 +1,8 @@
 /node_modules
-/.env.local
+# 本地环境变量（umi 会加载 .env、.env.local 等），只提交模板 .env.example
+/.env
+/.env.*
+!/.env.example
 /.umirc.local.ts
 /config/config.local.ts
 /src/.umi
@@ -15,3 +18,14 @@
 # OS and editor artifacts
 .DS_Store
 .idea/
+
+# 本地 AI 工具 worktree 产物
+.claude/worktrees/
+.kilo/
+
+# 内部审计/修复方案文档（不随仓库分发）
+docs/audit-report-*.md
+docs/remediation-plan-*.md
+
+# 测试覆盖率产物
+coverage/

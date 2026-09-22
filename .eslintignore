@@ -2,3 +2,9 @@ public/Cesium/
 public/js/turf.min.js
 public/js/html2canvas.min.js
 public/js/CesiumNavigation.umd.js
+dist/
+src/.umi/
+src/.umi-production/
+.claude/
+.kilo/
+coverage/

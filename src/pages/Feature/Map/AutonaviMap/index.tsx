@@ -4,13 +4,13 @@
  * https://github.com/pansyjs/react-amap
  * 说明: 未使用高德 Key/安全密钥
  */
+import { getMessage } from '@/utils/antdMessage';
 import { ProCard } from '@ant-design/pro-components';
 import { Map, Marker } from '@pansy/react-amap';
 import type { MapProps } from '@pansy/react-amap/es/map';
-import { message } from 'antd';
 import { useState } from 'react';
 
-import { AutonaviMapStyle } from './AutonaviMapStyle';
+import { AutonaviMapStyle } from './AutonaviMap.style';
 
 type AMapClickEvent = {
   lnglat: {
@@ -25,7 +25,7 @@ export default function AutonaviMap() {
   const mapEvents: MapProps['events'] = {
     click: (event: AMapClickEvent) => {
       const position: [number, number] = [event.lnglat.getLng(), event.lnglat.getLat()];
-      message.success(`获取的坐标点位置为${position}`);
+      getMessage().success(`获取的坐标点位置为${position}`);
       setPosition(position);
     },
   };

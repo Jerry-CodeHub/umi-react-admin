@@ -1,0 +1,31 @@
+{
+  "baseline": {
+    "syncScripts": 192,
+    "firstScreenGzipKB": 2400,
+    "homeFirstLoadGzipKB": 1275,
+    "recordedAt": "2026-09-21",
+    "note": "治理前（审计 perf-1）：191-192 个同步脚本、2.40MB gzip。2026-09-21 审查实测 /home 真实首屏 1275KB gzip（含被强制命名组拖入的 vendor-media/vendor-d3）；拆包修正后 1153KB。阈值 = 实测 + 约 10% 余量。"
+  },
+  "limits": {
+    "syncScripts": 6,
+    "firstScreenGzipKB": 780,
+    "routes": {
+      "p__Home__index": {
+        "withLayout": true,
+        "maxGzipKB": 1250
+      },
+      "p__Login__index": {
+        "withLayout": false,
+        "maxGzipKB": 780
+      }
+    },
+    "distMB": 30,
+    "publicMB": 4
+  },
+  "notes": {
+    "firstScreenGzipKB": "只统计 index.html 同步脚本（入口 chunk）；登录后落地页的真实体积看 routes",
+    "routes": "路由首屏 = 入口 umi + 布局（withLayout）+ 路由 chunk group 的全部 JS，由 config/chunkGraph.ts 构建时记录",
+    "distMB": "dist 含 Cesium 静态资产（约 25MB）、pdfjs 的 cmaps/standard_fonts（约 2.4MB）与自托管 TinyMCE",
+    "publicMB": "演示媒体已自制替换，public 约 3.4MB"
+  }
+}

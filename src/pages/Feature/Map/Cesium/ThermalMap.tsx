@@ -1,3 +1,4 @@
+import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
 import { iconData } from '@/utils/MapCompute/dataEnd';
 import { loadThermalMapData, type ThermalData, type ThermalPoint } from '@/utils/MapCompute/loadThermalMapData';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
@@ -19,61 +20,61 @@ const ThermalMap = () => {
   const infoDivRef = useRef<HTMLDivElement | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState<ThermalPoint[][]>([]);
-  const [thermalData, setThermalData] = useState<ThermalData | null>(null); // 保存完整的热力图数据
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initError, setInitError] = useState(false);
+  // 独立于 viewer 的交互处理器（销毁需手动，viewer.destroy 不代劳外部 handler）
+  const interactionHandlerRef = useRef<Cesium.ScreenSpaceEventHandler | null>(null);
+  // 点云 Primitive 引用（重复渲染/清除时复用）
+  const pointsRef = useRef<Cesium.PointPrimitiveCollection | null>(null);
+  // 数据按需加载：首次使用时才拉取（约 1MB JSON），Promise 缓存避免重复请求
+  const dataPromiseRef = useRef<Promise<ThermalData> | null>(null);
+  const ensureData = () => {
+    if (!dataPromiseRef.current) {
+      setLoading(true);
+      dataPromiseRef.current = loadThermalMapData()
+        .then((obj) => {
+          setData(obj.coverageData.arrayResult);
+          return obj;
+        })
+        .catch((error) => {
+          dataPromiseRef.current = null; // 失败允许重试
+          console.error('Failed to load thermal data:', error);
+          messageApi.error('加载热力图数据失败');
+          throw error;
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+    return dataPromiseRef.current;
+  };
 
-  // 动态加载热力图数据
+  /**
+   * 供按钮回调使用：加载失败时已在 ensureData 内提示，这里吞掉 rejection（避免 unhandled）；
+   * 等待数据期间若组件已卸载、viewer 已销毁，则放弃后续绘制。
+   */
+  const loadDataFor = async (target: Cesium.Viewer) => {
+    try {
+      const loaded = await ensureData();
+      return target.isDestroyed() ? null : loaded;
+    } catch {
+      return null;
+    }
+  };
+
+  // 初始化 Cesium Viewer（立即初始化不等待数据；数据在首次使用时按需加载）
   useEffect(() => {
-    const loadThermalData = async () => {
-      try {
-        const obj = await loadThermalMapData();
-        const arrayResult = obj.coverageData.arrayResult;
-        setData(arrayResult);
-        setThermalData(obj); // 保存完整数据供其他功能使用
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to load thermal data:', error);
-        messageApi.error('加载热力图数据失败');
-        setLoading(false);
-      }
-    };
-
-    loadThermalData();
-  }, [messageApi]);
-
-  // 初始化 Cesium Viewer
-  useEffect(() => {
-    // 等待 loading 完成且 DOM 已渲染
-    if (loading || viewer) return;
-
     // 确保 Cesium 容器元素存在
     const container = document.getElementById('cesium-container');
     if (!container) return;
 
-    // 创建一个 Cesium Viewer 实例
-    const newViewer = new Cesium.Viewer('cesium-container', {
-      // 去除所有的控件
-      animation: false, // 是否显示动画控件
-      baseLayerPicker: false, // 是否显示图层选择控件
-      // fullscreenButton: false, // 是否显示全屏按钮
-      // geocoder: false, // 是否显示地名查找控件
-      // homeButton: false, // 是否显示Home按钮
-      infoBox: false, // 是否显示信息框
-      sceneModePicker: true, // 是否显示3D/2D选择器
-      selectionIndicator: false, // 是否显示选取指示器组件
-      timeline: false, // 是否显示时间轴
-      navigationHelpButton: false, // 是否显示帮助信息按钮
-      navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-      // scene3DOnly: true, // 是否只显示3D
-      shouldAnimate: true, // 是否显示动画
-      skyAtmosphere: false, // 是否显示大气层
-      skyBox: false, // 是否显示天空盒
-      vrButton: false, // 是否显示VR按钮
-      // sceneMode: Cesium.SceneMode.SCENE2D, // 2D 模式
-    });
-
-    // 1, 去除版权信息
-    (newViewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
+    // 创建一个 Cesium Viewer 实例（WebGL 不可用等初始化失败时给出可见兜底而非整页空白）
+    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
+    const newViewer = createDemoViewer('cesium-container', { baseLayerPicker: false });
+    if (!newViewer) {
+      setInitError(true);
+      return;
+    }
 
     // 修改 homeButton 的位置
     let initView = {
@@ -106,6 +107,11 @@ const ThermalMap = () => {
     // 销毁
     return () => {
       window.clearTimeout(initTimer);
+      if (interactionHandlerRef.current) {
+        interactionHandlerRef.current.destroy();
+        interactionHandlerRef.current = null;
+      }
+      pointsRef.current = null; // primitive 随 viewer.destroy 一并销毁
       if (newViewer && !newViewer.isDestroyed()) {
         newViewer.destroy();
       }
@@ -114,13 +120,14 @@ const ThermalMap = () => {
         infoDivRef.current = null;
       }
     };
-  }, [loading, messageApi]);
+  }, [messageApi]);
 
   // NOTE 鼠标事件
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [positionInfo, setPositionInfo] = useState<ModalPosition>({});
   const handleMouse = (viewer: Cesium.Viewer) => {
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    interactionHandlerRef.current = handler;
     // 鼠标点击事件
     handler.setInputAction((movement: { position: Cesium.Cartesian2 }) => {
       // 点击图标时触发
@@ -245,17 +252,15 @@ const ThermalMap = () => {
   };
 
   // NOTE 渲染热力图 (base64 图片数据)
-  const handleClick = () => {
+  const handleClick = async () => {
     setIsModalOpen(false);
-    // 检查数据是否加载完成
-    if (!thermalData) {
-      messageApi.warning('热力图数据还未加载完成');
-      return;
-    }
     if (!viewer) {
       messageApi.warning('地图还未初始化完成');
       return;
     }
+    // 数据按需加载（首次点击时拉取，后续走缓存）
+    const loaded = await loadDataFor(viewer);
+    if (!loaded) return;
 
     // let longitude = 105.658203125;
     // let latitude = 40.658203125;
@@ -286,7 +291,7 @@ const ThermalMap = () => {
     });
 
     // 开始处理 base64 图片数据
-    let base64Image = 'data:image/png;base64,' + thermalData.diagramPngStream; // base64 图片数据
+    let base64Image = 'data:image/png;base64,' + loaded.diagramPngStream; // base64 图片数据
 
     // 将 Base64 数据转换为 Blob 对象
     function base64ToBlob(base64: string, mime = '') {
@@ -321,6 +326,11 @@ const ThermalMap = () => {
 
     // 图像加载完成后的回调函数
     img.onload = function () {
+      // 组件已卸载/viewer 已销毁时放弃写入（卸载竞态守卫）
+      if (viewer.isDestroyed()) {
+        URL.revokeObjectURL(url);
+        return;
+      }
       // 当图像加载完成后，将其应用为纹理
       let entity = viewer.entities.add({
         name: 'Heatmap', // 实体的名称
@@ -335,16 +345,24 @@ const ThermalMap = () => {
       });
       // 调整视角以查看热力图
       viewer.zoomTo(entity);
+      // 释放临时 Blob URL（此前从不 revoke，反复渲染持续占用内存）
+      URL.revokeObjectURL(url);
     };
   };
 
   // NOTE 渲染热力图 (点云效果)
-  const handleClick2 = () => {
+  // PointPrimitiveCollection 批量渲染：Entity API 每实体一个 ViewModel，数千点即可冻结主线程；
+  // Primitive 批量路径可支撑 10 万级点（审计 perf-2）。
+  // 注：原代码对 viewer.entities.cluster 的逐点赋值是无效属性写入（EntityCollection 无该属性，
+  // 聚合从未生效），已整体删除；如需聚合应使用 dataSource.clustering 另行实现。
+  const handleClick2 = async () => {
     if (!viewer) {
       messageApi.warning('地图还未初始化完成');
       return;
     }
-    const dataPoints = data.flat();
+    const loaded = await loadDataFor(viewer);
+    if (!loaded) return;
+    const dataPoints = loaded.coverageData.arrayResult.flat();
 
     function getColorForStrength(value: number) {
       if (value <= 25) return Cesium.Color.BLUE.withAlpha(0.5); // 蓝色
@@ -354,27 +372,19 @@ const ThermalMap = () => {
       return Cesium.Color.RED.withAlpha(0.5);
     }
 
+    // 重复渲染先清空旧点云
+    if (pointsRef.current) {
+      pointsRef.current.removeAll();
+    }
+    const points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+    pointsRef.current = points;
     dataPoints.forEach((point) => {
-      // 聚合
-      (viewer.entities as unknown as { cluster: Partial<Cesium.EntityCluster> }).cluster = {
-        enabled: true, // 是否启用聚合
-        pixelRange: 50, // 聚合像素范围
-        minimumClusterSize: 10, // 最小聚合大小
-        clusterBillboards: true, // 是否聚合图标
-        clusterLabels: true, // 是否聚合标签
-        clusterPoints: true, // 是否聚合点
-      };
-      let entity = viewer.entities.add({
+      points.add({
         position: Cesium.Cartesian3.fromDegrees(point.longitude, point.latitude),
-        name: String(point.fieldStrength), // 实体的名称
-        point: {
-          pixelSize: 5, // 像素大小
-          color: getColorForStrength(point.fieldStrength),
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 高度参考
-        },
-      });
-      entity.properties = new Cesium.PropertyBag({
-        fieldStrength: point.fieldStrength,
+        pixelSize: 5, // 像素大小
+        color: getColorForStrength(point.fieldStrength),
+        // id 直接挂原始数据点：scene.pick 返回的 picked.id 即该点，悬停读取无需 PropertyBag
+        id: point,
       });
     });
     if (!infoDivRef.current) {
@@ -388,25 +398,40 @@ const ThermalMap = () => {
     }
     const infoDiv = infoDivRef.current;
 
-    // 鼠标放到点上时根据点的名称显示信息
+    // 鼠标放到点上时显示场强（Primitive pick 语义：picked.id 即我们挂载的原始数据点）
     viewer.screenSpaceEventHandler.setInputAction(function onMouseMove(
       movement: Cesium.ScreenSpaceEventHandler.MotionEvent,
     ) {
-      let pickedObject = viewer.scene.pick(movement.endPosition);
-      const fieldStrength = pickedObject?.id?.properties?.getValue(Cesium.JulianDate.now())?.fieldStrength;
-      if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id) && fieldStrength) {
-        let name = pickedObject.id.name;
-
+      const pickedObject = viewer.scene.pick(movement.endPosition);
+      const hit =
+        Cesium.defined(pickedObject) && pickedObject.id && typeof pickedObject.id.fieldStrength === 'number'
+          ? pickedObject.id
+          : null;
+      if (hit) {
         infoDiv.style.display = 'block';
         infoDiv.style.left = movement.endPosition.x + 10 + 'px';
         infoDiv.style.top = movement.endPosition.y + 10 + 'px';
-        infoDiv.textContent = name;
+        infoDiv.textContent = `场强: ${hit.fieldStrength}`;
       } else {
         infoDiv.style.display = 'none';
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-    viewer.zoomTo(viewer.entities);
+    // Primitive 不走 viewer.zoomTo(entities)，按数据包围盒飞视野
+    let minLon = Infinity,
+      maxLon = -Infinity,
+      minLat = Infinity,
+      maxLat = -Infinity;
+    dataPoints.forEach((p) => {
+      minLon = Math.min(minLon, p.longitude);
+      maxLon = Math.max(maxLon, p.longitude);
+      minLat = Math.min(minLat, p.latitude);
+      maxLat = Math.max(maxLat, p.latitude);
+    });
+    viewer.camera.flyTo({
+      destination: Cesium.Rectangle.fromDegrees(minLon, minLat, maxLon, maxLat),
+      duration: 1.5,
+    });
   };
 
   // NOTE 绘制底部点
@@ -457,6 +482,9 @@ const ThermalMap = () => {
     }
     viewer.dataSources.removeAll();
     viewer.entities.removeAll();
+    if (pointsRef.current) {
+      pointsRef.current.removeAll();
+    }
   };
 
   return (
@@ -464,12 +492,9 @@ const ThermalMap = () => {
       <Alert message="热力图" type="success" showIcon className="mb-2" />
       <ProCard>
         {contextHolder}
-        {loading && (
-          <div className="flex items-center justify-center p-10">
-            <Spin tip="正在加载热力图数据..." size="large" />
-          </div>
-        )}
-        {!loading && (
+        {initError ? (
+          <CesiumInitError />
+        ) : (
           <>
             <Button className="mb-2" onClick={() => handlePrimary()}>
               距离计算
@@ -487,6 +512,11 @@ const ThermalMap = () => {
               清除地图数据
             </Button>
             {/* <div id="cesium-container" style={{ width: '100%', height: '100vh' }} /> */}
+            {loading && (
+              <div className="flex items-center justify-center p-6">
+                <Spin tip="正在加载热力图数据..." size="large" />
+              </div>
+            )}
             <div id="cesium-container" />
             <Modal
               title=""

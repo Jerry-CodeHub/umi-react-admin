@@ -1,19 +1,25 @@
-# 使用官方 Nginx 镜像作为基础镜像
-FROM nginx:alpine
+# syntax=docker/dockerfile:1
 
-# 将 dist 目录中的文件复制到容器的 Nginx 服务目录中
-COPY ./dist /usr/share/nginx/html
+# ---------- 阶段一：构建 ----------
+FROM node:22-alpine AS builder
+WORKDIR /app
 
-# 将 Nginx 配置文件复制到容器的 Nginx 服务目录中  
-COPY ./nginx.conf /etc/nginx/nginx.conf
-# 暴露 80 端口
-EXPOSE 80
+# 先装依赖以利用层缓存
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
-# 为 Nginx 配置文件添加执行权限
-# RUN chmod +x /etc/nginx/nginx.conf
+# 源码与构建（Cesium token 经 build-arg 注入，最终 define 进产物）
+COPY . .
+ARG CESIUM_ION_TOKEN=""
+ENV CESIUM_ION_TOKEN=$CESIUM_ION_TOKEN
+RUN pnpm build
 
-# 使用 Nginx 作为静态文件服务器
-CMD ["nginx", "-g", "daemon off;"]
+# ---------- 阶段二：运行（全程非 root） ----------
+# 固定到稳定线 1.30 的具体镜像摘要（多架构 index），升级时显式更新 tag 与摘要
+FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:04a3275f25d766cff8926d2e57b2ff34a783d6b12a702dc98bb82226d2d9a508
 
-# 使用默认的 Nginx 配置
-# 如需自定义配置，可添加 COPY 指令复制配置文件到 /etc/nginx/nginx.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 8080

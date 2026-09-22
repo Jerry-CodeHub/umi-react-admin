@@ -1,11 +1,12 @@
 /**
  * InfoIndex.tsx
  */
+import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
 import { centerGeoHash, geohashBounds } from '@/utils/MapCompute/geoHash';
 import { setupCesium } from '@/utils/MapCompute/setupCesium';
 import { ProCard } from '@ant-design/pro-components';
 import type { InputNumberProps } from 'antd';
-import { Alert, Button, InputNumber, Spin, message } from 'antd';
+import { Alert, Button, InputNumber, message, Spin } from 'antd';
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { useEffect, useState } from 'react';
@@ -38,32 +39,17 @@ type SubArea = {
 
 const InfoGeoHash: React.FC = () => {
   const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
+  const [initError, setInitError] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     // 创建一个 Cesium Viewer 实例
-    const viewer = new Cesium.Viewer('cesium-container', {
-      // 去除所有的控件
-      animation: false, // 是否显示动画控件
-      // baseLayerPicker: false, // 是否显示图层选择控件
-      // fullscreenButton: false, // 是否显示全屏按钮
-      // geocoder: false, // 是否显示地名查找控件
-      // homeButton: false, // 是否显示Home按钮
-      infoBox: false, // 是否显示信息框
-      sceneModePicker: true, // 是否显示3D/2D选择器
-      selectionIndicator: false, // 是否显示选取指示器组件
-      timeline: false, // 是否显示时间轴
-      navigationHelpButton: false, // 是否显示帮助信息按钮
-      navigationInstructionsInitiallyVisible: false, // 是否显示导航指示
-      // scene3DOnly: true, // 是否只显示3D
-      shouldAnimate: true, // 是否显示动画
-      skyAtmosphere: false, // 是否显示大气层
-      skyBox: false, // 是否显示天空盒
-      vrButton: false, // 是否显示VR按钮
-    });
-
-    // 1, 去除版权信息
-    (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = 'none';
+    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
+    const viewer = createDemoViewer('cesium-container');
+    if (!viewer) {
+      setInitError(true);
+      return;
+    }
 
     // 修改 homeButton 的位置
     let initView = {
@@ -134,6 +120,8 @@ const InfoGeoHash: React.FC = () => {
     setCenterHash(geohash);
 
     setTimeout(() => {
+      // 组件已卸载守卫：此时 viewer 可能已销毁
+      if (viewer.isDestroyed()) return;
       // 如何根据 geohash 字符串手动实现显示范围 画出范围
       viewer.entities.removeAll(); // 移除所有实体
 
@@ -242,7 +230,6 @@ const InfoGeoHash: React.FC = () => {
         const centerLat = (subSouth + subNorth) / 2;
         const centerLon = (subWest + subEast) / 2;
 
-        // const geohash = ngeohash.encode(centerLat, centerLon, precision);
         const geohash = centerGeoHash(centerLat, centerLon, precision);
         geohashes.push({
           geohash,
@@ -284,8 +271,8 @@ const InfoGeoHash: React.FC = () => {
       <Alert className="mb-2" message="空间点索引算法-GeoHash" type="success" />
       <ProCard>
         {contextHolder}
-        {viewer === null && <Spin spinning={true} />}
-        <div id="cesium-container" />
+        {viewer === null && !initError && <Spin spinning={true} />}
+        {initError ? <CesiumInitError /> : <div id="cesium-container" />}
         <Button className="mt-2" onClick={() => handleRemoveAll()}>
           清除所有
         </Button>
@@ -299,7 +286,7 @@ const InfoGeoHash: React.FC = () => {
         </div>
         <div className="mt-2">
           <Button onClick={() => getRectangle()}>获取视图范围</Button>
-          <div className="ml-4 text-red-600 text-success">{extent}</div>
+          <div className="ml-4 text-red-600">{extent}</div>
         </div>
         <div className="mt-2">
           <InputNumber
@@ -312,11 +299,11 @@ const InfoGeoHash: React.FC = () => {
             onChange={inputNumberChange}
           />
           <Button onClick={() => handleCenterGeoHash()}>生成 GeoHash</Button>
-          <span className="ml-4 text-red-600 text-success">{centerHash}</span>
+          <span className="ml-4 text-red-600">{centerHash}</span>
         </div>
         <div className="mt-2">
           <Button onClick={() => getCenterPosition()}>获取中心点坐标</Button>
-          <span className="ml-4 text-red-600 text-success">{centerPosition}</span>
+          <span className="ml-4 text-red-600">{centerPosition}</span>
         </div>
       </ProCard>
     </>

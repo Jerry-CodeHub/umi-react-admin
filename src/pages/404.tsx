@@ -1,19 +1,20 @@
-import { history } from '@umijs/max';
+import { history, useIntl } from '@umijs/max';
 import { Button, Result } from 'antd';
 
 export default () => {
+  const intl = useIntl();
   return (
     <Result
       status="404"
       title="404"
-      subTitle="对不起，您访问的页面不存在。"
+      subTitle={intl.formatMessage({ id: 'page.404.subTitle' })}
       extra={
         <Button
           onClick={() => {
             history.push('/');
           }}
         >
-          Back Home
+          {intl.formatMessage({ id: 'page.backHome' })}
         </Button>
       }
     />

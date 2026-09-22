@@ -17,6 +17,8 @@ export const routes = [
     path: '/login',
     component: './Login',
     hideInMenu: true,
+    // 登录页按全屏独立页设计，脱离 ProLayout 管理框架外壳
+    layout: false,
   },
   {
     name: 'access',
@@ -78,15 +80,11 @@ export const routes = [
         path: '/feature/VideoPlayer',
         icon: 'VideoCameraAddOutlined',
         routes: [
+          { path: '/feature/VideoPlayer', redirect: '/feature/VideoPlayer/xgplayer' },
           {
             name: 'xgplayer',
             path: '/feature/VideoPlayer/xgplayer',
             component: './Feature/VideoPlayer/xgplayer',
-          },
-          {
-            name: 'ArtPlayer',
-            path: '/feature/VideoPlayer/ArtPlayer',
-            component: './Feature/VideoPlayer/ArtPlayer',
           },
         ],
       },
@@ -95,6 +93,7 @@ export const routes = [
         path: '/feature/D3',
         icon: 'DotChartOutlined',
         routes: [
+          { path: '/feature/D3', redirect: '/feature/D3/Frequency' },
           {
             name: 'Frequency',
             path: '/feature/D3/Frequency',
@@ -107,6 +106,7 @@ export const routes = [
         path: '/feature/AudioFeature',
         icon: 'CustomerServiceOutlined',
         routes: [
+          { path: '/feature/AudioFeature', redirect: '/feature/AudioFeature/AudioPlayer' },
           {
             name: 'AudioPlayer',
             path: '/feature/AudioFeature/AudioPlayer',
@@ -124,6 +124,7 @@ export const routes = [
         path: '/feature/Map',
         icon: 'HeatMapOutlined',
         routes: [
+          { path: '/feature/Map', redirect: '/feature/Map/AutonaviMap' },
           {
             name: 'AutonaviMap',
             path: '/feature/Map/AutonaviMap',
@@ -136,6 +137,7 @@ export const routes = [
         path: '/feature/Cesium',
         icon: 'DeploymentUnitOutlined',
         routes: [
+          { path: '/feature/Cesium', redirect: '/feature/Cesium/geoHash' },
           {
             name: 'geoHash',
             path: '/feature/Cesium/geoHash',
@@ -173,6 +175,7 @@ export const routes = [
         path: '/feature/OpenLayers',
         icon: 'GlobalOutlined',
         routes: [
+          { path: '/feature/OpenLayers', redirect: '/feature/OpenLayers/InfoMap' },
           {
             name: 'InfoMap',
             path: '/feature/OpenLayers/InfoMap',

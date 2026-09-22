@@ -18,7 +18,7 @@
 
 ## 质量门禁
 
-- PR 阶段 CI：typecheck / 严格 lint（含 .mjs）/ vitest（含 mock 可加载性）/ 两条产线构建冒烟 / 体积预算与样式覆盖门禁 / **产物 JWT 泄露扫描** / 依赖审计（观察期）
+- PR 阶段 CI：typecheck / 严格 lint（含 .mjs）/ vitest（含 mock 可加载性）/ 两条产线构建冒烟 / 体积预算与样式覆盖门禁 / **产物 JWT 泄露扫描**（放行 Cesium 自带的公开默认 ion token，只输出指纹）/ 依赖审计（观察期）
 - 提交阶段：pre-commit（lint-staged + typecheck）
 - 仓库卫生测试：可提交文件不含 JWT 形态秘钥与本地工件
 

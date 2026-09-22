@@ -6,7 +6,7 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE) [![CI](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/ci.yml/badge.svg)](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/ci.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE) [![Deploy](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/deploy.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
 `umi-react-admin` 是一个基于 `react` 和 `umi max` 的模板系统, 一款开源免费且开箱即用的系统模板, 使用了最新的 `Umi4.x`, `React18.x` , `antd5.x` , `Tailwindcss` , `CSS in JS` , `TypeScript` , `ProComponents` 等主流技术开发。
 

@@ -1,12 +1,12 @@
 name: CI
 
-# PR 与非 master 分支 push 时执行质量门禁；master 的部署由 deploy.yml 负责
+# PR 时执行质量门禁（也可在 Actions 页手动触发）；master 的部署由 deploy.yml 负责。
+# 不监听分支 push：同分支 push 与 PR 会双触发，被并发取消的那次会以 cancelled 留在 PR 检查列表里
 on:
   pull_request:
-  push:
-    branches-ignore: [master]
+  workflow_dispatch:
 
-# 同一分支的 push 与 PR 共用并发组（后到的取消先到的），避免同仓库分支开 PR 时双跑
+# 同一 PR 的新提交取消仍在运行的旧运行
 concurrency:
   group: ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -70,9 +70,6 @@ jobs:
         run: node scripts/check-bundle-size.mjs
 
       - name: 产物 JWT 泄露扫描
-        # 补审计 security-6 的盲区：曾发生 token 经 define 注入构建产物并部署到 gh-pages
-        run: |
-          if grep -rq 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' dist/; then
-            echo '::error::dist 产物中发现 JWT 形态字符串，疑似秘钥泄露'
-            exit 1
-          fi
+        # 补审计 security-6 的盲区：曾发生 token 经 define 注入构建产物并部署到 gh-pages。
+        # CI 构建不注入 secret，产物里除 Cesium 自带的公开默认 token 外出现任何 JWT 都判失败
+        run: node scripts/check-dist-secrets.mjs

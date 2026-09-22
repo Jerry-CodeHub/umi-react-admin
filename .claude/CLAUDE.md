@@ -103,6 +103,7 @@ config/
 - **演示数据层两种模式**：dev 走 umi mock；生产构建且未配 `UMI_APP_API_BASE` 时走前端本地实现（鉴权与表格）。`max preview` 自带 mock，验证纯静态行为要用真正的静态服务器
 - **public 资源路径一律经 `PUBLIC_PATH` 拼接**：GitHub Pages 部署在 `/umi-react-admin/` 子路径
 - **首页图表数据**由 `node scripts/generate-chart-data.mjs` 确定性生成，不要引入来源不明的第三方数据
+- **产物秘钥扫描不能用固定 grep**：Cesium 的 `Ion.js` 自带公开的默认 ion token（HS256 JWT），打包后必然进产物；CI 用 `scripts/check-dist-secrets.mjs`（白名单从 Ion.js 动态读取，只输出指纹）
 
 ### 国际化
 

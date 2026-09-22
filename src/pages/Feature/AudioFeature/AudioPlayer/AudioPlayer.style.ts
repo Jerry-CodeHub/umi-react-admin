@@ -14,8 +14,9 @@ export const AudioPlayerStyles = styled.div`
     overflow: hidden;
   }
 
+  /* 背景与唱片均为纯 CSS 绘制（此前热链第三方 CDN 上的商业专辑封面与背景图） */
   .audio-player {
-    background-image: url('//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/music/bg.jpg');
+    background-image: linear-gradient(135deg, #1f2a44 0%, #2d1f3d 55%, #111827 100%);
     background-size: 100% 100%;
   }
 
@@ -59,7 +60,16 @@ export const AudioPlayerStyles = styled.div`
 
   #album {
     height: 55%;
-    background-image: url('//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/music/poster-big.jpeg');
+    background-image: radial-gradient(
+      circle,
+      #1677ff 0 10%,
+      #0b0b0b 11% 38%,
+      #2a2a2a 39% 41%,
+      #0b0b0b 42% 58%,
+      #2a2a2a 59% 61%,
+      #0b0b0b 62% 70%,
+      transparent 71%
+    );
     background-size: 60%;
     background-repeat: no-repeat;
     background-position: center left;

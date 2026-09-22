@@ -5,7 +5,7 @@ import MusicPreset, { Analyze, Lyric } from 'xgplayer-music';
 import 'xgplayer-music/dist/index.min.css';
 import 'xgplayer/dist/index.min.css';
 import { AudioPlayerStyles } from './AudioPlayer.style';
-import lyricData from './lyrics.json';
+import { demoLyrics } from './lyrics';
 
 declare global {
   interface Window {
@@ -42,9 +42,9 @@ export default function AudioPlayer() {
 
     const player = new Player({
       id: 'mse',
-      url: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/music/audio.mp3', //[{ src: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/music/audio.mp3', name: '林宥嘉·脆弱一分钟', poster: '//sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/music/poster-small.jpeg' }],
+      // 项目自制的正弦合成音频（此前热链第三方 CDN 上的商业歌曲，已按演示媒体自制替换的约定移除）
+      url: `${PUBLIC_PATH}audio/stereo.wav`,
       volume: 0.8,
-      // width: window.innerWidth,
       width: '100%',
       height: 50,
       mediaType: 'audio',
@@ -60,27 +60,30 @@ export default function AudioPlayer() {
       },
     });
     player.crossOrigin = 'anonymous';
-    const lyricTxts = lyricData.lyrics;
+
+    // 频谱画布限定在本组件内查找（此前 document.querySelector('canvas') 取的是全页第一个 canvas）
+    const canvasEl = document.querySelector<HTMLCanvasElement>('.audio-player #canvas canvas');
 
     // 初始化频谱
-    const analyze = new Analyze(player, document.querySelector('canvas') as HTMLElement, {
+    const analyze = new Analyze(player, canvasEl as HTMLElement, {
       bgColor: 'rgba(0,0,0,0.7)',
       stroke: 3,
     });
     window.analyze = analyze;
 
     // 初始化歌词模块
-    const lyric = new Lyric([lyricTxts], document.querySelector('#gc'));
+    const lyric = new Lyric([demoLyrics], document.querySelector('#gc'));
     lyric.bind(player);
     player.on('playing', function () {
       lyric.show();
       (player as PlayerWithMode).mode = 2;
     });
-    let canvasDom = document.getElementById('canvas') as HTMLCanvasElement;
-    // 画布尺寸取容器宽度而非窗口（固定头布局下 window 尺寸会溢出），高度固定
+    // 画布尺寸取容器宽度而非窗口（固定头布局下 window 尺寸会溢出），高度固定。
+    // 此前误取 id="canvas" 的外层 div 设置 width/height，实际从未生效
     const syncCanvasSize = () => {
-      canvasDom.width = canvasDom.parentElement?.clientWidth || canvasDom.clientWidth || 800;
-      canvasDom.height = 160;
+      if (!canvasEl) return;
+      canvasEl.width = canvasEl.parentElement?.clientWidth || 800;
+      canvasEl.height = 160;
     };
     syncCanvasSize();
     window.addEventListener('resize', syncCanvasSize);
@@ -100,9 +103,9 @@ export default function AudioPlayer() {
           <div id="left">
             <div id="album"></div>
             <div id="info">
-              脆弱一分钟
-              <div>歌手：林宥嘉</div>
-              <div>专辑：脆弱一分钟 </div>
+              合成示例音
+              <div>来源：项目自制（正弦合成）</div>
+              <div>许可：随项目 MIT</div>
             </div>
           </div>
           <div className="select">

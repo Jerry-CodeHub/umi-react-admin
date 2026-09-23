@@ -1,5 +1,5 @@
 // src/MapComponent.js
-import { ProCard } from '@ant-design/pro-card';
+import { ProCard } from '@ant-design/pro-components';
 // import { Map, View } from 'ol';
 // import TileLayer from 'ol/layer/Tile';
 import 'ol/ol.css';

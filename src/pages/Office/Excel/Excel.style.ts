@@ -1,3 +1,3 @@
-import styled from 'styled-components';
+import { styled } from '@umijs/max';
 
 export const ExcelStyle = styled.div``;

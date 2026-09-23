@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '@umijs/max';
 
 export const AutonaviMapStyle = styled.div`
   #Amap {

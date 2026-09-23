@@ -3,10 +3,11 @@ import type { AppInitialState } from './utils/Auth/initialState';
 
 // 参数是全局初始状态（未登录时为 undefined），不是表格用的 API.UserInfo
 export default (initialState: AppInitialState | undefined) => {
-  // 'dontHaveAccess' 是演示后端（mock）约定的禁止访问用户名：
-  // 该用户可登录（currentUser 正常返回），但 canSeeAdmin 为 false，
-  // 用于演示 /access、/table 的路由权限拦截（会跳转 /403）
-  const canSeeAdmin = !!initialState?.name && initialState.name !== 'dontHaveAccess';
+  // 白名单式（审计 2026-09-22 M-1）：只有携带 role === 'admin' 声明的用户才有管理权限，
+  // undefined/其他角色一律拒绝。真实后端必须由服务端返回 role 字段——
+  // 不要改回用户名黑名单（'dontHaveAccess' 只是演示签发方的降权约定，见 demoToken.ts），
+  // 前端 access 只是 UX 层，真正的权限校验必须在后端接口完成。
+  const canSeeAdmin = initialState?.role === 'admin';
   return {
     canSeeAdmin,
   };

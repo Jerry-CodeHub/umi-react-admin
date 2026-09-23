@@ -46,6 +46,7 @@ export default {
   'login.passwordRequired': '请输入密码',
   'login.submit': '登录',
   'login.success': '登录成功',
+  'login.storageError': '无法在本地保存登录状态（存储被禁用或已满），请检查浏览器设置后重试',
   // NOTE 框架层（阶段5）
   'header.theme': '主题',
   'header.language': '语言',

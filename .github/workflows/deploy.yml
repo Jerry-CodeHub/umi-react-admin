@@ -49,6 +49,16 @@ jobs:
         # GitHub Pages 对不存在的路径返回站点根的 404.html；复制入口页即可让前端路由接管
         run: cp dist/index.html dist/404.html
 
+      - name: Dist secrets scan（部署产物秘钥扫描，成功才允许部署）
+        # 审计 2026-09-22 H-1：此前扫描只在 ci.yml（不注入 secret 的构建）上跑，扫的产物与
+        # 真正部署的产物不是同一份，门禁永真通过。这里对带 secret 构建的产物扫描：
+        # EXPECTED_TOKEN 即本步骤注入的 ion token（客户端地图应用的凭据设计上必然公开），
+        # 脚本只以 sha256 指纹比对（不可逆、不落日志）；除它与 Cesium 默认 token 外的
+        # JWT / AWS/GitHub/PEM 等密钥特征一律判失败。
+        env:
+          EXPECTED_TOKEN: ${{ secrets.CESIUM_ION_TOKEN }}
+        run: node scripts/check-dist-secrets.mjs
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4.1.0
         with:

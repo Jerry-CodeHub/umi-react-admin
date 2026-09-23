@@ -4,6 +4,11 @@
 
 ## [未发布] - 2026-09 治理批次（feat/next-umi）
 
+### 依赖升级阶段 2（2026-09-23）
+
+- 工程工具主版本：husky 9（`prepare` 改为 `husky`，hook 去掉 v8 的引导行）、lint-staged 17（需 Node ≥22.22.1；配置改名 `.lintstagedrc.json`，17 起无扩展名按 YAML 解析）、cross-env 10（`start` 脚本无环境变量，去掉无效包装）、prettier-plugin-organize-imports 4、prettier-plugin-packagejson 3
+- 运行时小型主版本：@dnd-kit/sortable 10、signature_pad 5、ol 10；移除从未被引用的 @dnd-kit/modifiers
+
 ### 依赖升级阶段 1（2026-09-23）
 
 - 工具链切到 Node 24 LTS（`.nvmrc` 24.21.0、Docker 构建镜像同步）；engines 由 `>=20`（Node 20 已于 2026-04 停止维护）收紧为 `^22.22.2 || >=24.15.0`，与 Cesium、jsdom 的引擎要求对齐

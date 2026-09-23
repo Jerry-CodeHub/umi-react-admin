@@ -54,6 +54,7 @@ const RightContent = () => {
       name: '',
       email: '',
       nickName: '',
+      role: undefined,
       ...prev,
       theme: mode,
     }));

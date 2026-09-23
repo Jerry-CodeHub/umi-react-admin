@@ -1,0 +1,20 @@
+# 依赖更新通道（审计 2026-09-22 M-3/L 级）：
+# - github-actions：actions 已按 commit SHA 钉固，升级经 dependabot PR 显式过目
+# - npm：周度汇总补丁升级 PR（lockfile 约束 --frozen-lockfile，PR 会同时刷新 lock）
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 演示模板：只自动提补丁与小版本，大版本升级（umi/antd/react 等）人工评估
+    open-pull-requests-limit: 5
+    groups:
+      patch-and-minor:
+        update-types:
+          - patch
+          - minor

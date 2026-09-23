@@ -31,6 +31,26 @@ const persist = () => {
   }
 };
 
+/** localStorage 中的演示数据被污染（手改/损坏）时返回 null，由调用方回落静态种子（审计 L-5） */
+const parseStoredUsers = (stored: string): DemoUser[] | null => {
+  try {
+    const list = JSON.parse(stored) as unknown;
+    if (!Array.isArray(list)) {
+      return null;
+    }
+    const shapeOk = list.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof (item as DemoUser).id === 'string' &&
+        typeof (item as DemoUser).name === 'string',
+    );
+    return shapeOk ? (list as DemoUser[]) : null;
+  } catch {
+    return null;
+  }
+};
+
 const loadUsers = async (): Promise<DemoUser[]> => {
   if (cache) {
     return cache;
@@ -38,8 +58,12 @@ const loadUsers = async (): Promise<DemoUser[]> => {
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem(DEMO_USERS_KEY);
     if (stored) {
-      cache = JSON.parse(stored) as DemoUser[];
-      return cache;
+      const parsed = parseStoredUsers(stored);
+      if (parsed) {
+        cache = parsed;
+        return cache;
+      }
+      localStorage.removeItem(DEMO_USERS_KEY);
     }
   }
   const resp = await fetch(`${PUBLIC_PATH}data/users.json`);

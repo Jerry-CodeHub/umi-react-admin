@@ -5,6 +5,7 @@
  */
 import { AUTH_TOKEN_KEY } from '@/constants';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DEMO_TOKEN_PREFIX, DEMO_TOKEN_TTL_MS, issueDemoToken, verifyDemoToken } from './demo/demoToken';
 
 const { requestMock } = vi.hoisted(() => ({ requestMock: vi.fn() }));
 
@@ -19,31 +20,49 @@ const loadAuth = async (apiBase?: string) => {
 beforeEach(() => {
   requestMock.mockReset();
   localStorage.clear();
+  vi.useRealTimers();
 });
 
 describe('纯静态演示模式（无后端）', () => {
-  it('login 本地签发演示 token，不发请求', async () => {
+  it('login 本地签发可校验的演示 token（含 role 声明），不发请求', async () => {
     const { login } = await loadAuth();
-    await expect(login({ name: 'admin', password: 'any' })).resolves.toEqual({
-      token: 'admin-demo-token',
-      user: { name: 'admin', nickName: 'admin', email: '' },
-    });
+    const result = await login({ name: 'admin', password: 'any' });
+    expect(verifyDemoToken(result.token)).toMatchObject({ name: 'admin', role: 'admin' });
+    expect(result.user).toEqual({ name: 'admin', nickName: 'admin', email: '', role: 'admin' });
     expect(requestMock).not.toHaveBeenCalled();
   });
 
-  it('fetchCurrentUser 从本地 token 还原用户（含 dontHaveAccess 权限演示账号）', async () => {
+  it('演示降权账号 dontHaveAccess 签发 role=user', async () => {
+    const { login } = await loadAuth();
+    const result = await login({ name: 'dontHaveAccess', password: 'any' });
+    expect(verifyDemoToken(result.token)).toMatchObject({ name: 'dontHaveAccess', role: 'user' });
+    expect(result.user.role).toBe('user');
+  });
+
+  it('fetchCurrentUser 从本地 token 还原用户与角色', async () => {
     const { fetchCurrentUser } = await loadAuth();
-    localStorage.setItem(AUTH_TOKEN_KEY, 'dontHaveAccess-demo-token');
-    await expect(fetchCurrentUser()).resolves.toMatchObject({ name: 'dontHaveAccess' });
+    localStorage.setItem(AUTH_TOKEN_KEY, issueDemoToken('dontHaveAccess', 'user'));
+    await expect(fetchCurrentUser()).resolves.toMatchObject({ name: 'dontHaveAccess', role: 'user' });
     expect(requestMock).not.toHaveBeenCalled();
   });
 
-  it('缺失、伪造或空用户名的 token 被拒绝', async () => {
+  it('缺失、伪造、损坏、过期与未来时间戳的 token 一律被拒绝', async () => {
     const { fetchCurrentUser } = await loadAuth();
     await expect(fetchCurrentUser()).rejects.toThrow();
     localStorage.setItem(AUTH_TOKEN_KEY, 'forged-token');
     await expect(fetchCurrentUser()).rejects.toThrow();
-    localStorage.setItem(AUTH_TOKEN_KEY, '-demo-token');
+    localStorage.setItem(AUTH_TOKEN_KEY, `${DEMO_TOKEN_PREFIX}not-json`);
+    await expect(fetchCurrentUser()).rejects.toThrow();
+    // 过期（ts 早于 TTL 窗口）与未来时间戳（时钟回拨防御）都无效
+    const stale = `${DEMO_TOKEN_PREFIX}${encodeURIComponent(
+      JSON.stringify({ name: 'x', role: 'admin', ts: Date.now() - DEMO_TOKEN_TTL_MS - 1000 }),
+    )}`;
+    localStorage.setItem(AUTH_TOKEN_KEY, stale);
+    await expect(fetchCurrentUser()).rejects.toThrow();
+    const future = `${DEMO_TOKEN_PREFIX}${encodeURIComponent(
+      JSON.stringify({ name: 'x', role: 'admin', ts: Date.now() + 60_000 }),
+    )}`;
+    localStorage.setItem(AUTH_TOKEN_KEY, future);
     await expect(fetchCurrentUser()).rejects.toThrow();
   });
 

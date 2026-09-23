@@ -1,5 +1,6 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
 import { request } from '@umijs/max';
+import { demoRoleFor, issueDemoToken, verifyDemoToken, type DemoRole } from './demo/demoToken';
 import { USE_BACKEND } from './demo/mode';
 
 export interface LoginParams {
@@ -11,6 +12,8 @@ export interface CurrentUser {
   name: string;
   email: string;
   nickName?: string;
+  /** 角色声明：access 权限消费它（canSeeAdmin = role === 'admin'）。真实后端必须由服务端返回 */
+  role?: DemoRole;
 }
 
 export interface LoginResult {
@@ -25,21 +28,20 @@ interface ApiResponse<T> {
 }
 
 /**
- * 演示 token 约定：`${name}-demo-token`，与 mock/userAPI.ts 保持一致。
+ * 演示 token 的签发与校验见 ./demo/demoToken.ts（明文 JSON + 7 天过期，仅限演示）。
  * 纯静态托管（GitHub Pages / Vercel / Docker）没有后端，鉴权在前端本地完成（见 ./demo/mode.ts）；
  * 这只是演示桩，接入真实后端时配置 UMI_APP_API_BASE 即走下方的 HTTP 接口。
  */
-const DEMO_TOKEN_SUFFIX = '-demo-token';
 
-const toDemoUser = (name: string): CurrentUser => ({ name, nickName: name, email: '' });
+const toDemoUser = (name: string, role: DemoRole): CurrentUser => ({ name, nickName: name, email: '', role });
 
 /**
  * 登录。演示环境对任意用户名/密码放行；
- * 用户名 dontHaveAccess 为约定的「禁止访问」演示账号（可登录，但 canSeeAdmin 为 false）。
+ * 用户名 dontHaveAccess 为约定的「禁止访问」演示账号（可登录，role 为 user，canSeeAdmin 为 false）。
  */
 export async function login(params: LoginParams): Promise<LoginResult> {
   if (!USE_BACKEND) {
-    return { token: `${params.name}${DEMO_TOKEN_SUFFIX}`, user: toDemoUser(params.name) };
+    return { token: issueDemoToken(params.name), user: toDemoUser(params.name, demoRoleFor(params.name)) };
   }
   const resp = await request<ApiResponse<LoginResult>>('/api/v1/login', { method: 'POST', data: params });
   return resp.data;
@@ -60,11 +62,11 @@ export async function logout(): Promise<void> {
 export async function fetchCurrentUser(): Promise<CurrentUser> {
   if (!USE_BACKEND) {
     const token = typeof window === 'undefined' ? '' : localStorage.getItem(AUTH_TOKEN_KEY) || '';
-    const name = token.endsWith(DEMO_TOKEN_SUFFIX) ? token.slice(0, -DEMO_TOKEN_SUFFIX.length) : '';
-    if (!name) {
-      throw new Error('演示 token 无效或已失效');
+    const payload = verifyDemoToken(token);
+    if (!payload) {
+      throw new Error('演示 token 无效或已过期');
     }
-    return toDemoUser(name);
+    return toDemoUser(payload.name, payload.role);
   }
   const resp = await request<ApiResponse<CurrentUser>>('/api/v1/currentUser', { skipErrorHandler: true });
   return resp.data;

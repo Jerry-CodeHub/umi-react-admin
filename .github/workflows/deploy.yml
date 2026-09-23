@@ -9,19 +9,24 @@ concurrency:
   group: gh-pages-deploy
   cancel-in-progress: true
 
+# 最小权限（审计 2026-09-22 M-4）：部署需要写 gh-pages 分支；peaceiris action 持有的
+# GITHUB_TOKEN 即受此约束，tag 劫持时的爆炸半径被限定在部署分支
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup pnpm（读 packageManager 字段）
-        uses: pnpm/action-setup@v6.1.0
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -49,8 +54,18 @@ jobs:
         # GitHub Pages 对不存在的路径返回站点根的 404.html；复制入口页即可让前端路由接管
         run: cp dist/index.html dist/404.html
 
+      - name: Dist secrets scan（部署产物秘钥扫描，成功才允许部署）
+        # 审计 2026-09-22 H-1：此前扫描只在 ci.yml（不注入 secret 的构建）上跑，扫的产物与
+        # 真正部署的产物不是同一份，门禁永真通过。这里对带 secret 构建的产物扫描：
+        # EXPECTED_TOKEN 即本步骤注入的 ion token（客户端地图应用的凭据设计上必然公开），
+        # 脚本只以 sha256 指纹比对（不可逆、不落日志）；除它与 Cesium 默认 token 外的
+        # JWT / AWS/GitHub/PEM 等密钥特征一律判失败。
+        env:
+          EXPECTED_TOKEN: ${{ secrets.CESIUM_ION_TOKEN }}
+        run: node scripts/check-dist-secrets.mjs
+
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4.1.0
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist

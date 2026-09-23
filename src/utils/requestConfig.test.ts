@@ -7,9 +7,10 @@ import { AUTH_TOKEN_KEY } from '@/constants';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BizError } from './BizError';
 
-const { errorMock, pushMock } = vi.hoisted(() => ({
+const { errorMock, pushMock, assignMock } = vi.hoisted(() => ({
   errorMock: vi.fn(),
   pushMock: vi.fn(),
+  assignMock: vi.fn(),
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -34,6 +35,13 @@ let interceptor: Interceptor;
 
 beforeAll(async () => {
   (globalThis as Record<string, unknown>).UMI_APP_API_BASE = undefined;
+  // PUBLIC_PATH 与 UMI_APP_API_BASE 同为构建期 define 注入的全局常量（401 整页跳转用）
+  (globalThis as Record<string, unknown>).PUBLIC_PATH = '/';
+  // 401 走 window.location.assign（整页跳转重置内存态），jsdom 下需替换 location 才能断言
+  Object.defineProperty(window, 'location', {
+    value: { ...window.location, assign: assignMock },
+    writable: true,
+  });
   ({ requestConfig } = await import('./requestConfig'));
   errorHandler = requestConfig.errorConfig!.errorHandler! as unknown as ErrorHandler;
   interceptor = requestConfig.requestInterceptors![0] as unknown as Interceptor;
@@ -97,11 +105,11 @@ describe('errorHandler：HTTP 状态码分流（axios 形状）', () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
-  it('401 清除 token 并跳转登录页', () => {
+  it('401 清除 token 并整页跳转登录页（重置内存中的 initialState）', () => {
     localStorage.setItem(AUTH_TOKEN_KEY, 'stale-token');
     errorHandler(httpError(401));
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
-    expect(pushMock).toHaveBeenCalledWith('/login');
+    expect(assignMock).toHaveBeenCalledWith('/login');
   });
 
   it('403 提示并跳转 /403', () => {

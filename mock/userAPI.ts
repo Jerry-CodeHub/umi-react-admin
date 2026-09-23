@@ -1,6 +1,11 @@
 import type { Request, Response } from 'express';
+// ⚠️ 这是开发环境的演示 mock（仅 `max dev` 生效，不进生产产物）。
+// 禁止把本文件当作真实后端的参考实现：登录不校验密码、token 是客户端可随意构造的
+// 演示约定（见 src/services/demo/demoToken.ts 的警告）——搬进真实后端等于接受万能凭证。
+//
 // 注意：umi 会把 mock/ 下所有 .ts/.js 当作 mock 文件加载（mock/**/*.[jt]s），
 // 测试与共享逻辑不要放在这里——查询逻辑在 src/services/demo/userQuery.ts，与静态演示层共用。
+import { demoRoleFor, issueDemoToken, verifyDemoToken } from '../src/services/demo/demoToken';
 import { filterAndPaginate, type DemoUserRecord } from '../src/services/demo/userQuery';
 
 let users: DemoUserRecord[] = [
@@ -23,23 +28,23 @@ export default {
     res.json({
       success: true,
       data: {
-        token: `${name}-demo-token`,
-        user: { name, nickName: name, email: '' },
+        token: issueDemoToken(name),
+        user: { name, nickName: name, email: '', role: demoRoleFor(name) },
       },
       errorCode: 0,
     });
   },
   'GET /api/v1/currentUser': (req: Request, res: Response) => {
     const authorization = (req.headers && req.headers.authorization) || '';
-    const matched = /^Bearer (.+)-demo-token$/.exec(authorization);
-    if (!matched) {
+    const matched = /^Bearer (.+)$/.exec(authorization);
+    const payload = matched ? verifyDemoToken(matched[1]) : null;
+    if (!payload) {
       res.status(401).json({ success: false, errorCode: 401, message: '未登录或登录已失效' });
       return;
     }
-    const name = matched[1];
     res.json({
       success: true,
-      data: { name, nickName: name, email: '' },
+      data: { name: payload.name, nickName: payload.name, email: '', role: payload.role },
       errorCode: 0,
     });
   },

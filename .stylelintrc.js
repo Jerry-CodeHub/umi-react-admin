@@ -1,11 +1,11 @@
 module.exports = {
   extends: require.resolve('@umijs/max/stylelint'),
-  // tailwindcss 报错 https://qiita.com/mizozobu/items/9e86b86df79f9988c7b3
+  // Tailwind v4 的 CSS 指令（tailwind.css）
   rules: {
     'at-rule-no-unknown': [
       true,
       {
-        ignoreAtRules: ['tailwind', 'layer', 'apply'],
+        ignoreAtRules: ['theme', 'source', 'utility', 'variant', 'custom-variant', 'reference', 'layer', 'apply'],
       },
     ],
     'function-no-unknown': [

@@ -1,11 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * Tailwind CSS v4（CSS 优先配置，取代 tailwind.config.js；umi 经 @tailwindcss/webpack 编译本文件）
+ *
+ * 1. 不引入 preflight：基础 reset 交给 antd 的 reset.css 独占，避免压平全局标题样式。
+ * 2. utilities 刻意不放进 @layer：v4 默认把工具类放进原生级联层，而 antd CSS-in-JS、antd reset、
+ *    CSS Modules 与第三方样式（xgplayer/ol/FullCalendar 等）都不在层内——未分层样式恒胜分层样式，
+ *    工具类会在任何冲突上落败（如顶栏 Divider 的 mx-5 h-7 被 antd 自身的 margin/height 覆盖）。
+ *    不分层即保持 v3 的层叠语义：按选择器特异性与出现顺序决胜。
+ * 3. 扫描范围与 v3 content 一致：只扫 src 下 ts/tsx，排除 umi 生成物。
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' source(none);
+
+@source './src/**/*.{ts,tsx}';
+@source not './src/.umi';
+@source not './src/.umi-production';
+
+/* D3 等代码里以字符串字面量出现的词会被误判为类名（曾产出 .visible/.table 等死规则），直接拦截 */
+@source not inline('{visible,table,italic,outline,resize}');
 
 /*
- * preflight 已关闭（见 tailwind.config.js），但 border 系工具类依赖 preflight 的边框基线：
+ * antd5 CSS 变量桥接（app.tsx 已开 cssVar）：变量不在 :root 上，而是挂在 antd 组件根的
+ * .css-var-* 作用域内（umi 用 antd <App> 包裹整个应用，其容器也带该类，弹层根节点各自带）。
+ * 必须用 inline：否则工具类引用的是在 :root 上求值的 --color-*，那里 --ant-* 尚未定义。
+ * 这些 token 类只在 antd 组件树内生效；切换暗色时 antd 重算变量，token 类自动跟随。
+ */
+@theme inline {
+  --color-text: var(--ant-color-text);
+  --color-text-tertiary: var(--ant-color-text-tertiary);
+  --color-fill-tertiary: var(--ant-color-fill-tertiary);
+  --color-success: var(--ant-color-success);
+  --color-warning: var(--ant-color-warning);
+  --color-error: var(--ant-color-error);
+  --color-bg-container: var(--ant-color-bg-container);
+  --color-bg-layout: var(--ant-color-bg-layout);
+}
+
+/*
+ * preflight 已去掉，但 border 系工具类依赖 preflight 的边框基线：
  * .border 只设 border-width，缺了 border-style: solid 时边框根本不显示。
- * 这里只补回 preflight 中与边框相关的两条（与 antd 组件显式声明的边框不冲突）。
+ * 这里只补回 preflight 中与边框相关的两条；放在原生 base 层，任何未分层样式（含 antd）都能覆盖它。
+ * 边框默认色沿用 v3 的 gray-200（v4 默认改为 currentColor）。
  */
 @layer base {
   *,
@@ -13,7 +47,7 @@
   ::after {
     border-width: 0;
     border-style: solid;
-    border-color: theme('borderColor.DEFAULT', currentcolor);
+    border-color: var(--color-gray-200, currentcolor);
   }
 
   /* 上面把 border-width 归零后，hr 需要恢复顶边线（同 preflight） */

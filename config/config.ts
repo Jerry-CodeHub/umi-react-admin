@@ -74,6 +74,10 @@ export default defineConfig({
     // 以下变量经 define 显式注入（umi 仅自动注入 UMI_APP_* 前缀，未显式声明的
     // process.env.X 会原样进入浏览器包并在模块初始化时抛 ReferenceError）
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
+    // 高德 Web 端（JS API）Key 与安全密钥（审计 2026-09-22 M-6）：
+    // 可选——不配置时高德页面回落 @pansy/amap-api-loader 自带的公共 key（配额不受本项目控制）
+    AMAP_KEY: process.env.AMAP_KEY,
+    AMAP_SECURITY_CODE: process.env.AMAP_SECURITY_CODE,
   },
   // 覆盖 umi 默认的 viewport（user-scalable=no / maximum-scale=1 禁止缩放，违反 WCAG 1.4.4）
   metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],

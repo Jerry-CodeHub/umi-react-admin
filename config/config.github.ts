@@ -16,6 +16,8 @@ export default defineConfig({
     CESIUM_ION_TOKEN: process.env.CESIUM_ION_TOKEN,
     PUBLIC_PATH: '/umi-react-admin/',
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
+    AMAP_KEY: process.env.AMAP_KEY,
+    AMAP_SECURITY_CODE: process.env.AMAP_SECURITY_CODE,
   },
   // umi 对 metas 数组为整体覆盖（不与 config.ts 逐项合并），viewport 需一并带上。
   // meta CSP（审计 2026-09-22 H-3）：GitHub Pages 无法自定义响应头，只能走 meta；

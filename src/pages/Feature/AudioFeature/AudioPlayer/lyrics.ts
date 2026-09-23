@@ -3,6 +3,10 @@
  * 每行一个时间标签，用真实换行拼接：xgplayer-music 按行解析，解析结果为空时会抛
  * "Reduce of empty array"（此前歌词 JSON 里是转义后的字面量 \n，整页因此崩溃）。
  * 此前内容为商业歌曲的完整歌词，已按演示媒体自制替换的约定移除。
+ *
+ * ⚠️ 库渲染行为（审计 2026-09-22 M-8）：xgplayer-music 的 Lyric 插件把每行歌词经
+ * innerHTML 零转义直接拼进 DOM。本文件是本地静态常量所以安全；一旦改成 fetch 远程 LRC，
+ * 必须先对每行做 HTML 转义再传入 Lyric——否则就是库内部的存储型 XSS，业务侧 review 极难发现。
  */
 export const demoLyrics = [
   '[00:00.00]umi-react-admin 音乐播放器演示',

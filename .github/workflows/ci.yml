@@ -40,9 +40,9 @@ jobs:
       - name: Quality gates（typecheck + 严格 lint + vitest，含 mock 可加载性）
         run: pnpm check
 
-      - name: Dependency audit（非阻断观察期）
-        # 两段式策略（决策 D7/D30）：先建立可见性，high 存量清零后转强制阻断
-        run: pnpm audit --registry=https://registry.npmjs.org/ || true
+      - name: Dependency audit（high 及以上阻断；moderate/low 登记接受，见 THIRD-PARTY-NOTICES）
+        # 观察期结束：less 4.9.1 override 后 high 存量已清零（2026-09-22），转为强制阻断
+        run: pnpm audit --prod --audit-level=high --registry=https://registry.npmjs.org/
 
   build:
     needs: check

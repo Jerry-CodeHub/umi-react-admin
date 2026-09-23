@@ -251,10 +251,10 @@ export function mergePolygons(polygonArrays: Point[][]) {
   function isValidPoint(p: Point | undefined): p is Point {
     return Boolean(
       p &&
-        typeof p.longitude === 'number' &&
-        typeof p.latitude === 'number' &&
-        !isNaN(p.longitude) &&
-        !isNaN(p.latitude),
+      typeof p.longitude === 'number' &&
+      typeof p.latitude === 'number' &&
+      !isNaN(p.longitude) &&
+      !isNaN(p.latitude),
     );
   }
 
@@ -371,10 +371,10 @@ export function mergePolygonsPath(polygonArrays: Point[][]) {
   function isValidPoint(p: Point | undefined): p is Point {
     return Boolean(
       p &&
-        typeof p.longitude === 'number' &&
-        typeof p.latitude === 'number' &&
-        !isNaN(p.longitude) &&
-        !isNaN(p.latitude),
+      typeof p.longitude === 'number' &&
+      typeof p.latitude === 'number' &&
+      !isNaN(p.longitude) &&
+      !isNaN(p.latitude),
     );
   }
 

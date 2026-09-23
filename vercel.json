@@ -4,6 +4,24 @@
   "framework": "umijs",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' 'unsafe-eval' https://*.amap.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://gw.alipayobjects.com https://img.alicdn.com https://*.amap.com https://*.autonavi.com https://tile.openstreetmap.org https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; connect-src 'self' blob: https://*.amap.com https://*.autonavi.com https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; font-src 'self' data:; media-src 'self' https://sf1-cdn-tos.huoshanstatic.com; worker-src 'self' blob:; frame-src 'self'"
+        }
+      ]
+    }
+  ],
   "github": {
     "silent": true
   }

@@ -4,7 +4,7 @@
 
 ## 环境准备
 
-- Node.js 22（见 `.nvmrc`，推荐 nvm）
+- Node.js 24 LTS（见 `.nvmrc`，推荐 nvm / fnm）；最低 22.22.2
 - pnpm 10+（`packageManager` 字段钉住版本，corepack 可自动启用）
 
 ```bash

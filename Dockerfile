@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- 阶段一：构建 ----------
-FROM node:22-alpine AS builder
+FROM node:22-alpine@sha256:b6f26b36c8ff49624cfdac716b8ea1138d606df02586a77d364bb5536a634f85 AS builder
 WORKDIR /app
 
 # 先装依赖以利用层缓存
@@ -10,8 +10,9 @@ RUN corepack enable && pnpm install --frozen-lockfile
 
 # 源码与构建（Cesium token 经 build-arg 注入，最终 define 进产物）
 COPY . .
+# token 经 ARG 注入（RUN 中直接可见）。不落 ENV：ENV 会把值持久化进 builder 镜像层，
+# docker history 可见（审计 2026-09-22 L-1；最终运行镜像虽不继承，但没有理由留下这层痕迹）
 ARG CESIUM_ION_TOKEN=""
-ENV CESIUM_ION_TOKEN=$CESIUM_ION_TOKEN
 RUN pnpm build
 
 # ---------- 阶段二：运行（全程非 root） ----------

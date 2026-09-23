@@ -1,6 +1,6 @@
 {
   "*.{md,json}": ["prettier --cache --write"],
-  "*.{js,jsx,mjs,cjs}": ["eslint --fix --max-warnings=0", "prettier --cache --write"],
-  "*.{css,less}": ["max lint --fix --stylelint-only", "prettier --cache --write"],
-  "*.ts?(x)": ["eslint --fix --max-warnings=0", "prettier --cache --parser=typescript --write"]
+  "*.{js,jsx,mjs,cjs}": ["eslint --fix --max-warnings=0 --no-warn-ignored", "prettier --cache --write"],
+  "*.{css,less}": ["stylelint --fix --allow-empty-input", "prettier --cache --write"],
+  "*.ts?(x)": ["eslint --fix --max-warnings=0 --no-warn-ignored", "prettier --cache --parser=typescript --write"]
 }

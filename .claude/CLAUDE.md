@@ -85,7 +85,8 @@ config/
 - [config/routes.ts](config/routes.ts) - 路由配置
 - [tailwind.css](tailwind.css) - Tailwind CSS 配置（v4 无 JS 配置文件）
 - [.prettierrc](.prettierrc) - Prettier 配置
-- [.eslintrc.js](.eslintrc.js) - ESLint 配置
+- [eslint.config.mjs](eslint.config.mjs) - ESLint 10 flat config（移植自 umi lint 预设）
+- [stylelint.config.mjs](stylelint.config.mjs) - stylelint 17 配置
 
 ## 特殊说明
 

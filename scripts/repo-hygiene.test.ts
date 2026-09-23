@@ -20,9 +20,10 @@ const PROVIDED_BY_UMI = new Set(['react', 'react-dom', '@umijs/preset-umi']);
  */
 const importSpecifiers = (source: string) => {
   const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
-  const typeOnlyStatement = /\bimport\s+type\s[^;]*?\bfrom\s*['"]([^'"]+)['"]/g;
+  // 关键字前不能是标识符字符、点或连字符：'vitest/no-mocks-import': 'error' 这类字符串不是导入
+  const typeOnlyStatement = /(?<![\w$.-])import\s+type\s[^;]*?\bfrom\s*['"]([^'"]+)['"]/g;
   const valuePattern =
-    /\bfrom\s*['"]([^'"]+)['"]|\bimport\s*\(?\s*['"]([^'"]+)['"]|\brequire(?:\.resolve)?\(\s*['"]([^'"]+)['"]/g;
+    /(?<![\w$.-])from\s*['"]([^'"]+)['"]|(?<![\w$.-])import\s*\(?\s*['"]([^'"]+)['"]|(?<![\w$.-])require(?:\.resolve)?\(\s*['"]([^'"]+)['"]/g;
   return [
     ...[...code.matchAll(typeOnlyStatement)].map((m) => ({ specifier: m[1], typeOnly: true })),
     ...[...code.replace(typeOnlyStatement, '').matchAll(valuePattern)].map((m) => ({

@@ -27,7 +27,7 @@ const handleAdd = async (fields: API.UserInfo) => {
     hide();
     getMessage().success('添加成功');
     return true;
-  } catch (error) {
+  } catch {
     hide();
     getMessage().error('添加失败请重试！');
     return false;
@@ -57,7 +57,7 @@ const handleUpdate = async (fields: FormValueType) => {
 
     getMessage().success('配置成功');
     return true;
-  } catch (error) {
+  } catch {
     hide();
     getMessage().error('配置失败请重试！');
     return false;
@@ -87,7 +87,7 @@ const handleRemove = async (selectedRows: API.UserInfo[]) => {
     hide();
     getMessage().success('删除成功，即将刷新');
     return true;
-  } catch (error) {
+  } catch {
     hide();
     getMessage().error('删除失败，请重试');
     return false;

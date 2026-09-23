@@ -4,6 +4,12 @@
 
 ## [未发布] - 2026-09 治理批次（feat/next-umi）
 
+### 依赖升级阶段 3（2026-09-23）
+
+- FullCalendar 6 → 7：五个插件包合并为 `@fullcalendar/react/*` 入口，新增 peer `temporal-polyfill`；v7 不再内置 CSS，改为引入 skeleton + Classic 主题（保持 v6 外观）；类型改名（`DateSelectArg` → `DateSelectInfo` 等）；日历随应用暗色主题切换（调色板读取祖先 `data-color-scheme`）。可见差异：v6 下日期数字被 antd 的链接色染成蓝色，v7 恢复正文色；列头默认不加粗
+- Tailwind CSS 3 → 4：删除 `tailwind.config.js`，配置迁入 `tailwind.css`（`@theme inline` 桥接 antd CSS 变量、`@source` 限定扫描范围、`@source not inline()` 替代 blocklist）。工具类刻意不放进 `@layer`，保持 v3 与 antd CSS-in-JS 的层叠语义；日历侧栏的 `space-y-3` 改为等价的 v3 选择器（v4 的 space-y 实现会输给 antd 排版外边距）。17 个页面与升级前逐像素对比无差异（日历页除外）
+- 浏览器基线提高到 Chrome 111+ / Firefox 128+ / Safari 16.4+（Tailwind 4 要求），README 已注明
+
 ### 依赖升级阶段 2（2026-09-23）
 
 - 工程工具主版本：husky 9（`prepare` 改为 `husky`，hook 去掉 v8 的引导行）、lint-staged 17（需 Node ≥22.22.1；配置改名 `.lintstagedrc.json`，17 起无扩展名按 YAML 解析）、cross-env 10（`start` 脚本无环境变量，去掉无效包装）、prettier-plugin-organize-imports 4、prettier-plugin-packagejson 3

@@ -10,7 +10,7 @@ umi-react-admin 是一个基于 Umi Max 的企业级 React 后台管理系统模
 
 - **框架**: Umi Max 4.x + React 18 + TypeScript 5.x
 - **UI**: Ant Design 5 + Ant Design Pro Components
-- **样式**: Tailwind CSS 3 + Less
+- **样式**: Tailwind CSS 4（CSS 优先配置，工具类不分层，见 tailwind.css 头注释）+ Less
 - **状态管理**: Umi initialState（全局用户与主题）+ 组件内 state（未启用 valtio）
 - **地图**: Cesium.js、OpenLayers 9、高德地图
 - **图表**: Ant Design Charts (plots)、D3.js
@@ -83,7 +83,7 @@ config/
 
 - [config/config.ts](config/config.ts) - Umi 构建配置
 - [config/routes.ts](config/routes.ts) - 路由配置
-- [tailwind.config.js](tailwind.config.js) - Tailwind CSS 配置
+- [tailwind.css](tailwind.css) - Tailwind CSS 配置（v4 无 JS 配置文件）
 - [.prettierrc](.prettierrc) - Prettier 配置
 - [.eslintrc.js](.eslintrc.js) - ESLint 配置
 

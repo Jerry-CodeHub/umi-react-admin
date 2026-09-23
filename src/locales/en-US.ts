@@ -46,6 +46,8 @@ export default {
   'login.passwordRequired': 'Please enter your password',
   'login.submit': 'Sign in',
   'login.success': 'Signed in',
+  'login.storageError':
+    'Cannot persist the session locally (storage disabled or full). Check browser settings and retry.',
   // NOTE framework layer (phase 5)
   'header.theme': 'Theme',
   'header.language': 'Language',

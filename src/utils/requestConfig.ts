@@ -109,8 +109,10 @@ export const requestConfig: RequestConfig = {
             message.error(t('request.unauthorized', '登录失效，即将跳转至登录页面'));
             if (typeof window !== 'undefined') {
               localStorage.removeItem(AUTH_TOKEN_KEY);
+              // 整页跳转而非 SPA 路由（审计 2026-09-22 L-2）：重置内存中的 initialState
+              //（残留的已登录用户与昵称），也顺带避免并发 401 重复 push；PUBLIC_PATH 兼容子路径部署
+              window.location.assign(`${PUBLIC_PATH}login`);
             }
-            history.push('/login');
             break;
           case 403:
             message.error(getErrorMessage(data, t('request.forbidden', '没有权限访问该资源。')));

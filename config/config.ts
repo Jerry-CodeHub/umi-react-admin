@@ -8,6 +8,26 @@ import { configureSplitChunks } from './splitChunks';
 // （原 public/js/clarity.js 硬编码作者私有项目 ID，下游部署无感知上报访客数据，已删除）
 const CLARITY_ID = process.env.CLARITY_ID;
 
+// 演示鉴权防线（审计 2026-09-22 H-4）：生产构建未配置真实后端时，登录是纯前端演示桩
+// （任意用户名/密码放行）。这里把「静默 fail-open」变为「构建期可见」——banner 无法被忽略。
+// 不做硬阻断（build fail）：那会破坏模板 clone 即 build 的开箱体验。
+if (process.env.NODE_ENV === 'production' && !process.env.UMI_APP_API_BASE) {
+  console.warn(
+    [
+      '',
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+      '!!                                                           !!',
+      '!!   本构建使用纯前端演示鉴权：任意用户名/密码均可登录        !!',
+      '!!   （详见 SECURITY.md「已知限制」）                         !!',
+      '!!                                                           !!',
+      '!!   接入真实后端：设置 UMI_APP_API_BASE 后重新构建           !!',
+      '!!   下游二开请在面向公网部署前完成接入                       !!',
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+      '',
+    ].join('\n'),
+  );
+}
+
 export default defineConfig({
   chainWebpack(config) {
     if (process.env.NODE_ENV === 'production') {

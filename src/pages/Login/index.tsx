@@ -13,7 +13,13 @@ const Login: React.FC = () => {
   const handleFinish = async (values: { name: string; password: string }) => {
     try {
       const { token, user } = await login(values);
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      try {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+      } catch {
+        // 隐私模式 / 配额满等本地存储不可用：点击无任何反馈比失败提示更糟（审计 2026-09-22 L-8）
+        messageApi.error(intl.formatMessage({ id: 'login.storageError' }));
+        return;
+      }
       // 立即刷新全局初始状态（保留当前主题），让路由守卫与 access 权限即时生效
       await setInitialState({ ...new UserInfo(user), theme: readTheme() });
       messageApi.success(intl.formatMessage({ id: 'login.success' }));

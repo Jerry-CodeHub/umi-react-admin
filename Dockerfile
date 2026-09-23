@@ -5,7 +5,8 @@ FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b533
 WORKDIR /app
 
 # 先装依赖以利用层缓存
-COPY package.json pnpm-lock.yaml .npmrc ./
+# pnpm-workspace.yaml 承载 overrides 与提升配置，缺了它 --frozen-lockfile 会因配置不符而失败
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
 # 源码与构建（Cesium token 经 build-arg 注入，最终 define 进产物）

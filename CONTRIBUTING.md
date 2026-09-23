@@ -5,7 +5,7 @@
 ## 环境准备
 
 - Node.js 24 LTS（见 `.nvmrc`，推荐 nvm / fnm）；最低 22.22.2
-- pnpm 10+（`packageManager` 字段钉住版本，corepack 可自动启用）
+- pnpm 11（`packageManager` 字段钉住版本，pnpm 10 与 corepack 会自动切换）；配置在 `pnpm-workspace.yaml`，`.npmrc` 只放鉴权与 registry。从 pnpm 10 首次切换时 node_modules 需重建（非交互终端加 `--config.confirm-modules-purge=false`）
 
 ```bash
 pnpm install

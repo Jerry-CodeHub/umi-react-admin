@@ -20,10 +20,17 @@ const fakeJwt = [
   Buffer.from('signature-placeholder').toString('base64url'),
 ].join('.');
 
-/** 以子进程运行门禁脚本，返回退出码与全部输出 */
-const runScan = (distDir: string) => {
+/** 以子进程运行门禁脚本，返回退出码与全部输出；extraEnv 可传 EXPECTED_TOKEN 等环境变量 */
+const runScan = (distDir: string, extraEnv: Record<string, string> = {}) => {
   try {
-    return { code: 0, output: execFileSync(process.execPath, [script, distDir], { encoding: 'utf8', stdio: 'pipe' }) };
+    return {
+      code: 0,
+      output: execFileSync(process.execPath, [script, distDir], {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        env: { ...process.env, ...extraEnv },
+      }),
+    };
   } catch (error) {
     const { status, stdout, stderr } = error as { status: number; stdout: string; stderr: string };
     return { code: status, output: `${stdout}${stderr}` };
@@ -50,7 +57,7 @@ describe('产物 JWT 泄露扫描', () => {
   it('只含 Cesium 默认 token 时通过', () => {
     const { code, output } = runScan(makeDist({ 'cesium.js': `var t="${cesiumDefaultToken}";` }));
     expect(code).toBe(0);
-    expect(output).toContain('放行 Cesium 自带的公开默认 ion token');
+    expect(output).toContain('放行公开 token（Cesium 默认 / EXPECTED_TOKEN 声明）');
   });
 
   it('出现其他 JWT 时失败，只输出指纹与文件，不输出 token 值', () => {
@@ -62,6 +69,37 @@ describe('产物 JWT 泄露扫描', () => {
     expect(output).toContain('app.js');
     expect(output).not.toContain(fakeJwt);
     expect(output).not.toContain(cesiumDefaultToken);
+  });
+
+  it('EXPECTED_TOKEN 声明的 token 被放行（部署产线的公开 ion token 通道）', () => {
+    const { code, output } = runScan(makeDist({ 'app.js': `const token = "${fakeJwt}";` }), {
+      EXPECTED_TOKEN: fakeJwt,
+    });
+    expect(code).toBe(0);
+    expect(output).toContain('EXPECTED_TOKEN 声明的公开 token');
+    // 声明值本身不得出现在输出里（CI 公开日志）
+    expect(output).not.toContain(fakeJwt);
+  });
+
+  it('EXPECTED_TOKEN 设置了但不是合法 JWT 形态时失败（fail-closed）', () => {
+    const { code, output } = runScan(makeDist({ 'app.js': 'ok' }), { EXPECTED_TOKEN: 'not-a-jwt' });
+    expect(code).toBe(1);
+    expect(output).toContain('EXPECTED_TOKEN');
+  });
+
+  it('检出 AWS Access Key 形态（非 JWT 第二层检测）', () => {
+    const { code, output } = runScan(makeDist({ 'aws.js': 'var k = "AKIAIOSFODNN7EXAMPLE";' }));
+    expect(code).toBe(1);
+    expect(output).toContain('AWS Access Key ID');
+    expect(output).toContain('aws.js');
+  });
+
+  it('检出 PEM 私钥块', () => {
+    const { code, output } = runScan(
+      makeDist({ 'key.txt': '-----BEGIN RSA PRIVATE KEY-----\nMIIEow...\n-----END RSA PRIVATE KEY-----' }),
+    );
+    expect(code).toBe(1);
+    expect(output).toContain('PEM 私钥块');
   });
 
   it('产物目录不存在时失败', () => {

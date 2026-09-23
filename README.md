@@ -41,6 +41,7 @@ pnpm start
 | --- | --- | --- |
 | `CESIUM_ION_TOKEN` | Cesium 功能需要 | 在 [ion.cesium.com](https://ion.cesium.com/tokens) 获取；缺失时 Cesium Ion 影像/地形不可用（其余功能不受影响） |
 | `UMI_APP_API_BASE` | 可选 | 真实后端 API 地址；不配置时开发环境走 umi mock、纯静态部署走内置静态演示数据（表格 CRUD 经 localStorage 持久化） |
+| `AMAP_KEY` / `AMAP_SECURITY_CODE` | 可选 | 高德 Web 端（JS API）Key 与安全密钥（[控制台申请](https://console.amap.com)）；不配置时高德演示页使用组件库自带公共 key（配额不受控），正式部署建议配置 |
 | `CLARITY_ID` | 可选 | [Clarity](https://clarity.microsoft.com) 统计项目 ID；**模板默认不含任何统计脚本**，配置后才按你自己的项目上报（含会话回放，正式站点请履行隐私告知义务） |
 
 ## 常用脚本

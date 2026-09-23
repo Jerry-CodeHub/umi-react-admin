@@ -2,6 +2,7 @@ import { ProCard } from '@ant-design/pro-components';
 import { Editor } from '@tinymce/tinymce-react';
 import { useModel } from '@umijs/max';
 import { Button, Typography } from 'antd';
+import DOMPurify from 'dompurify';
 import { useRef, useState } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
 // 自托管 TinyMCE（必须先于编辑器渲染执行，挂载全局 tinymce 后 Editor 不再走 Tiny Cloud）
@@ -65,9 +66,11 @@ export default () => {
       <Button
         className="mt-4"
         onClick={() => {
-          // 编辑器内容回显到页面（此前仅 console.warn 输出，用户无感知）
+          // 编辑器内容回显到页面（此前仅 console.warn 输出，用户无感知）。
+          // 消毒后再注入（审计 2026-09-22 M-7）：本页内容虽来自页内编辑器自身（self-XSS），
+          // 但这是模板最易被复制的模式——下游接「存库再回显」时，此处的 DOMPurify 就是存储型 XSS 的防线
           if (editorRef.current) {
-            setContent(editorRef.current.getContent());
+            setContent(DOMPurify.sanitize(editorRef.current.getContent()));
           }
         }}
       >
@@ -76,7 +79,7 @@ export default () => {
       {content && (
         <div className="mt-4">
           <Typography.Title level={5}>内容回显</Typography.Title>
-          {/* 演示页：内容来自页面内编辑器自身（非外部输入），回显直出 */}
+          {/* 回显内容已经 DOMPurify 消毒（见上方 onClick），此注入点安全 */}
           <div className="rounded-md border border-gray-200 p-4" dangerouslySetInnerHTML={{ __html: content }} />
         </div>
       )}

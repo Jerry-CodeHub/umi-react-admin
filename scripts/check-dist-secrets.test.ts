@@ -1,15 +1,20 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 
-const root = new URL('..', import.meta.url);
 const script = fileURLToPath(new URL('check-dist-secrets.mjs', import.meta.url));
 
-const ionSource = readFileSync(new URL('node_modules/@cesium/engine/Source/Core/Ion.js', root), 'utf8');
+// 与被测脚本同样经 cesium 包解析 @cesium/engine（传递依赖，不依赖 node_modules 提升）
+const requireFromCesium = createRequire(createRequire(import.meta.url).resolve('cesium/package.json'));
+const ionSource = readFileSync(
+  join(dirname(requireFromCesium.resolve('@cesium/engine/package.json')), 'Source/Core/Ion.js'),
+  'utf8',
+);
 const cesiumDefaultToken = /defaultAccessToken\s*=\s*["'`]([^"'`]+)["'`]/.exec(ionSource)?.[1] ?? '';
 
 // 伪造的 JWT 在运行时拼出，仓库文件里不出现 JWT 字面量（见 repo-hygiene.test.ts）

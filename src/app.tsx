@@ -1,3 +1,7 @@
+// antd 5 的静态方法（message/Modal.confirm 等）内部用 ReactDOM.render 挂载，React 19 已删除该 API，
+// 官方补丁改走 createRoot；必须先于任何 antd 静态调用加载（升级 antd 6 后可移除）
+import '@ant-design/v5-patch-for-react-19';
+
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AUTH_TOKEN_KEY } from '@/constants';
 import RightContent from '@/layouts/RightContent';

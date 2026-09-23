@@ -1,5 +1,5 @@
 import { ProCard } from '@ant-design/pro-components';
-import { axisBottom, axisTop, pointer, scalePoint, select } from 'd3';
+import { axisBottom, axisTop, pointer, scalePoint, select, type BaseType } from 'd3';
 import { useEffect, useRef } from 'react';
 import { data, frequencyTicks, type FrequencyMatch, type FrequencyRange } from './components/DataUnit.ts';
 
@@ -369,7 +369,7 @@ const Frequency = () => {
       axisGroup
         .selectAll('.tick')
         .style('cursor', 'pointer')
-        .each(function (tickValue) {
+        .each(function (this: BaseType, tickValue) {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
           const tickNode = this as Element;
           tickNode.addEventListener('mousemove', (event) => {
@@ -618,7 +618,7 @@ const Frequency = () => {
 
         // 添加鼠标事件监听
         // 鼠标悬停时显示tooltip
-        rect.on('mouseover', function (event) {
+        rect.on('mouseover', function (this: SVGRectElement, event) {
           const mouseEvent = event as MouseEvent;
           mouseEvent.stopPropagation(); // 阻止事件冒泡
           // 高亮显示当前频率块
@@ -637,7 +637,7 @@ const Frequency = () => {
         });
 
         // 鼠标移出时隐藏tooltip
-        rect.on('mouseout', function () {
+        rect.on('mouseout', function (this: SVGRectElement) {
           select(this).attr('opacity', 0.7).attr('stroke', 'none');
 
           hoverTooltip.style('visibility', 'hidden');

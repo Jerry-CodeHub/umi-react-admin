@@ -1,5 +1,10 @@
+import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import { mockConfig } from '../config/mock';
+
+// @umijs/preset-umi 经 @umijs/max → umi 传递引入，沿依赖链解析，不依赖 node_modules 提升
+const requireFromMax = createRequire(createRequire(import.meta.url).resolve('@umijs/max/package.json'));
+const requireFromUmi = createRequire(requireFromMax.resolve('umi/package.json'));
 
 /**
  * 门禁：用 umi 自身的 mock 加载函数按项目配置加载 mock 目录。
@@ -9,7 +14,7 @@ import { mockConfig } from '../config/mock';
  */
 describe('umi mock 可加载性', () => {
   it('按项目 mock 配置加载全部 mock 文件不抛错', async () => {
-    const { getMockData } = await import('@umijs/preset-umi/dist/features/mock/getMockData');
+    const { getMockData } = requireFromUmi('@umijs/preset-umi/dist/features/mock/getMockData');
     const routes = Object.keys(getMockData({ cwd: process.cwd(), mockConfig }));
     expect(routes).toEqual(
       expect.arrayContaining(['POST /api/v1/login', 'GET /api/v1/currentUser', 'GET /api/v1/queryUserList']),

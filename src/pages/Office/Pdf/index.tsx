@@ -70,7 +70,9 @@ export default function Pdf() {
                     className="mb-4"
                   />
                 )}
+                {/* react-pdf 11 默认走 Suspense + Error Boundary；本页沿用 onLoadError 驱动的告警，关闭 suspense */}
                 <Document
+                  suspense={false}
                   file={file}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={(error: Error) => {

@@ -8,7 +8,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE) [![Deploy](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/Jerry-CodeHub/umi-react-admin/actions/workflows/deploy.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
-`umi-react-admin` 是一个基于 `react` 和 `umi max` 的模板系统, 一款开源免费且开箱即用的系统模板, 使用了最新的 `Umi4.x`, `React18.x` , `antd5.x` , `Tailwindcss` , `CSS in JS` , `TypeScript` , `ProComponents` 等主流技术开发。
+`umi-react-admin` 是一个基于 `react` 和 `umi max` 的模板系统, 一款开源免费且开箱即用的系统模板, 使用了最新的 `Umi4.x`, `React19.x` , `antd5.x` , `Tailwindcss` , `CSS in JS` , `TypeScript` , `ProComponents` 等主流技术开发。
 
 **[在线演示](https://jerry-codehub.github.io/umi-react-admin/)**（演示环境：任意用户名/密码登录；纯静态部署下鉴权与表格数据在前端本地模拟）
 
@@ -17,7 +17,7 @@
 ## 环境要求
 
 - Node.js 24 LTS（见 [.nvmrc](./.nvmrc)，推荐使用 nvm / fnm 管理）；最低 22.22.2（jsdom、Cesium 等依赖的引擎要求）
-- pnpm 10+（`packageManager` 字段已钉住版本）
+- pnpm 11（`packageManager` 字段已钉住版本，pnpm 10 会自动切换）；新发布不足 24 小时的依赖版本会被 pnpm 11 默认的 `minimumReleaseAge` 拒绝
 - 国内开发者可在 `~/.npmrc` 自行配置镜像源（本仓库的 `.npmrc` 不携带镜像配置）
 
 ## 安装使用

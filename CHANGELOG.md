@@ -4,6 +4,16 @@
 
 ## [未发布] - 2026-09 治理批次（feat/next-umi）
 
+### 依赖升级阶段 4（2026-09-23）
+
+- pnpm 10 → 11.27.1：11 起不读 `package.json#pnpm` 与 `.npmrc` 非鉴权配置，overrides（49 条）与提升等配置迁入 `pnpm-workspace.yaml`，`allowBuilds` 显式记录不执行的安装脚本；Dockerfile 同步拷贝该文件。未选 12.x：12 是 Rust 重写的原生二进制，pnpm 10 自动切换到它在本机即失败（ENOEXEC）
+- 关闭 `shamefullyHoist`：node_modules 顶层只剩声明的依赖；Cesium 默认 token 白名单与 mock 可加载性门禁改为沿依赖链解析传递依赖
+- TypeScript 5.9 → 6.0（最后一个带 JS 编译器 API 的版本）。TS 7 暂缓：typescript-eslint 最新版 peer `<6.1.0`；实测 TS 7.0.2 对本项目类型检查 0 错误、1.35s
+- ESLint 8（@umijs/lint 预设）→ ESLint 10 flat config（`eslint.config.mjs`，逐条移植 umi 规则集）；stylelint 14 → 17（`stylelint.config.mjs`）。ESLint 9 已于 2026-08 EOL 故直接上 10
+- React 18 → 19（项目直接依赖，umi 别名到它）、@types/react 19、react-pdf 11（PDF.js 6.3，`suspense={false}` 保留原告警）；antd 5 经官方 `@ant-design/v5-patch-for-react-19` 兼容 React 19
+- 高德页去掉 `@pansy/react-amap`（其 Marker 调用 React 19 已删除的 `unmountComponentAtNode`，库 2024-06 后无更新），改为直接调用 JS API 2.0，加载器仍用 `@pansy/amap-api-loader`，未配 key 时行为不变
+- antd 6 + pro-components 3（beta）放在独立实验分支 `chore/deps-phase4-antd6-experimental`，未并入本阶段
+
 ### 依赖升级阶段 3（2026-09-23）
 
 - FullCalendar 6 → 7：五个插件包合并为 `@fullcalendar/react/*` 入口，新增 peer `temporal-polyfill`；v7 不再内置 CSS，改为引入 skeleton + Classic 主题（保持 v6 外观）；类型改名（`DateSelectArg` → `DateSelectInfo` 等）；日历随应用暗色主题切换（调色板读取祖先 `data-color-scheme`）。可见差异：v6 下日期数字被 antd 的链接色染成蓝色，v7 恢复正文色；列头默认不加粗

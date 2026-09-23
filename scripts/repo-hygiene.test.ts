@@ -8,12 +8,6 @@ const root = new URL('..', import.meta.url);
 const readJson = (file: string) => JSON.parse(readFileSync(new URL(file, root), 'utf8'));
 
 /**
- * 允许不在 package.json 声明的裸导入：react / react-dom 由 @umijs/max 提供并统一别名
- * （umi 约定，项目不单独安装）。其余传递依赖一律经所属包解析（见 mock-loadable.test.ts）
- */
-const PROVIDED_BY_UMI = new Set(['react', 'react-dom']);
-
-/**
  * 源码中的模块说明符（先剥注释，避免被注释掉的 import 误报）。
  * `import type` 单独归类：只需类型包（如 mock 里的 express 类型由 @types/express 提供）
  */
@@ -78,10 +72,7 @@ describe('仓库卫生门禁', () => {
           .map(({ specifier, typeOnly }) => ({ name: packageNameOf(specifier), typeOnly }))
           .filter(
             ({ name, typeOnly }) =>
-              !builtinModules.includes(name) &&
-              !declared.has(name) &&
-              !PROVIDED_BY_UMI.has(name) &&
-              !(typeOnly && declared.has(`@types/${name}`)),
+              !builtinModules.includes(name) && !declared.has(name) && !(typeOnly && declared.has(`@types/${name}`)),
           )
           .map(({ name }) => `${file} → ${name}`),
       );

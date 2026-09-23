@@ -140,8 +140,8 @@ export default defineConfig(
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: { ...globals.browser, ...globals.node },
     },
-    // React 由 @umijs/max 提供而非项目直接依赖，detect 取不到，显式声明主版本
-    settings: { react: { version: '18.3' } },
+    // 显式版本：eslint-plugin-react 7.37 的 'detect' 走 context.getFilename()，ESLint 10 已删除该 API（会直接崩溃）
+    settings: { react: { version: '19.3' } },
     linterOptions: { reportUnusedDisableDirectives: 'off' },
     rules: {
       ...umiCoreRules,

@@ -1,16 +1,17 @@
 /**
  * 参考于:
  * https://juejin.cn/post/6951328185539624967
- * https://github.com/pansyjs/react-amap
  * 说明: Key 经 AMAP_KEY / AMAP_SECURITY_CODE 环境变量注入（见 config/config.ts define）；
  * 未配置时回落 @pansy/amap-api-loader 自带的公共 key——其配额与可用性不受本项目控制，
  * 正式部署请申请自己的 Web 端（JS API）Key 并配套安全密钥（审计 2026-09-22 M-6）。
+ *
+ * 直接调用 JS API 2.0，不再经 @pansy/react-amap：其 Marker 依赖的 @pansy/use-portal 调用了
+ * React 19 已删除的 unmountComponentAtNode，且该库 2024-06 后无更新。加载器仍用 @pansy/amap-api-loader（不依赖 React）。
  */
 import { getMessage } from '@/utils/antdMessage';
 import { ProCard } from '@ant-design/pro-components';
-import { Map, Marker } from '@pansy/react-amap';
-import type { MapProps } from '@pansy/react-amap/es/map';
-import { useState } from 'react';
+import { load } from '@pansy/amap-api-loader';
+import { useEffect, useRef } from 'react';
 
 import { AutonaviMapStyle } from './AutonaviMap.style';
 
@@ -27,24 +28,43 @@ type AMapClickEvent = {
 };
 
 export default function AutonaviMap() {
-  const [position, setPosition] = useState<[number, number] | undefined>();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const mapEvents: MapProps['events'] = {
-    click: (event: AMapClickEvent) => {
-      const position: [number, number] = [event.lnglat.getLng(), event.lnglat.getLat()];
-      getMessage().success(`获取的坐标点位置为${position}`);
-      setPosition(position);
-    },
-  };
+  useEffect(() => {
+    let disposed = false;
+    let map: AMap.Map | undefined;
+    let marker: AMap.Marker | undefined;
+
+    load({ key: AMAP_KEY || undefined, version: '2.0' })
+      .then((AMapApi) => {
+        if (disposed || !containerRef.current) return;
+        map = new AMapApi.Map(containerRef.current, { WebGLParams: {} } as AMap.Map.Options);
+        map.on('click', (event: AMapClickEvent) => {
+          const position: [number, number] = [event.lnglat.getLng(), event.lnglat.getLat()];
+          getMessage().success(`获取的坐标点位置为${position}`);
+          if (marker) {
+            marker.setPosition(position);
+          } else {
+            marker = new AMapApi.Marker({ position });
+            map?.add(marker);
+          }
+        });
+      })
+      .catch((error: unknown) => {
+        if (!disposed)
+          getMessage().error(`高德地图加载失败：${error instanceof Error ? error.message : String(error)}`);
+      });
+
+    return () => {
+      disposed = true;
+      map?.destroy();
+    };
+  }, []);
 
   return (
     <AutonaviMapStyle>
       <ProCard>
-        <div style={{ height: 500 }}>
-          <Map WebGLParams={{}} events={mapEvents} mapKey={AMAP_KEY || undefined}>
-            {position && <Marker position={position} />}
-          </Map>
-        </div>
+        <div ref={containerRef} style={{ height: 500 }} />
       </ProCard>
     </AutonaviMapStyle>
   );

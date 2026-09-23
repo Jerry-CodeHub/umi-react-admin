@@ -9,7 +9,7 @@ import { AudioVisibleStyles } from './AudioVisible.style';
 // WaveSurfer hook
 type WaveSurferPlayerProps = Omit<WaveSurferOptions, 'container'>;
 
-const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement>, options: WaveSurferPlayerProps) => {
+const useWavesurfer = (containerRef: React.RefObject<HTMLDivElement | null>, options: WaveSurferPlayerProps) => {
   const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
   // 依赖数组只含 url（重建触发器），其余配置经 ref 取最新值，避免陈旧配置
   const optionsRef = useRef(options);

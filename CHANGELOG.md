@@ -4,6 +4,14 @@
 
 ## [未发布] - 2026-09 治理批次（feat/next-umi）
 
+### 依赖升级阶段 1（2026-09-23）
+
+- 工具链切到 Node 24 LTS（`.nvmrc` 24.21.0、Docker 构建镜像同步）；engines 由 `>=20`（Node 20 已于 2026-04 停止维护）收紧为 `^22.22.2 || >=24.15.0`，与 Cesium、jsdom 的引擎要求对齐
+- 范围内升级：antd 5.17 → 5.29、cesium 1.141 → 1.145、wavesurfer.js 7.12、xgplayer 3.0.26、FullCalendar 6.1.21、react-pdf 10.5、prettier 3.9 等；@umijs/max 暂留 4.7.19（4.7.20 发布不足两天）
+- 幽灵依赖清零：classnames、@dnd-kit/utilities、pdfjs-dist（与 react-pdf 内置版本严格一致）显式声明；styled-components 改走 `@umijs/max` 再导出，ProCard 改从 pro-components 导入，fecha 换成 dayjs。仓库卫生门禁新增「导入包必须已声明」与 pdfjs 版本一致性检查，为后续 pnpm 11（不再读取 `.npmrc` 的 shamefully-hoist）铺路
+- antd 5.25 起废弃的 `destroyOnClose` 改为 `destroyOnHidden`；vendor-antd 分包覆盖 `@rc-component/*` 作用域
+- 依赖审计 low 3 → 1（postcss-selector-parser 两条经 override 修复）
+
 ### 审查修复（2026-09-21 审查后）
 
 - 本地开发恢复：`mock/` 下的测试文件导致 umi mock 整批加载失败（dev 全站 HTTP 500、preview 启动即退出），测试移出并加 mock 可加载性门禁

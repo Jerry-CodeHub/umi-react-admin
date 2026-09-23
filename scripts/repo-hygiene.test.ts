@@ -8,11 +8,10 @@ const root = new URL('..', import.meta.url);
 const readJson = (file: string) => JSON.parse(readFileSync(new URL(file, root), 'utf8'));
 
 /**
- * 允许不在 package.json 声明的裸导入：
- * - react / react-dom：由 @umijs/max 提供并统一别名（umi 约定，项目不单独安装）
- * - @umijs/preset-umi：mock 可加载性门禁有意引用 umi 内部实现（见 mock-loadable.test.ts）
+ * 允许不在 package.json 声明的裸导入：react / react-dom 由 @umijs/max 提供并统一别名
+ * （umi 约定，项目不单独安装）。其余传递依赖一律经所属包解析（见 mock-loadable.test.ts）
  */
-const PROVIDED_BY_UMI = new Set(['react', 'react-dom', '@umijs/preset-umi']);
+const PROVIDED_BY_UMI = new Set(['react', 'react-dom']);
 
 /**
  * 源码中的模块说明符（先剥注释，避免被注释掉的 import 误报）。
@@ -68,7 +67,7 @@ describe('仓库卫生门禁', () => {
   });
 
   it('导入的第三方包都已在 package.json 声明（不依赖 shamefully-hoist 的提升）', () => {
-    // 幽灵依赖只在 .npmrc 的 shamefully-hoist 下可解析；pnpm 11 起 .npmrc 不再承载该配置，届时会整批断掉
+    // 项目已关闭 shamefully-hoist（pnpm-workspace.yaml），未声明的包在安装后直接解析失败
     const pkg = readJson('package.json');
     const declared = new Set([...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.devDependencies ?? {})]);
     const offenders = committableTextFiles()

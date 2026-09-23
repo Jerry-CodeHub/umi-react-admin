@@ -1,7 +1,8 @@
 # pnpm 配置（pnpm 11 起只读本文件；package.json#pnpm 与 .npmrc 的非鉴权项不再生效）
 
-# umi max 的插件与生成物依赖根目录可见的传递依赖（如 @umijs/preset-umi、@cesium/engine），保持提升
-shamefullyHoist: true
+# 不提升传递依赖：源码只能引用 package.json 声明的包（repo-hygiene 门禁同步把关）。
+# umi 自身经依赖链解析 react/antd 等，构建、dev、lint、测试均已在非提升布局下验证
+shamefullyHoist: false
 autoInstallPeers: true
 strictPeerDependencies: false
 

@@ -14,12 +14,19 @@
 // 输出只含文件路径与 sha256 指纹前缀，不打印 token 值（公开仓库的 CI 日志任何人可见）。
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = resolve(root, process.argv[2] ?? 'dist');
-const ionSourcePath = join(root, 'node_modules/@cesium/engine/Source/Core/Ion.js');
+
+/** @cesium/engine 是 cesium 的依赖而非项目直接依赖：从 cesium 包的位置解析，不依赖 node_modules 提升 */
+const resolveCesiumIonSource = () => {
+  const requireFromCesium = createRequire(createRequire(import.meta.url).resolve('cesium/package.json'));
+  return join(dirname(requireFromCesium.resolve('@cesium/engine/package.json')), 'Source/Core/Ion.js');
+};
+let ionSourcePath = 'node_modules/cesium → @cesium/engine/Source/Core/Ion.js';
 
 // header 与 payload 都是 base64url 编码的 JSON（以 eyJ 开头）；不限定签名算法
 const JWT_RE = /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g;
@@ -56,6 +63,7 @@ if (!existsSync(distDir)) fail(`${display(distDir)} 不存在，请先构建`);
 // ---- 白名单：Cesium 自带的默认 token ----
 let cesiumDefaultToken;
 try {
+  ionSourcePath = resolveCesiumIonSource();
   cesiumDefaultToken = /defaultAccessToken\s*=\s*["'`]([^"'`]+)["'`]/.exec(readFileSync(ionSourcePath, 'utf8'))?.[1];
 } catch {
   // 文件缺失与内容不符合预期统一在下方判失败

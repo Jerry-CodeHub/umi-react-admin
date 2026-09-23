@@ -16,7 +16,7 @@
 
 ## 环境要求
 
-- Node.js 22（见 [.nvmrc](./.nvmrc)，推荐使用 nvm 管理）
+- Node.js 24 LTS（见 [.nvmrc](./.nvmrc)，推荐使用 nvm / fnm 管理）；最低 22.22.2（jsdom、Cesium 等依赖的引擎要求）
 - pnpm 10+（`packageManager` 字段已钉住版本）
 - 国内开发者可在 `~/.npmrc` 自行配置镜像源（本仓库的 `.npmrc` 不携带镜像配置）
 

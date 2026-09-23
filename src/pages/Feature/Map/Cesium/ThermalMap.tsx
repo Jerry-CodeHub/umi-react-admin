@@ -161,8 +161,7 @@ const ThermalMap = () => {
       if (!Cesium.defined(pickedObject) || !pickedObject.id) {
         if (currentEntity) {
           const properties = currentEntity.properties?.getValue(Cesium.JulianDate.now()) as
-            | { text?: string }
-            | undefined;
+            { text?: string } | undefined;
           if (currentEntity.label) {
             currentEntity.label.text = new Cesium.ConstantProperty(properties?.text ?? '');
           }

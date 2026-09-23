@@ -21,7 +21,8 @@ type WebpackChainConfig = {
  *   @antv/g 的依赖）与 xgplayer/wavesurfer 绑在一起、d3 组把图表库用到的 d3-* 与 D3 页的
  *   全部 d3 绑在一起，首页因此白白下载播放器与整份 d3。这类跨域共享的库交给 webpack
  *   按实际引用关系自动拆分；
- * - cesium 包只是 re-export，引擎代码在 @cesium/engine、@cesium/widgets，分组正则须覆盖。
+ * - cesium 包只是 re-export，引擎代码在 @cesium/engine、@cesium/widgets，分组正则须覆盖；
+ * - antd 的 rc 组件正逐步迁往 @rc-component/* 作用域（5.29 已有 5 个，6.x 全部迁移），antd 分组须覆盖。
  * 路由级真实首屏体积由 config/chunkGraph.ts 记录、scripts/check-bundle-size.mjs 门禁。
  */
 export const configureSplitChunks = (config: WebpackChainConfig) => {
@@ -43,7 +44,7 @@ export const configureSplitChunks = (config: WebpackChainConfig) => {
       },
       antd: {
         name: 'vendor-antd',
-        test: /[\\/]node_modules[\\/](@ant-design|antd|rc-.+)[\\/]/,
+        test: /[\\/]node_modules[\\/](@ant-design|@rc-component|antd|rc-.+)[\\/]/,
         priority: 40,
         enforce: true,
       },

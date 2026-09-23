@@ -21,7 +21,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => (
     width={480}
     title="编辑用户"
     open={props.updateModalVisible}
-    modalProps={{ destroyOnClose: true, onCancel: () => props.onCancel() }}
+    modalProps={{ destroyOnHidden: true, onCancel: () => props.onCancel() }}
     initialValues={{
       id: props.values.id,
       name: props.values.name,

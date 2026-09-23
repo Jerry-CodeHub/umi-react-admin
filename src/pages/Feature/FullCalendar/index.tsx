@@ -143,7 +143,7 @@ export default () => {
         onOk={handleCreateOk}
         onCancel={closeCreate}
         okButtonProps={{ disabled: !createState.title.trim() }}
-        destroyOnClose
+        destroyOnHidden
       >
         <Input
           placeholder="请输入事件标题"

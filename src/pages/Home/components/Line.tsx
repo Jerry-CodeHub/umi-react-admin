@@ -1,6 +1,6 @@
 import { Line } from '@ant-design/plots';
 import { Button, Result, Spin } from 'antd';
-import { format } from 'fecha';
+import dayjs from 'dayjs';
 import { useChartData } from './useChartData';
 
 type LineDatum = {
@@ -30,7 +30,7 @@ const DemoLine = () => {
       yField="close"
       axis={{ x: { title: false, size: 40 }, y: { title: false, size: 36 } }}
       slider={{
-        x: { labelFormatter: (d: Date) => format(d, 'YYYY/M/D') },
+        x: { labelFormatter: (d: Date) => dayjs(d).format('YYYY/M/D') },
         y: { labelFormatter: '~s' },
       }}
     />

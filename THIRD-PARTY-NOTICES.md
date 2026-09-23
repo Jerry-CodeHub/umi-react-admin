@@ -38,4 +38,5 @@
 - `react-router@6.30.4` ×2（moderate）：反斜杠 open redirect 与 SSR hydration 注入。6.x 无补丁（修复在 7.18.0），受 @umijs/max 4 约束无法升级；本项目所有路由跳转目标均为代码常量、纯 SPA 无 SSR，实际不可利用。umi 升级 5/react-router 7 时一并闭环。
 - `uuid@8.3.2`（moderate）：exceljs 传递依赖，仅 v3/v5/v6 且调用方传自定义 buffer 才触发，exceljs 内部只用 v4，不受影响。
 - `decode-uri-component@0.2.2`（moderate）：@umijs/history 传递依赖，畸形 percent-encoding 的 DoS，需超长构造串，风险低。
-- `postcss-selector-parser` / `elliptic`（low）：构建链与 webpack polyfill 链，无补丁或无运行时暴露。
+- `postcss-selector-parser`（low，**已消解**）：构建链使用。已通过 6.1.3 / 7.1.3 两条 override 消除（2026-09-23）。
+- `elliptic`（low）：审计命中的是 umi 构建链 node-libs-browser → crypto-browserify，上游无补丁。产物里另有一份随 exceljs 预打包浏览器版带入的 elliptic，exceljs 只用 createHash 做工作表保护哈希，不做 EC 签名/验签，不触及该公告的风险路径。

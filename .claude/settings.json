@@ -1,30 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm *)",
-      "Bash(npm run *)",
+      "Bash(pnpm install)",
+      "Bash(pnpm check)",
+      "Bash(pnpm test)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm format)",
+      "Bash(pnpm build)",
+      "Bash(pnpm build:github)",
+      "Bash(pnpm preview)",
+      "Bash(pnpm size)",
       "Read(./**)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:npmjs.com)"
     ],
-    "deny": ["Read(.env)", "Read(.env.*)", "Bash(rm -rf *)"],
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Bash(rm -rf *)", "Bash(cat .env*)"],
     "ask": ["Bash(git push *)"]
   },
   "env": {
     "CESIUM_ION_TOKEN": "${CESIUM_ION_TOKEN}"
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pnpm format",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
   }
 }

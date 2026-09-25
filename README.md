@@ -81,7 +81,7 @@ src/
 
 ## 部署
 
-三条产线的安全响应头基线一致（审计 2026-09-22）：`X-Content-Type-Options` / `Referrer-Policy` / `X-Frame-Options` / `Permissions-Policy` / CSP；CSP 来源清单按产物逐域核实（高德、Cesium ion、OSM 瓦片、appList 图标、演示视频 CDN），`'unsafe-eval'` 因 Cesium Knockout 模板编译保留。启用 Clarity 统计的部署需自行在 CSP 中追加 `https://www.clarity.ms` 与 `https://c.bing.com`。
+三条产线的安全响应头基线一致（审计 2026-09-22；CSP 单一来源 [config/csp.ts](./config/csp.ts)，另两份静态副本由测试比对）：`X-Content-Type-Options` / `Referrer-Policy` / `X-Frame-Options` / `Permissions-Policy` / CSP；CSP 来源清单按产物逐域核实（高德、Cesium ion、OSM 瓦片、appList 图标、演示视频 CDN），`'unsafe-eval'` 因 Cesium Knockout 模板编译保留。启用 Clarity 统计的部署需自行在 CSP 中追加 `https://www.clarity.ms` 与 `https://c.bing.com`。
 
 - **GitHub Pages**：push `master` 自动触发 [deploy.yml](./.github/workflows/deploy.yml)（typecheck/test/lint/build 全绿、产物秘钥扫描通过后部署；复制 `404.html` 使子路由直链与刷新可用）。平台无法自定义响应头，安全头经产物内的 CSP `<meta>` 提供（`config/config.github.ts`）；`X-Frame-Options` 等响应头级的点击劫持防护为平台限制，介意者请用另外两条产线。
 - **Vercel**：仓库含 [vercel.json](./vercel.json)（含 SPA rewrite 与安全响应头 `headers`），导入仓库即可；锁文件以 `--frozen-lockfile` 安装。

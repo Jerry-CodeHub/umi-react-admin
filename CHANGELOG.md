@@ -2,6 +2,17 @@
 
 本文件基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式维护；历史提交明细见 git log。
 
+## [未发布] - 2026-09 演示重构（refactor/*）
+
+方案见 `docs/remediation-plan-2026-09-23.md`（不入库）。
+
+### P0 热修（2026-09-23）
+
+- 音频可视页恢复播放：wavesurfer 7 以 blob URL 播放音频，CSP `media-src` 补 `blob:`（GitHub Pages meta 与 vercel.json 为强制模式，09-22 安全头上线后该页点击播放无反应）
+- 视频封面改为自制 SVG 随站点托管（原热链图片被 CSP `img-src` 拦截，播放器区为白底）
+- CSP 单一来源 `config/csp.ts`：GitHub Pages meta 直接引用，vercel.json 与 nginx 副本由 `scripts/csp-consistency.test.ts` 逐字比对
+- 发版后旧 chunk 丢失自愈：错误边界识别 ChunkLoadError 后自动刷新一次（60 秒内至多一次），仍失败则提示「站点已更新」；错误边界文案接入双语
+
 ## [未发布] - 2026-09 治理批次（feat/next-umi）
 
 ### 依赖升级阶段 4（2026-09-23）

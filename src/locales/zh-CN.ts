@@ -65,4 +65,10 @@ export default {
   'request.offline': '网络异常，请检查网络连接。',
   'request.network': '网络异常，请稍后重试。',
   'request.failed': '请求失败',
+  // NOTE 错误边界
+  'error.title': '页面出现错误',
+  'error.retry': '重试',
+  'error.updated.title': '站点已更新',
+  'error.updated.subTitle': '当前页面的资源版本已过期，刷新后即可继续使用。',
+  'error.reload': '刷新页面',
 };

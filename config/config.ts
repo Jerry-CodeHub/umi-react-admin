@@ -1,6 +1,5 @@
 import { defineConfig } from '@umijs/max';
 import { addChunkGraph } from './chunkGraph';
-import { mockConfig } from './mock';
 import { routes } from './routes';
 import { configureSplitChunks } from './splitChunks';
 
@@ -99,8 +98,9 @@ export default defineConfig({
     configProvider: {},
   },
   access: {},
-  // mock 目录只放接口定义；测试文件排除见 config/mock.ts
-  mock: mockConfig,
+  // 不用 umi mock：演示接口由浏览器内的演示后端响应（src/demo，经请求层 adapter 接入），
+  // dev 与所有静态部署走同一套实现
+  mock: false,
   model: {},
   initialState: {},
   request: {},

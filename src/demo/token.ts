@@ -1,5 +1,5 @@
 /**
- * 演示 token 的签发与校验（services/auth.ts 本地实现与 mock/userAPI.ts 共用）。
+ * 演示 token 的签发与校验（演示后端 src/demo/server 使用）。
  *
  * ⚠️ 仅限演示：token 在前端本地签发、本地校验，无任何密码学保护——
  * 任何能在浏览器里写 localStorage 的人都可以给自己签发任意身份。
@@ -9,7 +9,7 @@
  * 形状：`demo.` + encodeURIComponent(JSON({ name, role, ts }))
  * - 明文 JSON：演示 token 无需遮掩，可读性优先；encodeURIComponent 保证 ASCII 与分隔安全
  * - ts：签发时间戳，7 天过期（见 DEMO_TOKEN_TTL_MS），避免演示 token 永久有效
- * - role 编码进 token：权限演示账号（dontHaveAccess）登录后即固定为 user，
+ * - role 编码进 token：受限体验账号（guest / dontHaveAccess）登录后即固定为 user，
  *   不再从用户名现推（access.ts 消费服务端/签发方声明的角色，见 M-1）
  */
 
@@ -18,8 +18,11 @@ export type DemoRole = 'admin' | 'user';
 export const DEMO_TOKEN_PREFIX = 'demo.';
 export const DEMO_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** 演示约定：该用户名可登录但无管理权限（canSeeAdmin 为 false），用于演示路由权限拦截 */
-export const isRestrictedDemoName = (name: string) => name === 'dontHaveAccess';
+/**
+ * 演示约定：这些用户名可登录但无管理权限（canSeeAdmin 为 false），用于演示路由权限拦截。
+ * guest 是登录页「以访客体验」的账号；dontHaveAccess 为历史约定，保留兼容
+ */
+export const isRestrictedDemoName = (name: string) => ['guest', 'donthaveaccess'].includes(name.toLowerCase());
 
 export const demoRoleFor = (name: string): DemoRole => (isRestrictedDemoName(name) ? 'user' : 'admin');
 

@@ -1,4 +1,6 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
+import { demoAdapter } from '@/demo/adapter';
+import { DEMO_MODE } from '@/demo/mode';
 import type { RequestConfig, RequestOptions } from '@umijs/max';
 import { getIntl, history } from '@umijs/max';
 import { BizError } from './BizError';
@@ -62,9 +64,10 @@ const isCanceled = (error: unknown) =>
 
 export const requestConfig: RequestConfig = {
   timeout: 15000,
-  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_BASE 全局常量，
-  // 未配置时为 undefined 走相对路径（dev 由 umi mock 接管，静态演示走 services/demo 的本地实现）
+  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_BASE 全局常量。
+  // 未配置时为演示模式：请求交给浏览器内的演示后端（src/demo/adapter.ts），不发网络请求
   baseURL: UMI_APP_API_BASE,
+  adapter: DEMO_MODE ? (demoAdapter as unknown as RequestConfig['adapter']) : undefined,
   errorConfig: {
     // 后端 success:false 的业务错误统一转成 BizError 抛给调用方
     errorThrower: (res) => {

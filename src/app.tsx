@@ -6,6 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { AUTH_TOKEN_KEY } from '@/constants';
 import RightContent from '@/layouts/RightContent';
 import { appList } from '@/layouts/_defaultProps';
+import Forbidden from '@/pages/403';
 import { registerMessage } from '@/utils/antdMessage';
 import type { RequestConfig, RuntimeAntdConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { getLocale, Navigate, useLocation, useModel } from '@umijs/max';
@@ -59,9 +60,23 @@ const AuthGuard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
   if (!hasToken || !initialState?.name) {
-    return <Navigate replace to="/login" />;
+    // 带上原本要访问的地址，登录后回到这里
+    return <Navigate replace to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} />;
   }
   return <>{children}</>;
+};
+
+/**
+ * 路由 access 不满足时布局渲染它（替代布局自带的 403）：未登录先去登录（带回跳地址），
+ * 已登录但权限不够才是真正的 403。此前未登录直接打开受保护页面会看到「无权访问」。
+ */
+const AccessFallback = () => {
+  const { initialState } = useModel('@@initialState');
+  const location = useLocation();
+  if (!initialState?.name) {
+    return <Navigate replace to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} />;
+  }
+  return <Forbidden />;
 };
 
 export const layout: RunTimeLayoutConfig = (initialState) => {
@@ -80,6 +95,7 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     splitMenus: true,
     fixSiderbar: true,
     fixHeader: true,
+    unAccessible: <AccessFallback />,
     childrenRender: (children) => (
       <ErrorBoundary>
         <MessageBridge />

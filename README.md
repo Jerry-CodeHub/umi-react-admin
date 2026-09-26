@@ -40,7 +40,7 @@ pnpm start
 | 变量 | 必需 | 说明 |
 | --- | --- | --- |
 | `CESIUM_ION_TOKEN` | Cesium 功能需要 | 在 [ion.cesium.com](https://ion.cesium.com/tokens) 获取；缺失时 Cesium Ion 影像/地形不可用（其余功能不受影响） |
-| `UMI_APP_API_BASE` | 可选 | 真实后端 API 地址；不配置时开发环境走 umi mock、纯静态部署走内置静态演示数据（表格 CRUD 经 localStorage 持久化） |
+| `UMI_APP_API_BASE` | 可选 | 真实后端 API 地址；不配置时为演示模式：接口由浏览器内的演示后端响应（`src/demo`，dev 与所有静态部署同一套实现，改动经 localStorage 持久化） |
 | `AMAP_KEY` / `AMAP_SECURITY_CODE` | 可选 | 高德 Web 端（JS API）Key 与安全密钥（[控制台申请](https://console.amap.com)）；不配置时高德演示页使用组件库自带公共 key（配额不受控），正式部署建议配置 |
 | `CLARITY_ID` | 可选 | [Clarity](https://clarity.microsoft.com) 统计项目 ID；**模板默认不含任何统计脚本**，配置后才按你自己的项目上报（含会话回放，正式站点请履行隐私告知义务） |
 
@@ -73,7 +73,7 @@ src/
 
 ## 功能说明
 
-- **鉴权**：演示级登录闭环（任意用户名/密码），路由守卫与权限拦截开箱可用。开发环境走 umi mock；纯静态部署（GitHub Pages / Vercel / Docker）没有后端，演示 token 在前端本地签发与校验；接入真实后端配置 `UMI_APP_API_BASE` 即走 HTTP 接口（见 `src/services/auth.ts` 与 `src/services/demo/mode.ts`）。用户名 `dontHaveAccess` 可体验权限拦截。
+- **鉴权与演示数据**：演示级登录闭环（`admin` 管理员 / `guest` 访客两个体验账号，任意其它用户名也可登录；密码不校验），路由守卫与权限拦截开箱可用。未配置 `UMI_APP_API_BASE` 时所有接口由浏览器内的演示后端响应（`src/demo`：确定性生成的「物联网监测运营」数据、按今天滑动的时间窗、改动以补丁形式存 localStorage），接入真实后端只需按 `src/services/types.ts` 的契约实现同名接口
 - **暗色模式**：顶栏调色盘图标热切换（antd5 算法 + 布局联动，localStorage 持久化）。日历（FullCalendar 7 调色板）随主题切换；地图与图表等其余非 AntD 绘制区域暂不随算法变化。
 - **多语言**：框架层页面（登录/错误页/全局提示）中英双语；功能演示页文案为中文示例。
 - **无障碍**：`<html lang>` 随语言切换、页面允许缩放；顶栏菜单为可聚焦按钮 + 下拉菜单（键盘可操作）；图标按钮具可访问名称、图片有 alt。

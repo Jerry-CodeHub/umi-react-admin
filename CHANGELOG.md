@@ -6,6 +6,16 @@
 
 方案见 `docs/remediation-plan-2026-09-23.md`（不入库）。
 
+### P1 演示数据底座（2026-09-24）
+
+- 统一的演示后端 `src/demo`：浏览器内运行的 REST 服务，经请求层 axios adapter 接入；dev、preview 与 GitHub Pages / Vercel / Docker 走同一套实现。删除 `mock/` 目录、umi mock 配置、`services/demo` 与 `USE_BACKEND` 双链路（mock 目录曾导致 dev 全站 500）。未采用 MSW：Service Worker 只在 https / localhost 可用，Docker 经 http 内网地址访问时会整站无法登录
+- 数据故事：虚构的「物联网监测运营平台」——86 名用户（7 个部门、5 种角色）、34 个城市 240 台监测设备、近 90 天约 1,500 条告警、由告警派生的工单与例行巡检、近 30 天操作日志、前后五周日程。按日历日播种：每天的历史固定、窗口随今天滑动；工单状态按「现在」推导，看板与 KPI 随时间自然演进
+- 合理性门禁 `src/demo/generate.test.ts`：级别比例、工作日/周末节律、时间线先后、设备状态与活动告警对应、KPI 与明细口径一致、邮箱仅 example.com、手机号仅脱敏、IP 仅文档保留段、中英数据同构
+- 改动以补丁形式存 localStorage（带版本号，结构变化时整体作废；损坏数据自动丢弃；清理旧版 `umi-react-admin-demo-users` 键），支持一键重置
+- 接口契约 `src/services/types.ts` 与按领域拆分的服务模块（users / system / ops / events）；删除 OneAPI 生成的 `any` 服务代码
+- 体验账号：`admin`（系统管理员）与 `guest`（访客，受限权限）；种子用户按角色签发 token，停用后已签发的 token 立即失效
+- 修复：登录后偶发被弹回登录页（状态未提交即跳转，登录请求变为异步后稳定复现），改为登录态写入后再跳转；未登录打开受保护页面由「无权访问」改为先去登录并在登录后回到原页面（只接受站内路径）
+
 ### P0 热修（2026-09-23）
 
 - 音频可视页恢复播放：wavesurfer 7 以 blob URL 播放音频，CSP `media-src` 补 `blob:`（GitHub Pages meta 与 vercel.json 为强制模式，09-22 安全头上线后该页点击播放无反应）

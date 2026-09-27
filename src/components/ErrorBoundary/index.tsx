@@ -1,4 +1,4 @@
-import { getIntl } from '@umijs/max';
+import { t } from '@/utils/i18n';
 import { Button, Result } from 'antd';
 import React from 'react';
 import { claimAutoReload, isChunkLoadError } from './chunkError';
@@ -7,15 +7,6 @@ interface State {
   hasError: boolean;
   error?: Error;
 }
-
-/** 类组件取不到 useIntl：走 umi 的 getIntl，locale 未就绪时回退中文 */
-const t = (id: string, fallback: string) => {
-  try {
-    return getIntl().formatMessage({ id, defaultMessage: fallback });
-  } catch {
-    return fallback;
-  }
-};
 
 class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
   state: State = { hasError: false };
@@ -45,11 +36,11 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
       return (
         <Result
           status="info"
-          title={t('error.updated.title', '站点已更新')}
-          subTitle={t('error.updated.subTitle', '当前页面的资源版本已过期，刷新后即可继续使用。')}
+          title={t('error.updated.title')}
+          subTitle={t('error.updated.subTitle')}
           extra={
             <Button type="primary" onClick={() => window.location.reload()}>
-              {t('error.reload', '刷新页面')}
+              {t('error.reload')}
             </Button>
           }
         />
@@ -58,11 +49,11 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
     return (
       <Result
         status="error"
-        title={t('error.title', '页面出现错误')}
+        title={t('error.title')}
         subTitle={this.state.error?.message}
         extra={
           <Button type="primary" onClick={this.handleReset}>
-            {t('error.retry', '重试')}
+            {t('error.retry')}
           </Button>
         }
       />

@@ -113,8 +113,9 @@ export default defineConfig({
   npmClient: 'pnpm',
   // 多语言配置 https://umijs.org/docs/max/i18n
   locale: {
-    // 默认使用 src/locales/zh-CN.ts 作为多语言文件
+    // 默认 zh-CN；首次访问按浏览器语言选择（英文浏览器进来即英文界面），之后以用户在顶栏的选择为准
     default: 'zh-CN',
+    baseNavigator: true,
     baseSeparator: '-',
   },
   tailwindcss: {},

@@ -8,6 +8,52 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+/**
+ * 本项目规则：界面文案必须走 src/locales（中英双语）。检查字符串、模板字符串与 JSX 文本里的中文
+ * （含全角标点）；注释不受影响。演示数据（src/demo）、文案文件本身与测试不检查。
+ */
+const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
+const localPlugin = {
+  rules: {
+    'no-cjk-literal': {
+      meta: {
+        type: 'problem',
+        messages: { cjk: '界面文案请放进 src/locales 并用 intl.formatMessage 取用（中英双语），不要直接写中文' },
+      },
+      create(context) {
+        const check = (node, text) => {
+          if (CJK.test(text)) context.report({ node, messageId: 'cjk' });
+        };
+        return {
+          Literal: (node) => typeof node.value === 'string' && check(node, node.value),
+          TemplateElement: (node) => check(node, node.value.raw),
+          JSXText: (node) => check(node, node.value),
+        };
+      },
+    },
+  },
+};
+
+/**
+ * 尚未完成多语言迁移的页面（按重构阶段逐步清空，见 docs 重构方案 C3）。
+ * 新增文件不要加进来——写新代码就直接用 locales。
+ */
+const I18N_PENDING = [
+  // P3 工作台
+  'src/pages/Dashboard/**',
+  // P4 系统管理
+  'src/pages/System/**',
+  // P5 组件、多媒体、文档、频谱
+  'src/pages/Components/**',
+  'src/pages/Media/**',
+  'src/pages/Document/**',
+  'src/pages/Ops/Spectrum/**',
+  // P6 地图
+  'src/pages/Map/**',
+  'src/utils/MapCompute/**',
+  'src/components/CesiumViewer/**',
+];
+
 /** umi recommended：内置规则 */
 const umiCoreRules = {
   // 不需要返回就用 forEach
@@ -171,6 +217,12 @@ export default defineConfig(
       // 禁止使用 any 类型（仅警告，避免影响现有代码）
       '@typescript-eslint/no-explicit-any': 'warn',
     },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/locales/**', 'src/demo/**', '**/*.test.{ts,tsx}', ...I18N_PENDING],
+    plugins: { local: localPlugin },
+    rules: { 'local/no-cjk-literal': 'error' },
   },
   {
     files: ['**/*.{test,spec}.{ts,tsx,js,jsx}'],

@@ -5,11 +5,18 @@ import '@ant-design/v5-patch-for-react-19';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AUTH_TOKEN_KEY } from '@/constants';
 import RightContent from '@/layouts/RightContent';
-import { appList } from '@/layouts/_defaultProps';
-import Forbidden from '@/pages/403';
+import Forbidden from '@/pages/Exception/403';
 import { registerMessage } from '@/utils/antdMessage';
+import {
+  AntDesignOutlined,
+  BookOutlined,
+  BugOutlined,
+  DotChartOutlined,
+  HistoryOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
 import type { RequestConfig, RuntimeAntdConfig, RunTimeLayoutConfig } from '@umijs/max';
-import { getLocale, Navigate, useLocation, useModel } from '@umijs/max';
+import { getIntl, getLocale, Navigate, useLocation, useModel } from '@umijs/max';
 import { App as AntdApp, theme as antdTheme } from 'antd';
 import { useEffect } from 'react';
 import { getInitialState as libGetInitialState, readTheme, type AppInitialState } from './utils/Auth/initialState';
@@ -43,7 +50,7 @@ const MessageBridge = () => {
 };
 
 /** 无需登录即可访问的路径 */
-const PUBLIC_PATHS = ['/login', '/403', '/404'];
+const PUBLIC_PATHS = ['/login', '/exception/403', '/exception/404', '/exception/500'];
 
 /**
  * 路由守卫：包在 layout childrenRender 中，未登录（无 token 或 initialState 未建立）
@@ -79,6 +86,41 @@ const AccessFallback = () => {
   return <Forbidden />;
 };
 
+const REPO = 'https://github.com/Jerry-CodeHub/umi-react-admin';
+
+/** 左上角应用列表：项目相关链接（图标用内置图标，不再热链第三方图片，CSP 随之收紧） */
+const appList = () => {
+  const t = (id: string) => getIntl().formatMessage({ id });
+  return [
+    { icon: <BookOutlined />, title: t('app.links.docs'), desc: t('app.links.docs.desc'), url: `${REPO}#readme` },
+    {
+      icon: <HistoryOutlined />,
+      title: t('app.links.changelog'),
+      desc: t('app.links.changelog.desc'),
+      url: `${REPO}/blob/master/CHANGELOG.md`,
+    },
+    { icon: <BugOutlined />, title: t('app.links.issues'), desc: t('app.links.issues.desc'), url: `${REPO}/issues` },
+    {
+      icon: <AntDesignOutlined />,
+      title: t('app.links.antd'),
+      desc: t('app.links.antd.desc'),
+      url: 'https://ant.design',
+    },
+    {
+      icon: <ThunderboltOutlined />,
+      title: t('app.links.umi'),
+      desc: t('app.links.umi.desc'),
+      url: 'https://umijs.org',
+    },
+    {
+      icon: <DotChartOutlined />,
+      title: t('app.links.antv'),
+      desc: t('app.links.antv.desc'),
+      url: 'https://antv.antgroup.com',
+    },
+  ].map((item) => ({ ...item, target: '_blank' as const }));
+};
+
 export const layout: RunTimeLayoutConfig = (initialState) => {
   // 回调参数是 initialState 插件的 model 对象（{ initialState, refresh, ... }）
   const themeMode = initialState?.initialState?.theme;
@@ -88,7 +130,7 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     logo: `${PUBLIC_PATH}logo.svg`,
     rightContentRender: () => <RightContent />,
     menuHeaderRender: undefined,
-    appList,
+    appList: appList(),
     layout: 'mix',
     // 主题与 antd 运行时算法同源（localStorage），避免首帧闪烁
     navTheme: themeMode === 'realDark' ? 'realDark' : 'light',

@@ -6,6 +6,17 @@
 
 方案见 `docs/remediation-plan-2026-09-23.md`（不入库）。
 
+### P2 信息架构与页面外壳（2026-09-24）
+
+- 菜单重组为 工作台 / 系统管理 / 设备运维 / 地图 / 组件 / 多媒体 / 文档 / 异常页，路径统一小写 kebab-case；旧版 34 条路径全部重定向到新地址（`config/routes.ts` 的 `LEGACY_REDIRECTS`，`scripts/routes.test.ts` 校验目标存在、组件文件存在、菜单双语键齐全）
+- 演示页统一外壳 `DemoPage`：标题与面包屑取自路由，下方一句话说明，右上角「查看源码」直达仓库文件
+- 多语言基础设施：文案按领域拆分（menu / framework / enums / pages），中英键集一致、英文无中文、占位符一致由 `locales.test.ts` 把关；ESLint 新增 `local/no-cjk-literal`，代码里直接写中文即报错（尚未迁移的页面在 `I18N_PENDING` 清单中，随后续阶段清空）。首次访问按浏览器语言选择界面语言
+- 请求层、错误边界、业务错误的兜底文案改为从 locales 取默认语言，不再在代码里另写中文
+- 顶栏重做：一键切换明暗主题、语言、GitHub、账户菜单（重置演示数据 / 退出登录），头像按姓名生成首字与固定底色
+- 应用列表换成项目相关链接（文档、更新日志、问题反馈、Ant Design、Umi、AntV），图标改用内置图标；CSP 随之去掉两个阿里图片域名
+- 新增 `useChartTheme`（图表跟随明暗主题）与全站语义色常量（告警级别、设备状态、工单状态、分类色板）；新增 500 异常页
+- 修复：Cesium「模型」页文件名 `Model.tsx` 被 umi model 插件当作数据模型自动加载（大小写不敏感文件系统上 dev 编译失败），改名 `ModelMeasure.tsx`
+
 ### P1 演示数据底座（2026-09-24）
 
 - 统一的演示后端 `src/demo`：浏览器内运行的 REST 服务，经请求层 axios adapter 接入；dev、preview 与 GitHub Pages / Vercel / Docker 走同一套实现。删除 `mock/` 目录、umi mock 配置、`services/demo` 与 `USE_BACKEND` 双链路（mock 目录曾导致 dev 全站 500）。未采用 MSW：Service Worker 只在 https / localhost 可用，Docker 经 http 内网地址访问时会整站无法登录

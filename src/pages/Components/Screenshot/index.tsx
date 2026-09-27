@@ -1,4 +1,4 @@
-import DemoColumn from '@/pages/Home/components/DemoColumn';
+import DemoColumn from '@/pages/Dashboard/components/DemoColumn';
 import { getMessage } from '@/utils/antdMessage';
 import { ProCard } from '@ant-design/pro-components';
 import { Button } from 'antd';

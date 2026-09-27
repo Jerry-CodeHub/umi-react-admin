@@ -114,7 +114,7 @@ describe('errorHandler：HTTP 状态码分流（axios 形状）', () => {
 
   it('403 提示并跳转 /403', () => {
     errorHandler(httpError(403));
-    expect(pushMock).toHaveBeenCalledWith('/403');
+    expect(pushMock).toHaveBeenCalledWith('/exception/403');
   });
 
   it('404 仅提示停留当前页', () => {

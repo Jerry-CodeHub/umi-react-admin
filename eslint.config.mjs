@@ -39,8 +39,6 @@ const localPlugin = {
  * 新增文件不要加进来——写新代码就直接用 locales。
  */
 const I18N_PENDING = [
-  // P3 工作台
-  'src/pages/Dashboard/**',
   // P4 系统管理
   'src/pages/System/**',
   // P5 组件、多媒体、文档、频谱

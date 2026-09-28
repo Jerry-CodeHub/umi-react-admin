@@ -93,7 +93,7 @@ src/
 
 - **TinyMCE 8**：GPL-2.0-or-later 或 Tiny 商业许可双轨。本模板**自托管** npm 中的 TinyMCE（随富文本路由的异步 chunk 分发，不依赖 Tiny Cloud 与 API key），编辑器以 `license_key: 'gpl'` 运行。模板按 MIT 分发不等于授予 TinyMCE 闭源商用权利：对外提供包含 TinyMCE 的构建产物即构成分发，须遵守 GPL；闭源商用请购买 Tiny 商业许可，或替换为 TipTap（MIT）/ Quill 2（BSD-3）。仅内部使用等场景的义务请结合自身情况评估。
 - **Cesium**：Apache-2.0（构建产物已随附许可副本 `dist/Cesium/LICENSE.md`）。
-- **演示媒体**：仓库内的演示音频、PDF 与数据文件为项目自制（首页图表数据由 `node scripts/generate-chart-data.mjs` 确定性生成），仅作演示用途；视频播放器页的示例视频与海报运行时引用 xgplayer 官方演示 CDN，不随仓库分发。
+- **演示媒体**：仓库内的演示音频、PDF、视频封面与业务数据均为项目自制（业务数据由 `src/demo` 在浏览器内以固定种子确定性生成），仅作演示用途；视频播放器页的示例视频运行时引用 xgplayer 官方演示 CDN，不随仓库分发。
 - 完整依赖许可清单见 [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md)。
 
 ## 统计与隐私

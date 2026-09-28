@@ -10,7 +10,7 @@
     "syncScripts": 6,
     "firstScreenGzipKB": 780,
     "routes": {
-      "p__Home__index": {
+      "p__Dashboard__index": {
         "withLayout": true,
         "maxGzipKB": 1250
       },

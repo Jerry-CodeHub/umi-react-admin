@@ -1,49 +1,161 @@
-import DemoColumn from '@/pages/Dashboard/components/DemoColumn';
-import { getMessage } from '@/utils/antdMessage';
-import { ProCard } from '@ant-design/pro-components';
-import { Button } from 'antd';
+import DemoPage from '@/components/DemoPage';
+import { LEVEL_COLOR } from '@/constants/semantic';
+import { useApi } from '@/hooks/useApi';
+import { useChartTheme } from '@/hooks/useChartTheme';
+import { getDevice, listAlarms } from '@/services/ops';
+import { formatDateTime } from '@/utils/format';
+import { CameraOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Tiny } from '@ant-design/plots';
+import { useIntl } from '@umijs/max';
+import { App, Button, Card, Descriptions, Image, Modal, Skeleton, Space, Tag, Typography } from 'antd';
 import html2canvas from 'html2canvas';
-import React, { useRef } from 'react';
+import { useRef, useState } from 'react';
 
-const Html2Canvas: React.FC = () => {
-  const captureRef = useRef(null);
+/** 取最近一条严重告警及其设备详情，作为被截图的业务卡片 */
+const loadCard = async () => {
+  const { list } = await listAlarms({ level: 'critical', pageSize: 1 });
+  const alarm = list[0] ?? (await listAlarms({ pageSize: 1 })).list[0];
+  const device = await getDevice(alarm.deviceId);
+  return { alarm, device };
+};
 
-  const handleScreenshot = () => {
-    // let html2canvas = window.html2canvas;
-    // console.log('html2canvas', html2canvas);
-    const element = captureRef.current; // 要截图的 DOM 元素
-    if (element) {
-      html2canvas(element, { useCORS: true })
-        .then((canvas) => {
-          // 将截图转为图片格式
-          const imgData = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = imgData;
-          // link.download = "screenshot.png";
-          link.download = `screenshot-${new Date().getTime()}.png`;
-          link.click(); // 自动下载图片
-        })
-        .catch(() => {
-          getMessage().error('截图失败，请重试');
-        });
+export default function Screenshot() {
+  const intl = useIntl();
+  const t = (id: string) => intl.formatMessage({ id });
+  const { message } = App.useApp();
+  const chart = useChartTheme();
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [image, setImage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const { data, loading } = useApi(loadCard);
+
+  /** html2canvas 渲染 DOM：背景取当前主题色，按设备像素比输出清晰图片 */
+  const capture = async () => {
+    if (!captureRef.current) return undefined;
+    setBusy(true);
+    try {
+      const canvas = await html2canvas(captureRef.current, {
+        backgroundColor: chart.background,
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+      });
+      return canvas.toDataURL('image/png');
+    } catch {
+      message.error(t('screenshot.failed'));
+      return undefined;
+    } finally {
+      setBusy(false);
     }
   };
 
-  return (
-    <>
-      <ProCard>
-        {/* <div>Html2Canvas</div> */}
-        <div ref={captureRef} style={{ padding: '20px', border: '1px solid #ccc' }}>
-          <h1>哈喽, 这是一个 html2canvas 样本内容</h1>
-          <p>这个div中的所有内容都将被捕获为图像。</p>
-          <DemoColumn />
-        </div>
-        <Button onClick={handleScreenshot} style={{ marginTop: '20px' }}>
-          捕获屏幕截图
-        </Button>
-      </ProCard>
-    </>
-  );
-};
+  const download = async () => {
+    const url = await capture();
+    if (!url) return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${data?.alarm.id ?? 'screenshot'}.png`;
+    link.click();
+  };
 
-export default Html2Canvas;
+  const recent = data?.device.recentAlarms ?? [];
+
+  return (
+    <DemoPage
+      descriptionId="page.screenshot.desc"
+      source="src/pages/Components/Screenshot/index.tsx"
+      extra={
+        <Space>
+          <Button icon={<CameraOutlined />} loading={busy} onClick={async () => setImage(await capture())}>
+            {t('screenshot.capture')}
+          </Button>
+          <Button type="primary" icon={<DownloadOutlined />} loading={busy} onClick={download}>
+            {t('screenshot.download')}
+          </Button>
+        </Space>
+      }
+    >
+      <Typography.Paragraph type="secondary">{t('screenshot.hint')}</Typography.Paragraph>
+      <div className="max-w-3xl rounded-lg border border-dashed p-4" style={{ borderColor: chart.border }}>
+        <div ref={captureRef} className="p-2">
+          <Card
+            title={
+              <Space>
+                {t('screenshot.cardTitle')}
+                {data && <Typography.Text type="secondary">{data.alarm.id}</Typography.Text>}
+              </Space>
+            }
+            extra={
+              data && (
+                <Tag color={LEVEL_COLOR[data.alarm.level]}>
+                  {intl.formatMessage({ id: `alarmLevel.${data.alarm.level}` })}
+                </Tag>
+              )
+            }
+          >
+            <Skeleton active loading={loading || !data}>
+              {data && (
+                <>
+                  <Typography.Title level={4} className="!mt-0">
+                    {intl.formatMessage({ id: `alarmType.${data.alarm.type}` })}
+                  </Typography.Title>
+                  <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                    <Descriptions.Item label={t('screenshot.device')}>{data.device.name}</Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.location')}>
+                      {intl.formatMessage({ id: `region.${data.device.region}` })} · {data.device.city}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.model')}>
+                      {data.device.model} · {data.device.band[0]}–{data.device.band[1]} MHz
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.occurredAt')}>
+                      {formatDateTime(data.alarm.occurredAt, 'YYYY-MM-DD HH:mm:ss')}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.status')}>
+                      {intl.formatMessage({ id: `alarmStatus.${data.alarm.status}` })}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.source')}>
+                      {intl.formatMessage({ id: `alarmSource.${data.alarm.source}` })}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.uptime')}>{data.device.uptime30d}%</Descriptions.Item>
+                    <Descriptions.Item label={t('screenshot.signal')}>{data.device.signalDbm} dBm</Descriptions.Item>
+                  </Descriptions>
+                  <Typography.Text type="secondary" className="mt-4 block text-xs">
+                    {t('screenshot.recentAlarms')}
+                  </Typography.Text>
+                  <Tiny.Column
+                    data={[...recent].reverse().map((alarm, index) => ({
+                      index,
+                      value: { critical: 4, major: 3, minor: 2, info: 1 }[alarm.level],
+                      level: alarm.level,
+                    }))}
+                    xField="index"
+                    yField="value"
+                    colorField="level"
+                    height={60}
+                    theme={chart.g2Theme}
+                    scale={{
+                      color: {
+                        domain: Object.keys(LEVEL_COLOR),
+                        range: Object.values(LEVEL_COLOR).map(chart.color),
+                      },
+                    }}
+                    tooltip={false}
+                  />
+                </>
+              )}
+            </Skeleton>
+          </Card>
+        </div>
+      </div>
+      <Modal
+        open={!!image}
+        title={t('screenshot.previewTitle')}
+        footer={null}
+        width={720}
+        onCancel={() => setImage(undefined)}
+        destroyOnHidden
+      >
+        {image && <Image src={image} alt={t('screenshot.previewTitle')} preview={false} />}
+      </Modal>
+    </DemoPage>
+  );
+}

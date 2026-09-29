@@ -5,5 +5,6 @@ import enums from './zh-CN/enums';
 import framework from './zh-CN/framework';
 import menu from './zh-CN/menu';
 import pages from './zh-CN/pages';
+import system from './zh-CN/system';
 
-export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components };
+export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system };

@@ -5,5 +5,6 @@ import enums from './en-US/enums';
 import framework from './en-US/framework';
 import menu from './en-US/menu';
 import pages from './en-US/pages';
+import system from './en-US/system';
 
-export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components };
+export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system };

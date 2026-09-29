@@ -1,113 +1,223 @@
-import type { User, UserInput } from '@/services/types';
-import { createUser, deleteUser, listUsers, updateUser } from '@/services/users';
-import {
-  ActionType,
-  ModalForm,
-  PageContainer,
-  ProColumns,
-  ProFormSelect,
-  ProFormText,
-  ProTable,
-} from '@ant-design/pro-components';
-import { App, Button, Popconfirm } from 'antd';
+import DemoPage from '@/components/DemoPage';
+import UserAvatar from '@/components/UserAvatar';
+import { DEPARTMENT_KEYS, USER_STATUS_KEYS } from '@/constants/enums';
+import { ROLE_KEYS } from '@/constants/permissions';
+import { useEnums } from '@/hooks/useEnums';
+import type { User, UserBatchAction, UserInput } from '@/services/types';
+import { batchUsers, createUser, deleteUser, listUsers, updateUser } from '@/services/users';
+import { formatDateTime, fromNow } from '@/utils/format';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
+import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
+import { history, useIntl } from '@umijs/max';
+import { App, Button, Dropdown, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import { useRef, useState } from 'react';
+import UserDrawer from './UserDrawer';
+import UserForm from './UserForm';
 
-// 过渡版本：接口已切到新的用户服务；完整的用户管理页见后续阶段（src/pages/System/Users）
-const departmentEnum = {
-  ops1: '运维一部',
-  ops2: '运维二部',
-  ops3: '运维三部',
-  analytics: '数据分析组',
-  platform: '平台研发组',
-  security: '安全合规组',
-  support: '客服中心',
-};
-const roleEnum = { admin: '系统管理员', lead: '值班长', operator: '运维工程师', analyst: '数据分析员', viewer: '访客' };
-const statusEnum = {
-  active: { text: '正常', status: 'Success' },
-  disabled: { text: '停用', status: 'Default' },
-  locked: { text: '锁定', status: 'Error' },
-};
+const PROTECTED = new Set(['admin', 'guest']);
 
-export default function TableList() {
-  const { message } = App.useApp();
+export default function Users() {
+  const intl = useIntl();
+  const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
+  const enums = useEnums();
+  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType>(undefined);
   const [editing, setEditing] = useState<User | null | undefined>(undefined);
+  const [viewing, setViewing] = useState<User>();
+
+  const reload = () => actionRef.current?.reload();
+
+  const toggleStatus = async (user: User) => {
+    await updateUser(user.id, { status: user.status === 'active' ? 'disabled' : 'active' });
+    message.success(t('common.saved'));
+    reload();
+  };
+
+  const runBatch = async (ids: string[], action: UserBatchAction, clear: () => void) => {
+    const count = await batchUsers(ids, action);
+    message.success(t('users.batchDone', { count }));
+    clear();
+    reload();
+  };
 
   const columns: ProColumns<User>[] = [
-    { title: '工号', dataIndex: 'id', search: false, width: 90 },
-    { title: '姓名', dataIndex: 'name', search: false },
-    { title: '登录名', dataIndex: 'username', search: false },
-    { title: '关键字', dataIndex: 'keyword', hideInTable: true },
-    { title: '部门', dataIndex: 'department', valueEnum: departmentEnum },
-    { title: '角色', dataIndex: 'role', valueEnum: roleEnum },
-    { title: '状态', dataIndex: 'status', valueEnum: statusEnum },
-    { title: '邮箱', dataIndex: 'email', search: false },
-    { title: '最近登录', dataIndex: 'lastLoginAt', valueType: 'fromNow', search: false, sorter: true },
     {
-      title: '操作',
+      title: t('users.keyword'),
+      dataIndex: 'keyword',
+      hideInTable: true,
+      fieldProps: { placeholder: t('users.keywordPlaceholder') },
+    },
+    {
+      title: t('users.column.user'),
+      dataIndex: 'name',
+      search: false,
+      width: 240,
+      render: (_, user) => <UserAvatar name={user.name} description={user.email} onClick={() => setViewing(user)} />,
+    },
+    { title: t('users.column.id'), dataIndex: 'id', search: false, width: 90, sorter: true },
+    {
+      title: t('users.column.department'),
+      dataIndex: 'department',
+      valueEnum: enums.valueEnum('department', DEPARTMENT_KEYS),
+      width: 130,
+    },
+    {
+      title: t('users.column.role'),
+      dataIndex: 'role',
+      valueEnum: enums.valueEnum('role', ROLE_KEYS),
+      width: 120,
+      render: (_, user) => (
+        <Tag color={user.role === 'admin' ? 'blue' : undefined}>{enums.label('role', user.role)}</Tag>
+      ),
+    },
+    { title: t('users.column.phone'), dataIndex: 'phone', search: false, width: 130, responsive: ['xl'] },
+    {
+      title: t('users.column.status'),
+      dataIndex: 'status',
+      width: 100,
+      valueEnum: enums.valueEnum('userStatus', USER_STATUS_KEYS, (key) => ({
+        status: { active: 'Success', disabled: 'Default', locked: 'Error' }[key],
+      })),
+    },
+    {
+      title: t('users.column.lastLogin'),
+      dataIndex: 'lastLoginAt',
+      search: false,
+      sorter: true,
+      width: 130,
+      render: (_, user) =>
+        user.lastLoginAt ? (
+          <Tooltip title={formatDateTime(user.lastLoginAt)}>{fromNow(user.lastLoginAt, intl.locale)}</Tooltip>
+        ) : (
+          t('common.none')
+        ),
+    },
+    {
+      title: t('users.column.createdAt'),
+      dataIndex: 'createdAt',
+      search: false,
+      sorter: true,
+      width: 120,
+      responsive: ['lg'],
+      render: (_, user) => formatDateTime(user.createdAt, 'YYYY-MM-DD'),
+    },
+    {
+      title: t('common.actions'),
       valueType: 'option',
-      render: (_, record) => [
-        <Button key="edit" type="link" size="small" onClick={() => setEditing(record)}>
-          编辑
-        </Button>,
-        <Popconfirm
-          key="delete"
-          title="确认删除该用户？"
-          onConfirm={async () => {
-            await deleteUser(record.id);
-            message.success('已删除');
-            actionRef.current?.reload();
-          }}
-        >
-          <Button type="link" size="small" danger>
-            删除
-          </Button>
-        </Popconfirm>,
-      ],
+      width: 170,
+      fixed: 'right',
+      render: (_, user) => {
+        const locked = PROTECTED.has(user.username);
+        return [
+          <Button key="edit" type="link" size="small" onClick={() => setEditing(user)}>
+            {t('common.edit')}
+          </Button>,
+          user.status === 'active' ? (
+            <Popconfirm
+              key="toggle"
+              title={t('users.disableConfirm', { name: user.name })}
+              disabled={locked}
+              onConfirm={() => toggleStatus(user)}
+            >
+              <Button type="link" size="small" disabled={locked}>
+                {t('common.disable')}
+              </Button>
+            </Popconfirm>
+          ) : (
+            <Button key="toggle" type="link" size="small" onClick={() => toggleStatus(user)}>
+              {t('common.enable')}
+            </Button>
+          ),
+          <Popconfirm
+            key="delete"
+            title={t('users.deleteConfirm', { name: user.name })}
+            disabled={locked}
+            onConfirm={async () => {
+              await deleteUser(user.id);
+              message.success(t('common.deleted'));
+              reload();
+            }}
+          >
+            <Button type="link" size="small" danger disabled={locked}>
+              {t('common.delete')}
+            </Button>
+          </Popconfirm>,
+        ];
+      },
     },
   ];
 
+  const handleSubmit = async (values: UserInput) => {
+    if (editing) {
+      await updateUser(editing.id, values);
+    } else {
+      await createUser(values);
+    }
+    message.success(t('common.saved'));
+    setEditing(undefined);
+    reload();
+  };
+
   return (
-    <PageContainer>
+    <DemoPage descriptionId="page.users.desc" source="src/pages/System/Users/index.tsx">
       <ProTable<User>
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
+        scroll={{ x: 1300 }}
+        search={{ labelWidth: 'auto' }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+        rowSelection={{}}
+        tableAlertOptionRender={({ selectedRowKeys, onCleanSelected }) => {
+          const ids = selectedRowKeys as string[];
+          return (
+            <Space>
+              <Button size="small" onClick={() => runBatch(ids, 'enable', onCleanSelected)}>
+                {t('users.batchEnable')}
+              </Button>
+              <Button size="small" onClick={() => runBatch(ids, 'disable', onCleanSelected)}>
+                {t('users.batchDisable')}
+              </Button>
+              <Button
+                size="small"
+                danger
+                onClick={() =>
+                  modal.confirm({
+                    title: t('users.batchDeleteConfirm', { count: ids.length }),
+                    okButtonProps: { danger: true },
+                    onOk: () => runBatch(ids, 'delete', onCleanSelected),
+                  })
+                }
+              >
+                {t('users.batchDelete')}
+              </Button>
+            </Space>
+          );
+        }}
         request={async (params, sort) => {
-          const [sortField, sortOrder] = Object.entries(sort ?? {})[0] ?? [];
-          const page = await listUsers({ ...params, sortField, sortOrder: sortOrder ?? undefined });
+          const [sortField, order] = Object.entries(sort ?? {})[0] ?? [];
+          const page = await listUsers({ ...params, sortField, sortOrder: order ?? undefined });
           return { data: page.list, total: page.total, success: true };
         }}
         toolBarRender={() => [
-          <Button key="create" type="primary" onClick={() => setEditing(null)}>
-            新建
+          <Button key="create" type="primary" icon={<PlusOutlined />} onClick={() => setEditing(null)}>
+            {t('users.create')}
           </Button>,
+          <Dropdown
+            key="more"
+            menu={{
+              items: [{ key: 'excel', label: t('menu.document.excel') }],
+              onClick: () => history.push('/document/excel'),
+            }}
+          >
+            <Button>
+              {t('users.more')} <DownOutlined />
+            </Button>
+          </Dropdown>,
         ]}
       />
-      <ModalForm<UserInput>
-        title={editing ? '编辑用户' : '新建用户'}
-        open={editing !== undefined}
-        initialValues={editing ?? { department: 'support', role: 'viewer' }}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setEditing(undefined) }}
-        onFinish={async (values) => {
-          if (editing) {
-            await updateUser(editing.id, values);
-          } else {
-            await createUser(values);
-          }
-          message.success('已保存');
-          setEditing(undefined);
-          actionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormText name="name" label="姓名" rules={[{ required: true }]} />
-        <ProFormText name="username" label="登录名" rules={[{ required: true }]} />
-        <ProFormText name="email" label="邮箱" rules={[{ required: true, type: 'email' }]} />
-        <ProFormSelect name="department" label="部门" valueEnum={departmentEnum} />
-        <ProFormSelect name="role" label="角色" valueEnum={roleEnum} />
-      </ModalForm>
-    </PageContainer>
+      <UserForm user={editing} onClose={() => setEditing(undefined)} onSubmit={handleSubmit} />
+      <UserDrawer user={viewing} onClose={() => setViewing(undefined)} />
+    </DemoPage>
   );
 }

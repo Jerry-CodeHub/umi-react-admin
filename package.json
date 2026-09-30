@@ -49,8 +49,6 @@
     "@ant-design/pro-components": "^2.8.10",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
     "@fullcalendar/react": "^7.1.0",
     "@pansy/amap-api-loader": "^0.4.10",
     "@tinymce/tinymce-react": "^6.3.0",

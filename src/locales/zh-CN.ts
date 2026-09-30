@@ -4,7 +4,8 @@ import dashboard from './zh-CN/dashboard';
 import enums from './zh-CN/enums';
 import framework from './zh-CN/framework';
 import menu from './zh-CN/menu';
+import ops from './zh-CN/ops';
 import pages from './zh-CN/pages';
 import system from './zh-CN/system';
 
-export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system };
+export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system, ...ops };

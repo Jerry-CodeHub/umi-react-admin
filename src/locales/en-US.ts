@@ -4,7 +4,8 @@ import dashboard from './en-US/dashboard';
 import enums from './en-US/enums';
 import framework from './en-US/framework';
 import menu from './en-US/menu';
+import ops from './en-US/ops';
 import pages from './en-US/pages';
 import system from './en-US/system';
 
-export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system };
+export default { ...menu, ...framework, ...enums, ...pages, ...dashboard, ...components, ...system, ...ops };

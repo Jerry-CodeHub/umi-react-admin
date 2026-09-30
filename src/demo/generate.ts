@@ -404,7 +404,7 @@ const generateAlarmsAndTickets = (locale: DemoLocale, now: Date, devices: Device
       alarms.push(alarm);
     });
 
-    // 例行巡检工单：工作日新建 0~2 张，排期在 3~12 天后、现场作业 2~5 天（看板「待处理」「处理中」的主要来源）
+    // 例行巡检工单：工作日新建 0~2 张，排期在 3~12 天后、现场作业 3~6 天（多站点连续巡检）（看板「待处理」「处理中」的主要来源）
     const maintRng = createRng(`${SEED}:maintenance:${key}`);
     const maintCount = weekend ? 0 : Number(maintRng.bool(0.8)) + Number(maintRng.bool(0.4));
     for (let m = 1; m <= maintCount; m++) {
@@ -412,7 +412,7 @@ const generateAlarmsAndTickets = (locale: DemoLocale, now: Date, devices: Device
       const createdAt = day.getTime() + (9 * 60 + maintRng.int(0, 480)) * MINUTE;
       const respondedAt =
         startOfDay(addDays(day, maintRng.int(3, 12))).getTime() + (9 * 60 + maintRng.int(0, 60)) * MINUTE;
-      const resolvedAt = respondedAt + maintRng.logNormal(3 * 24 * 60, 0.4) * MINUTE;
+      const resolvedAt = respondedAt + maintRng.logNormal(4 * 24 * 60, 0.35) * MINUTE;
       if (createdAt <= nowMs) {
         makeTicket(
           maintRng,

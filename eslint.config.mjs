@@ -43,7 +43,6 @@ const I18N_PENDING = [
   'src/pages/Components/**',
   'src/pages/Media/**',
   'src/pages/Document/Pdf/**',
-  'src/pages/Ops/Spectrum/**',
   // P6 地图
   'src/pages/Map/**',
   'src/utils/MapCompute/**',

@@ -96,7 +96,9 @@ export const routes: RouteItem[] = [
     path: '/ops',
     icon: 'ClusterOutlined',
     routes: [
-      { path: '/ops', redirect: '/ops/tickets' },
+      { path: '/ops', redirect: '/ops/devices' },
+      { name: 'devices', path: '/ops/devices', icon: 'HddOutlined', component: './Ops/Devices' },
+      { name: 'alarms', path: '/ops/alarms', icon: 'AlertOutlined', component: './Ops/Alarms' },
       { name: 'tickets', path: '/ops/tickets', icon: 'ProjectOutlined', component: './Ops/Tickets' },
       { name: 'spectrum', path: '/ops/spectrum', icon: 'BarChartOutlined', component: './Ops/Spectrum' },
     ],

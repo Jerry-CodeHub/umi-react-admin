@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.6.1",
+    "@ant-design/icons": "^6.3.4",
     "@ant-design/plots": "^2.6.8",
     "@ant-design/pro-components": "^2.8.10",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",

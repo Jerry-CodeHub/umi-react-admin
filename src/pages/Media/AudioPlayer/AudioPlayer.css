@@ -1,0 +1,126 @@
+/* 音乐播放器舞台：背景与唱片均为纯 CSS 绘制；xgplayer-music 的歌词 / 频谱 DOM 在这里定制外观 */
+.audio-player-demo {
+  position: relative;
+  height: min(72vh, 640px);
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: 12px;
+  background-image: linear-gradient(135deg, #1f2a44 0%, #2d1f3d 55%, #111827 100%);
+}
+
+.audio-player-demo .stage-left {
+  position: absolute;
+  inset: 0 50% 0 0;
+  padding: 48px 0 0 10%;
+}
+
+.audio-player-demo .album {
+  width: min(60%, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle,
+    #1677ff 0 10%,
+    #0b0b0b 11% 38%,
+    #2a2a2a 39% 41%,
+    #0b0b0b 42% 58%,
+    #2a2a2a 59% 61%,
+    #0b0b0b 62% 70%,
+    transparent 71%
+  );
+  animation: audio-player-spin 12s linear infinite;
+  animation-play-state: paused;
+}
+
+.audio-player-demo.playing .album {
+  animation-play-state: running;
+}
+
+@keyframes audio-player-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.audio-player-demo .info {
+  margin-top: 24px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.audio-player-demo .info small {
+  display: block;
+  margin-top: 6px;
+  color: rgb(225 225 225 / 80%);
+  font-size: 12px;
+}
+
+.audio-player-demo .lyrics-mask {
+  position: absolute;
+  inset: 0 0 0 50%;
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0%) 0,
+    rgb(255 255 255 / 60%) 15%,
+    #fff 25%,
+    #fff 75%,
+    rgb(255 255 255 / 10%) 85%,
+    rgb(255 255 255 / 0%) 100%
+  );
+}
+
+.audio-player-demo .lyrics {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+.audio-player-demo .spectrum {
+  position: absolute;
+  bottom: 50px;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  mask-image: linear-gradient(to bottom, rgb(255 255 255 / 30%) 0, rgb(255 255 255 / 90%) 100%);
+}
+
+.audio-player-demo .spectrum canvas {
+  width: 100%;
+}
+
+.audio-player-demo .controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.audio-player-demo .xgplayer-lyric-item {
+  display: block;
+  text-align: center;
+  line-height: 22px !important;
+  font-size: 12px !important;
+  color: rgb(225 225 225 / 80%) !important;
+}
+
+.audio-player-demo .xgplayer-lyric-item-active {
+  color: rgb(49 194 124) !important;
+}
+
+/* 以下为 xgplayer-music 自带的类名（第三方命名，不受本项目命名规则约束） */
+/* stylelint-disable selector-class-pattern */
+.audio-player-demo .xgplayer-lrcWrap {
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.audio-player-demo .xgplayer-lrcForward {
+  left: 0 !important;
+}
+
+.audio-player-demo .xgplayer-lrcBack {
+  top: 75% !important;
+  left: 0 !important;
+}
+/* stylelint-enable selector-class-pattern */

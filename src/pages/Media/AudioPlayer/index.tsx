@@ -1,47 +1,43 @@
-import { ProCard } from '@ant-design/pro-components';
-import { useEffect } from 'react';
+import DemoPage from '@/components/DemoPage';
+import { demoLyrics } from '@/demo/lyrics';
+import { useIntl } from '@umijs/max';
+import { Card, Segmented, Space, Typography } from 'antd';
+import { useEffect, useRef, useState } from 'react';
 import Player from 'xgplayer';
 import MusicPreset, { Analyze, Lyric } from 'xgplayer-music';
 import 'xgplayer-music/dist/index.min.css';
 import 'xgplayer/dist/index.min.css';
-import { AudioPlayerStyles } from './AudioPlayer.style';
-import { demoLyrics } from './lyrics';
+import './AudioPlayer.css';
 
-declare global {
-  interface Window {
-    analyze: InstanceType<typeof Analyze> | undefined;
-  }
-}
+type SpectrumMode = 'waves' | 'bars' | 'lightning' | 'vertLines' | 'doubleLine' | 'doubleBars';
+const MODES: SpectrumMode[] = ['waves', 'bars', 'lightning', 'vertLines', 'doubleLine', 'doubleBars'];
 
-type PlayerWithMode = Player & {
-  mode: number;
+/** 各频谱样式的采样数与线宽 */
+const MODE_OPTIONS: Record<SpectrumMode, { count: number; stroke: number }> = {
+  waves: { count: 256, stroke: 3 },
+  bars: { count: 256, stroke: 2 },
+  lightning: { count: 512, stroke: 4 },
+  vertLines: { count: 256, stroke: 2 },
+  doubleLine: { count: 256, stroke: 2 },
+  doubleBars: { count: 256, stroke: 2 },
 };
 
+type PlayerWithMode = Player & { mode: number };
+
 export default function AudioPlayer() {
+  const intl = useIntl();
+  const t = (id: string) => intl.formatMessage({ id });
+  const playerRef = useRef<HTMLDivElement>(null);
+  const lyricsRef = useRef<HTMLDivElement>(null);
+  const spectrumRef = useRef<HTMLCanvasElement>(null);
+  const analyzeRef = useRef<InstanceType<typeof Analyze>>(undefined);
+  const [mode, setMode] = useState<SpectrumMode>('waves');
+  const [playing, setPlaying] = useState(false);
+
   useEffect(() => {
-    const jsSelect = document.getElementById('js-select') as HTMLSelectElement | null;
-    const handleSelectChange = (e: Event) => {
-      const value = (e.target as HTMLSelectElement).value;
-      if (window.analyze) {
-        window.analyze.mode = value;
-        if (value === 'lightning') {
-          window.analyze.options.count = 512;
-          window.analyze.options.stroke = 4;
-        } else {
-          if (value === 'waves') {
-            window.analyze.options.stroke = 3;
-          } else {
-            window.analyze.options.stroke = 2;
-          }
-          window.analyze.options.count = 256;
-        }
-      }
-    };
-
-    jsSelect?.addEventListener('change', handleSelectChange);
-
+    if (!playerRef.current || !spectrumRef.current || !lyricsRef.current) return undefined;
     const player = new Player({
-      id: 'mse',
+      el: playerRef.current,
       // 项目自制的正弦合成音频（此前热链第三方 CDN 上的商业歌曲，已按演示媒体自制替换的约定移除）
       url: `${PUBLIC_PATH}audio/stereo.wav`,
       volume: 0.8,
@@ -50,84 +46,74 @@ export default function AudioPlayer() {
       mediaType: 'audio',
       presets: ['default', MusicPreset],
       ignores: ['playbackrate'],
-      controls: {
-        initShow: true,
-        mode: 'flex',
-      },
+      controls: { initShow: true, mode: 'flex' },
       marginControls: true,
-      videoConfig: {
-        crossOrigin: 'anonymous',
-      },
+      lang: intl.locale === 'en-US' ? 'en' : 'zh-cn',
     });
-    player.crossOrigin = 'anonymous';
 
-    // 频谱画布限定在本组件内查找（此前 document.querySelector('canvas') 取的是全页第一个 canvas）
-    const canvasEl = document.querySelector<HTMLCanvasElement>('.audio-player #canvas canvas');
-
-    // 初始化频谱
-    const analyze = new Analyze(player, canvasEl as HTMLElement, {
-      bgColor: 'rgba(0,0,0,0.7)',
-      stroke: 3,
-    });
-    window.analyze = analyze;
-
-    // 初始化歌词模块
-    const lyric = new Lyric([demoLyrics], document.querySelector('#gc'));
-    lyric.bind(player);
-    player.on('playing', function () {
-      lyric.show();
-      (player as PlayerWithMode).mode = 2;
-    });
-    // 画布尺寸取容器宽度而非窗口（固定头布局下 window 尺寸会溢出），高度固定。
-    // 此前误取 id="canvas" 的外层 div 设置 width/height，实际从未生效
+    const canvas = spectrumRef.current;
     const syncCanvasSize = () => {
-      if (!canvasEl) return;
-      canvasEl.width = canvasEl.parentElement?.clientWidth || 800;
-      canvasEl.height = 160;
+      canvas.width = canvas.parentElement?.clientWidth || 800;
+      canvas.height = 160;
     };
     syncCanvasSize();
-    window.addEventListener('resize', syncCanvasSize);
+    const observer = new ResizeObserver(syncCanvasSize);
+    observer.observe(canvas.parentElement!);
+
+    analyzeRef.current = new Analyze(player, canvas, { bgColor: 'rgba(0,0,0,0)', stroke: 3 });
+    const lyric = new Lyric([demoLyrics[intl.locale === 'en-US' ? 'en-US' : 'zh-CN']], lyricsRef.current);
+    lyric.bind(player);
+    player.on('playing', () => {
+      lyric.show();
+      (player as PlayerWithMode).mode = 2;
+      setPlaying(true);
+    });
+    player.on('pause', () => setPlaying(false));
+    player.on('ended', () => setPlaying(false));
 
     return () => {
-      jsSelect?.removeEventListener('change', handleSelectChange);
-      window.removeEventListener('resize', syncCanvasSize);
-      window.analyze = undefined;
+      observer.disconnect();
+      analyzeRef.current = undefined;
       player.destroy();
     };
-  }, []);
+  }, [intl.locale]);
+
+  useEffect(() => {
+    const analyze = analyzeRef.current;
+    if (!analyze) return;
+    analyze.mode = mode;
+    Object.assign(analyze.options, MODE_OPTIONS[mode]);
+  }, [mode]);
 
   return (
-    <AudioPlayerStyles>
-      <ProCard className="shadow-2xl p-0">
-        <div className="audio-player">
-          <div id="left">
-            <div id="album"></div>
-            <div id="info">
-              合成示例音
-              <div>来源：项目自制（正弦合成）</div>
-              <div>许可：随项目 MIT</div>
+    <DemoPage
+      descriptionId="page.audioPlayer.desc"
+      source="src/pages/Media/AudioPlayer/index.tsx"
+      extra={
+        <Space>
+          <Typography.Text type="secondary">{t('audio.mode')}</Typography.Text>
+          <Segmented<SpectrumMode> size="small" value={mode} onChange={setMode} options={MODES} />
+        </Space>
+      }
+    >
+      <Card styles={{ body: { padding: 0 } }}>
+        <div className={`audio-player-demo${playing ? ' playing' : ''}`}>
+          <div className="stage-left">
+            <div className="album" />
+            <div className="info">
+              {t('audio.title')}
+              <small>{t('audio.source')}</small>
             </div>
           </div>
-          <div className="select">
-            <select id="js-select">
-              <option value="waves">waves</option>
-              <option value="bars">bars</option>
-              <option value="lightning">lightning</option>
-              <option value="vertLines">vertLines</option>
-              <option value="doubleLine">doubleLine</option>
-              <option value="doubleBars">doubleBars</option>
-            </select>
+          <div className="spectrum">
+            <canvas ref={spectrumRef} />
           </div>
-          <div id="canvas">
-            <canvas width="550" height="110"></canvas>
+          <div className="lyrics-mask">
+            <div ref={lyricsRef} className="lyrics" />
           </div>
-          <div id="mask">
-            <div id="gc"></div>
-          </div>
-
-          <div id="mse"></div>
+          <div className="controls" ref={playerRef} />
         </div>
-      </ProCard>
-    </AudioPlayerStyles>
+      </Card>
+    </DemoPage>
   );
 }

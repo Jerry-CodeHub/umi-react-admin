@@ -8,10 +8,19 @@
  * innerHTML 零转义直接拼进 DOM。本文件是本地静态常量所以安全；一旦改成 fetch 远程 LRC，
  * 必须先对每行做 HTML 转义再传入 Lyric——否则就是库内部的存储型 XSS，业务侧 review 极难发现。
  */
-export const demoLyrics = [
-  '[00:00.00]umi-react-admin 音乐播放器演示',
-  '[00:01.50]音频为项目自制的正弦合成音',
-  '[00:03.00]歌词为自写的示例文本',
-  '[00:04.50]用于演示频谱可视化与歌词滚动',
-  '[00:06.00]替换成你有授权的音频与歌词即可',
-].join('\n');
+export const demoLyrics = {
+  'zh-CN': [
+    '[00:00.00]umi-react-admin 音乐播放器演示',
+    '[00:01.50]音频为项目自制的正弦合成音',
+    '[00:03.00]歌词为自写的示例文本',
+    '[00:04.50]用于演示频谱可视化与歌词滚动',
+    '[00:06.00]替换成你有授权的音频与歌词即可',
+  ].join('\n'),
+  'en-US': [
+    '[00:00.00]umi-react-admin music player demo',
+    '[00:01.50]The audio is a synthesized sine tone',
+    '[00:03.00]These lyrics are placeholder text',
+    '[00:04.50]Showing the spectrum and scrolling lyrics',
+    '[00:06.00]Swap in audio and lyrics you have rights to',
+  ].join('\n'),
+};

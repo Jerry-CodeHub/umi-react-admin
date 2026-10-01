@@ -21,7 +21,6 @@
 
 | 资源 | 来源 | 许可 |
 | --- | --- | --- |
-| `public/demo.pdf` | 项目自制（脚本生成的矢量示例文档） | 随项目 MIT |
 | `public/audio/audio.wav`、`public/audio/stereo.wav` | 项目自制（正弦合成音频） | 随项目 MIT |
 | `public/data/*.json`、`src/demo/`（演示数据生成器与词库） | 项目自制演示数据 | 随项目 MIT |
 | 音频播放器页的歌词与唱片/背景 | 项目自制（自写示例 LRC；唱片与背景为纯 CSS 绘制） | 随项目 MIT |

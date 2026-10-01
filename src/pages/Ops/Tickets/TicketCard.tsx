@@ -1,12 +1,11 @@
 import UserAvatar from '@/components/UserAvatar';
+import { PRIORITY_COLOR } from '@/constants/semantic';
 import type { Ticket } from '@/services/types';
 import { humanizeDuration } from '@/utils/duration';
 import { fromNow } from '@/utils/format';
 import { CalendarOutlined, CheckCircleOutlined, ToolOutlined } from '@ant-design/icons';
 import { useIntl } from '@umijs/max';
 import { Card, Tag, Tooltip, Typography, theme } from 'antd';
-
-export const PRIORITY_COLOR: Record<Ticket['priority'], string> = { P1: 'red', P2: 'orange', P3: 'blue' };
 
 const HOUR = 3_600_000;
 

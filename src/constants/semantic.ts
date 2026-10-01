@@ -1,4 +1,4 @@
-import type { AlarmLevel, DeviceStatus, TicketStatus, UserStatus } from '@/services/types';
+import type { AlarmLevel, DeviceStatus, TicketPriority, TicketStatus, UserStatus } from '@/services/types';
 
 /**
  * 全站语义色：同一个含义在表格 Tag、图表、地图点位、日历上用同一种颜色。
@@ -22,6 +22,8 @@ export const TICKET_STATUS_COLOR: Record<TicketStatus, PresetColor> = {
   doing: 'blue',
   done: 'green',
 };
+
+export const PRIORITY_COLOR: Record<TicketPriority, PresetColor> = { P1: 'red', P2: 'orange', P3: 'blue' };
 
 export const USER_STATUS_BADGE: Record<UserStatus, 'success' | 'default' | 'error'> = {
   active: 'success',

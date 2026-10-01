@@ -39,10 +39,6 @@ const localPlugin = {
  * 新增文件不要加进来——写新代码就直接用 locales。
  */
 const I18N_PENDING = [
-  // P5 组件、多媒体、文档、频谱
-  'src/pages/Components/**',
-  'src/pages/Media/**',
-  'src/pages/Document/Pdf/**',
   // P6 地图
   'src/pages/Map/**',
   'src/utils/MapCompute/**',

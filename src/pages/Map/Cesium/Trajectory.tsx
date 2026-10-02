@@ -1,351 +1,201 @@
-import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
+import { CesiumStage, useCesiumViewer } from '@/components/CesiumViewer';
+import { pickLngLat } from '@/components/CesiumViewer/stations';
+import DemoPage from '@/components/DemoPage';
 import { handlerComputePoint, mergePolygons, mergePolygonsPath, type Point } from '@/utils/MapCompute/cesiumCompute';
-import { iconData } from '@/utils/MapCompute/dataEnd';
-import { demodulationResultList, interceptResultList, locationResultList } from '@/utils/MapCompute/exportJson';
-import { setupCesium } from '@/utils/MapCompute/setupCesium';
-import { ProCard } from '@ant-design/pro-components';
-// import * as turf from '@turf/turf';
-import { Alert, Button, message } from 'antd';
+import { distanceKm } from '@/utils/MapCompute/geodesy';
+import { BlockOutlined, CheckOutlined, ClearOutlined, GatewayOutlined, NodeIndexOutlined } from '@ant-design/icons';
+import { useIntl } from '@umijs/max';
+import { Alert, App, Button, Card } from 'antd';
 import * as Cesium from 'cesium';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
-import React, { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 
-setupCesium(Cesium);
+const SAMPLE_METERS = 1000;
+const MAX_SAMPLES = 2000;
 
-const pathPointDataUrl = `${CESIUM_BASE_URL.replace(/\/Cesium\/?$/, '')}/data/pathPointData.json`;
+type Envelope = { longitude: number; latitude: number }[];
 
-const loadPathPointData = async (): Promise<Point[][]> => {
-  const response = await fetch(pathPointDataUrl);
-  if (!response.ok) {
-    throw new Error(`路径点数据加载失败: ${response.status}`);
-  }
-  return (await response.json()) as Point[][];
+const fetchJson = async <T,>(path: string) => {
+  const response = await fetch(`${PUBLIC_PATH}${path}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return (await response.json()) as T;
 };
 
-const Trajectory: React.FC = () => {
-  const [messageApi, contextHolder] = message.useMessage();
-  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
-  const [initError, setInitError] = useState(false);
-  // let turf = window.turf;
-  // console.log(turf);
+const toPositions = (points: Point[]) =>
+  Cesium.Cartesian3.fromDegreesArray(points.flatMap((p) => [p.longitude, p.latitude]));
 
-  // 绘制事件处理器（声明先于 useEffect，卸载清理需引用）
-  const handlerRef = React.useRef<Cesium.ScreenSpaceEventHandler | null>(null);
+export default function Trajectory() {
+  const intl = useIntl();
+  const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
+  const { message } = App.useApp();
+  const [drawing, setDrawing] = useState(false);
+  const [result, setResult] = useState<string>();
+  const [polygonCount, setPolygonCount] = useState(214);
+  const waypointsRef = useRef<Point[]>([]);
+  const drawingRef = useRef(false);
+  const layerRef = useRef<Cesium.CustomDataSource>(null);
+  const samplesRef = useRef<Cesium.PointPrimitiveCollection>(null);
 
-  useEffect(() => {
-    // 创建一个 Cesium Viewer 实例
-    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
-    const viewer = createDemoViewer('cesium-container');
-    if (!viewer) {
-      setInitError(true);
-      return;
-    }
+  const { containerRef, viewer, error } = useCesiumViewer({
+    home: [126.6, 46.4, 1_600_000],
+    onReady: (instance) => {
+      const layer = new Cesium.CustomDataSource('routes');
+      instance.dataSources.add(layer);
+      layerRef.current = layer;
+      // 画线模式下每次点击追加一个途经点；实时线段用 CallbackProperty 跟随数组
+      const handler = new Cesium.ScreenSpaceEventHandler(instance.scene.canvas);
+      handler.setInputAction((click: { position: Cesium.Cartesian2 }) => {
+        if (!drawingRef.current) return;
+        const lngLat = pickLngLat(instance, click.position);
+        if (!lngLat) return;
+        waypointsRef.current.push({ longitude: lngLat[0], latitude: lngLat[1] });
+        layer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(...lngLat),
+          point: { pixelSize: 8, color: Cesium.Color.YELLOW, outlineColor: Cesium.Color.BLACK, outlineWidth: 1 },
+        });
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      return () => handler.destroy();
+    },
+  });
 
-    // 修改 homeButton 的位置
-    let initView = {
-      destination: Cesium.Cartesian3.fromDegrees(116.3974, 39.9093, 15000000),
-    };
-    // viewer.camera.setView(initView);
-    viewer.camera.flyTo(initView);
-
-    setViewer(viewer);
-
-    const iconTimer = window.setTimeout(() => {
-      if (viewer.isDestroyed()) return;
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      handlerIcon(viewer);
-    }, 100);
-
-    // 销毁（含绘制事件处理器，viewer.destroy 不代劳外部 handler）
-    return () => {
-      window.clearTimeout(iconTimer);
-      handlerRef.current?.destroy?.();
-      handlerRef.current = null;
-      if (!viewer.isDestroyed()) viewer.destroy();
-    };
-  }, []);
-
-  // NOTE 添加图标
-  const handlerIcon = (viewer: Cesium.Viewer) => {
-    // 添加图标
-    let item = iconData[0];
-    let entity = viewer.entities.add({
-      id: item.id,
-      position: Cesium.Cartesian3.fromDegrees(item.longitude, item.latitude),
-      billboard: {
-        image: require('@/assets/Detection.png'),
-        scale: 0.3,
-      },
-    });
-    entity.properties = new Cesium.PropertyBag({
-      text: item.label,
-    });
+  const clear = () => {
+    layerRef.current?.entities.removeAll();
+    if (viewer && samplesRef.current) viewer.scene.primitives.remove(samplesRef.current);
+    samplesRef.current = null;
+    waypointsRef.current = [];
+    setResult(undefined);
   };
 
-  // NOTE 绘制开始
-  const [drawing, setDrawing] = useState(false);
-  const drawingRef = React.useRef(false);
-  const positionsArrRef = React.useRef<Cesium.Cartesian3[]>([]);
-  const positionsGeoRef = React.useRef<Point[]>([]);
-  const handlerDraw = () => {
-    if (!viewer) return;
-
-    // 1, 点击按钮开始绘制
+  const startDrawing = () => {
+    clear();
     drawingRef.current = true;
     setDrawing(true);
-    (viewer.container as HTMLElement).style.cursor = 'crosshair'; // 鼠标样式为十字
-
-    // 获取所有实体
-    let entities = viewer.entities.values;
-    let entity = entities.find((item) => item.properties?.getValue(Cesium.JulianDate.now())?.text === 'A');
-    if (!entity) return;
-    // 计算entity的经纬度
-    const entityPosition = entity.position?.getValue(Cesium.JulianDate.now());
-    if (!entityPosition) return;
-    let cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(entityPosition);
-    let lng = Cesium.Math.toDegrees(cartographic.longitude);
-    let lat = Cesium.Math.toDegrees(cartographic.latitude);
-
-    // 计算entity笛卡尔坐标系 xy 坐标
-    let position = Cesium.Cartesian3.fromDegrees(lng, lat);
-    positionsArrRef.current = [position];
-    positionsGeoRef.current = [{ longitude: lng, latitude: lat }];
-
-    // 2, 点击地图后, 在点击处绘制圆形的形状, 并且在地图上显示坐标
-    handlerRef.current = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas); // 鼠标事件处理器
-
-    handlerRef.current.setInputAction((movement: { position: Cesium.Cartesian2 }) => {
-      // 获取鼠标位置的笛卡尔坐标
-      let cartesian = viewer.camera.pickEllipsoid(
-        movement.position, // 鼠标位置
-        viewer.scene.globe.ellipsoid, // 椭球体
-      );
-
-      if (cartesian && drawingRef.current) {
-        let cartographic = Cesium.Cartographic.fromCartesian(cartesian); // 笛卡尔坐标转经纬度
-        let longitudeString = Cesium.Math.toDegrees(cartographic.longitude); // 经度
-        let latitudeString = Cesium.Math.toDegrees(cartographic.latitude); // 纬度
-
-        // 绘制圆形
-        viewer.entities.add({
-          position: cartesian,
-          ellipse: {
-            semiMinorAxis: 30.0,
-            semiMajorAxis: 30.0,
-            material: new Cesium.Color(1.0, 1.0, 1.0, 0.5),
-          },
-        });
-
-        // 连接上一个点和当前点
-        if (positionsArrRef.current.length >= 1) {
-          let lastCartesian = positionsArrRef.current[positionsArrRef.current.length - 1]; // 上一个点
-          // 绘制实线
-          viewer.entities.add({
-            polyline: {
-              // positions: [lastCartesian, cartesian],
-              positions: new Cesium.CallbackProperty(() => {
-                // 实时更新
-                return [lastCartesian, cartesian]; // 返回两个点
-              }, false), // false 表示不更新
-              width: 2, // 线宽
-              // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
-              //   color: Cesium.Color.YELLOW,
-              // }),
-              material: Cesium.Color.YELLOW, // 实线材质
-            },
-          });
-        }
-
-        // 5, 存储点的数组
-        positionsArrRef.current = [...positionsArrRef.current, cartesian];
-        positionsGeoRef.current = [
-          ...positionsGeoRef.current,
-          { longitude: longitudeString, latitude: latitudeString },
-        ];
-      }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    (viewer!.container as HTMLElement).style.cursor = 'crosshair';
+    layerRef.current!.entities.add({
+      polyline: {
+        positions: new Cesium.CallbackProperty(() => toPositions(waypointsRef.current), false),
+        width: 3,
+        material: Cesium.Color.YELLOW,
+        clampToGround: true,
+      },
+    });
   };
 
-  // NOTE 绘制完成回调
-  const handlerDrawOk = () => {
-    if (!viewer) return;
-
-    setDrawing(false);
+  /** 完成：按每公里插值生成采样点（巡检时每个点对应一次测量） */
+  const finishDrawing = () => {
     drawingRef.current = false;
-    (viewer.container as HTMLElement).style.cursor = 'default'; // 鼠标样式为默认
-
-    handlerRef.current?.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-    let dataPath = handlerComputePoint(positionsGeoRef.current, 1000);
-
-    if (dataPath.length > 1000) {
-      messageApi.open({
-        type: 'warning',
-        content: '绘制点过多, 请缩小范围!',
-      });
+    setDrawing(false);
+    (viewer!.container as HTMLElement).style.cursor = '';
+    const waypoints = waypointsRef.current;
+    if (waypoints.length < 2) return;
+    const samples = handlerComputePoint(waypoints, SAMPLE_METERS);
+    if (samples.length > MAX_SAMPLES) {
+      message.warning(t('cesium.route.tooLong', { max: MAX_SAMPLES }));
       return;
+    }
+    const points = viewer!.scene.primitives.add(
+      new Cesium.PointPrimitiveCollection(),
+    ) as Cesium.PointPrimitiveCollection;
+    samples.forEach((p) =>
+      points.add({
+        position: Cesium.Cartesian3.fromDegrees(p.longitude, p.latitude),
+        pixelSize: 4,
+        color: Cesium.Color.CYAN,
+      }),
+    );
+    samplesRef.current = points;
+    const length = waypoints
+      .slice(1)
+      .reduce(
+        (sum, p, i) => sum + distanceKm([waypoints[i].longitude, waypoints[i].latitude], [p.longitude, p.latitude]),
+        0,
+      );
+    setResult(t('cesium.route.result', { length: length.toFixed(1), count: samples.length }));
+  };
+
+  /** 三种能力包络的并集（turf union） */
+  const mergeEnvelopes = async () => {
+    clear();
+    const data =
+      await fetchJson<Record<'intercept' | 'location' | 'demodulation', Envelope>>('data/cesium/envelopes.json');
+    const polygons = [data.intercept, data.location, data.demodulation].map((ring) =>
+      ring.map((p) => ({ longitude: p.longitude, latitude: p.latitude })),
+    );
+    polygons.forEach((ring) =>
+      layerRef.current!.entities.add({
+        polygon: {
+          hierarchy: toPositions(ring),
+          material: Cesium.Color.WHITE.withAlpha(0.1),
+          outline: true,
+          outlineColor: Cesium.Color.WHITE,
+        },
+      }),
+    );
+    mergePolygons(polygons).forEach((ring) =>
+      layerRef.current!.entities.add({
+        polygon: { hierarchy: toPositions(ring), material: Cesium.Color.GOLD.withAlpha(0.35), height: 20_000 },
+      }),
+    );
+    viewer!.flyTo(layerRef.current!, { duration: 1.2 });
+  };
+
+  /** 东北区 200+ 个站点覆盖：先取凸包再合并成一个多边形，或逐个显示对比 */
+  const drawCoverage = async (merge: boolean) => {
+    clear();
+    const polygons = await fetchJson<Point[][]>('data/cesium/coverage-polygons.json');
+    setPolygonCount(polygons.length);
+    if (merge) {
+      layerRef.current!.entities.add({
+        polygon: { hierarchy: toPositions(mergePolygonsPath(polygons)), material: Cesium.Color.RED.withAlpha(0.4) },
+      });
     } else {
-      // 连接 dataPath 中的点, 成为一条路径
-      dataPath.forEach((item) => {
-        viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(item.longitude, item.latitude),
-          billboard: {
-            image: require('@/assets/Detection.png'),
-            scale: 0.3,
-          },
-        });
-      });
+      polygons.forEach((ring, index) =>
+        layerRef.current!.entities.add({
+          polygon: { hierarchy: toPositions(ring), material: Cesium.Color.RED.withAlpha(0.15), height: index * 100 },
+        }),
+      );
     }
-
-    dataPath = [];
-
-    positionsArrRef.current = [];
-    positionsGeoRef.current = [];
-  };
-
-  // NOTE 相交合并/包含去重, 组成新的路径渲染
-  const handlerLatLon = () => {
-    if (!viewer) return;
-
-    let intercept = structuredClone(interceptResultList);
-    let location = structuredClone(locationResultList);
-    let demodulation = structuredClone(demodulationResultList);
-
-    // 使用示例
-    // const polygonArrays = [
-    //   [{longitude: -75.0, latitude: 40.0}, {longitude: -74.0, latitude: 41.0}, {longitude: -73.0, latitude: 40.0}],
-    //   [{longitude: -74.5, latitude: 40.5}, {longitude: -73.5, latitude: 41.5}, {longitude: -72.5, latitude: 40.5}]
-    // ];
-
-    // 数组1
-    let interceptPath: Point[] = [];
-    intercept.forEach((item) => {
-      interceptPath.push({ longitude: item.longitude, latitude: item.latitude });
-    });
-    interceptPath.push({ longitude: intercept[0].longitude, latitude: intercept[0].latitude });
-
-    // 数组2
-    let locationPath: Point[] = [];
-    location.forEach((item) => {
-      locationPath.push({ longitude: item.longitude, latitude: item.latitude });
-    });
-    locationPath.push({ longitude: location[0].longitude, latitude: location[0].latitude });
-
-    // 数组3
-    let demodulationPath: Point[] = [];
-    demodulation.forEach((item) => {
-      demodulationPath.push({ longitude: item.longitude, latitude: item.latitude });
-    });
-    demodulationPath.push({ longitude: demodulationPath[0].longitude, latitude: demodulationPath[0].latitude }); // 添加第一个点, 形成闭合路径
-
-    let polygonArrays = [interceptPath, locationPath, demodulationPath]; // 三个路径组成的多边形数组
-
-    // 全部渲染不做合并测试
-    polygonArrays.forEach((item) => {
-      viewer.entities.add({
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
-          material: Cesium.Color.RED.withAlpha(0.3),
-        },
-      });
-    });
-
-    // 合并多边形（返回外环数组：相交多边形合并为单环，不相交为多个环）
-    try {
-      const mergedRings = mergePolygons(polygonArrays);
-
-      // 在 Cesium 中按环逐个渲染合并结果，使不相交多边形的并集如实呈现
-      mergedRings.forEach((ring) => {
-        viewer.entities.add({
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(ring.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
-            // material: Cesium.Color.RED.withAlpha(0.5),
-            material: Cesium.Color.YELLOW.withAlpha(0.3),
-            height: 50000,
-          },
-        });
-      });
-    } catch (error) {
-      console.error('合并多边形错误:', error);
-    }
-  };
-
-  // NOTE 相交合并/包含去重, 组成新的路径渲染 200+ (214)
-  const handlerMergeNum = async () => {
-    if (!viewer) return;
-
-    try {
-      const polygonArrays = await loadPathPointData();
-      const mergedPolygon = mergePolygonsPath(polygonArrays);
-
-      // 在 Cesium 中显示合并后的多边形
-      viewer.entities.add({
-        polygon: {
-          // hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])),
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(mergedPolygon.flatMap((p) => [p.longitude, p.latitude])),
-          material: Cesium.Color.RED.withAlpha(0.5),
-        },
-      });
-    } catch (error) {
-      console.error('合并多边形错误:', error);
-      messageApi.error(error instanceof Error ? error.message : '路径点数据处理失败');
-    }
-  };
-
-  // NOTE 不合并渲染 200+ (214)
-  const handlerFalseMerge = async () => {
-    if (!viewer) return;
-
-    try {
-      const pathPointData = await loadPathPointData();
-      // 全部渲染不做合并
-      pathPointData.forEach((item, index) => {
-        viewer.entities.add({
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(item.flatMap((p) => [p.longitude, p.latitude])), // 传入的是一个数组
-            material: Cesium.Color.RED.withAlpha(0.3),
-            height: index * 1000,
-          },
-        });
-      });
-    } catch (error) {
-      console.error('加载多边形数据错误:', error);
-      messageApi.error(error instanceof Error ? error.message : '路径点数据加载失败');
-    }
+    viewer!.flyTo(layerRef.current!, { duration: 1.2 });
   };
 
   return (
-    <>
-      {contextHolder}
-      <Alert className="mb-2" message="轨迹" type="success" />
-      <ProCard>
-        {initError ? <CesiumInitError /> : <div id="cesium-container" className="static" />}
-        <div className="absolute top-8 left-8">
+    <DemoPage
+      descriptionId="page.cesium.trajectory.desc"
+      source="src/utils/MapCompute/cesiumCompute.ts"
+      extra={
+        <>
           {drawing ? (
-            <Button id="startDrawing" className="text-cyan-50 hover:text-gray-900" onClick={() => handlerDrawOk()}>
-              绘制完成
+            <Button type="primary" icon={<CheckOutlined />} onClick={finishDrawing}>
+              {t('cesium.route.finish')}
             </Button>
           ) : (
-            <Button id="startDrawing" className="text-cyan-50 hover:text-gray-900" onClick={() => handlerDraw()}>
-              开始绘制
+            <Button type="primary" icon={<NodeIndexOutlined />} disabled={!viewer} onClick={startDrawing}>
+              {t('cesium.route.draw')}
             </Button>
           )}
-        </div>
-        <Button className="mt-2" onClick={() => handlerLatLon()}>
-          多边形合并渲染(turf 计算)
-        </Button>
-        <Button className="mt-2 ml-2" onClick={() => handlerMergeNum()}>
-          多边形合并渲染 200+ (凸包算法)
-        </Button>
-        {/* <Button className="mt-2 ml-2" onClick={() => handlerAlphaMerge()}>
-          相交合并渲染 200+ (算法)
-        </Button> */}
-        <Button className="mt-2 ml-2" onClick={() => handlerFalseMerge()}>
-          多边形不合并渲染 200+
-        </Button>
-      </ProCard>
-    </>
+          <Button icon={<GatewayOutlined />} disabled={!viewer || drawing} onClick={mergeEnvelopes}>
+            {t('cesium.route.merge')}
+          </Button>
+          <Button icon={<BlockOutlined />} disabled={!viewer || drawing} onClick={() => drawCoverage(true)}>
+            {t('cesium.route.mergeMany', { count: polygonCount })}
+          </Button>
+          <Button disabled={!viewer || drawing} onClick={() => drawCoverage(false)}>
+            {t('cesium.route.showMany')}
+          </Button>
+          <Button icon={<ClearOutlined />} disabled={drawing} onClick={clear}>
+            {t('map.clear')}
+          </Button>
+        </>
+      }
+    >
+      <Alert
+        type={drawing ? 'warning' : 'info'}
+        showIcon
+        className="mb-4"
+        message={drawing ? t('cesium.route.drawing') : (result ?? t('cesium.route.hint'))}
+      />
+      <Card styles={{ body: { padding: 0 } }}>
+        <CesiumStage containerRef={containerRef} viewer={viewer} error={error} />
+      </Card>
+    </DemoPage>
   );
-};
-
-export default Trajectory;
+}

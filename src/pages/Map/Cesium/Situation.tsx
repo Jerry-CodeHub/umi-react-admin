@@ -1,217 +1,274 @@
-import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
-import { iconData } from '@/utils/MapCompute/dataEnd';
-import { loadThermalMapData, type ThermalPoint } from '@/utils/MapCompute/loadThermalMapData';
-import { setupCesium } from '@/utils/MapCompute/setupCesium';
-import { ProCard } from '@ant-design/pro-components';
-import { Button, message } from 'antd';
+import { CesiumStage, useCesiumViewer } from '@/components/CesiumViewer';
+import DemoPage from '@/components/DemoPage';
+import { distanceKm } from '@/utils/MapCompute/geodesy';
+import { useIntl } from '@umijs/max';
+import { Alert, Card, Segmented, Space, Switch, Typography } from 'antd';
 import * as Cesium from 'cesium';
 import CesiumNavigation from 'cesium-navigation-es6';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-setupCesium(Cesium);
+type Kind = 'ship' | 'aircraft';
+type Target = { id: string; kind: Kind; knots: number; altitude: number; route: [number, number][] };
 
-const HaiAirPosture = () => {
-  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
-  const [initError, setInitError] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data, setData] = useState<ThermalPoint[][]>([]);
-  // setTimeout(() => {
-  //   let CesiumNavigation = window.CesiumNavigation;
-  //   console.log('CesiumNavigation:', window);
+/** 关注海域（黄海南部—东海北部），目标与航线均为模拟数据 */
+const AREA: [number, number][] = [
+  [122.1, 36.6],
+  [126.2, 36.3],
+  [126.6, 30.4],
+  [122.5, 29.9],
+];
 
-  // }, 1000);
+const TARGETS: Target[] = [
+  {
+    id: 'V-01',
+    kind: 'ship',
+    knots: 14,
+    altitude: 0,
+    route: [
+      [122.6, 35.8],
+      [123.8, 34.9],
+      [124.6, 33.6],
+      [125.2, 32.4],
+    ],
+  },
+  {
+    id: 'V-02',
+    kind: 'ship',
+    knots: 18,
+    altitude: 0,
+    route: [
+      [125.8, 31.0],
+      [124.9, 31.8],
+      [123.6, 32.3],
+      [122.8, 33.1],
+    ],
+  },
+  {
+    id: 'V-03',
+    kind: 'ship',
+    knots: 11,
+    altitude: 0,
+    route: [
+      [123.2, 30.6],
+      [123.9, 31.4],
+      [124.3, 32.6],
+      [124.1, 33.9],
+    ],
+  },
+  {
+    id: 'V-04',
+    kind: 'ship',
+    knots: 16,
+    altitude: 0,
+    route: [
+      [125.6, 35.6],
+      [124.8, 34.6],
+      [124.9, 33.2],
+      [125.7, 32.1],
+    ],
+  },
+  {
+    id: 'A-01',
+    kind: 'aircraft',
+    knots: 450,
+    altitude: 9800,
+    route: [
+      [121.2, 31.2],
+      [124.0, 33.0],
+      [127.5, 35.2],
+      [129.8, 37.0],
+    ],
+  },
+  {
+    id: 'A-02',
+    kind: 'aircraft',
+    knots: 420,
+    altitude: 8900,
+    route: [
+      [128.5, 30.2],
+      [125.5, 31.4],
+      [122.6, 32.8],
+      [120.4, 34.0],
+    ],
+  },
+  {
+    id: 'A-03',
+    kind: 'aircraft',
+    knots: 380,
+    altitude: 7600,
+    route: [
+      [122.2, 37.4],
+      [123.6, 35.2],
+      [124.8, 32.9],
+      [125.6, 30.1],
+    ],
+  },
+];
 
-  // NOTE 添加图标
-  const handleIcon = (viewer: Cesium.Viewer) => {
-    iconData.forEach((item) => {
-      let entity = viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(item.longitude, item.latitude),
-        id: item.id,
-        billboard: {
-          image: require('@/assets/Detection.png'),
-          // width: 40,
-          // height: 40,
-          scale: 0.3,
-        },
-        label: {
-          text: item.label, // 文本内容
-          font: '14px sans-serif', // 字体大小
-          backgroundColor: Cesium.Color.fromCssColorString('#0094ff'), // 背景颜色
-          showBackground: true, // 是否显示背景
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE, // 样式
-          fillColor: Cesium.Color.WHITE, // 填充颜色
-          outlineColor: Cesium.Color.BLACK, // 边框颜色
-          outlineWidth: 2, // 边框宽度
-          horizontalOrigin: Cesium.HorizontalOrigin.CENTER, // 水平对齐方式
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 垂直对齐方式
-          pixelOffset: new Cesium.Cartesian2(0, 55), // 偏移量
-          pixelOffsetScaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.5, 8.0e6, 0.5), // 偏移量随距离变化
-        },
-      });
-      // 额外参数
-      entity.properties = new Cesium.PropertyBag({
-        text: item.label,
-      });
-    });
-  };
-
-  // NOTE 添加线
-  const handlePolyline = (viewer: Cesium.Viewer) => {
-    let data: Array<{ longitude: number; latitude: number }> = [
-      {
-        longitude: 117.33,
-        latitude: 37.52,
-      },
-      {
-        longitude: 129.34,
-        latitude: 39.02,
-      },
-      {
-        longitude: 126.47,
-        latitude: 29.75,
-      },
-      {
-        longitude: 116.72,
-        latitude: 29.54,
-      },
-    ];
-
-    data.push({ longitude: data[0].longitude, latitude: data[0].latitude });
-
-    viewer.entities.add({
-      polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(data.flatMap((item) => [item.longitude, item.latitude])),
-        width: 2,
-        material: Cesium.Color.RED,
-      },
-    });
-  };
-
-  useEffect(() => {
-    // 创建一个 Cesium Viewer 实例
-    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
-    const viewer = createDemoViewer('cesium-container', { baseLayerPicker: false });
-    if (!viewer) {
-      setInitError(true);
-      return;
-    }
-    // 初始化导航插件
-    const options = {
-      enableCompass: true,
-      enableZoomControls: true,
-      enableDistanceLegend: true,
-      enableCompassOuterRing: true,
-    };
-    new CesiumNavigation(viewer, options);
-
-    // 修改 homeButton 的位置
-    let initView = {
-      destination: Cesium.Cartesian3.fromDegrees(116.3974, 39.9093, 15000000),
-    };
-    // viewer.camera.setView(initView);
-    viewer.camera.flyTo(initView);
-
-    // 动态加载热力图数据
-    loadThermalMapData()
-      .then((thermal) => {
-        setData(thermal.coverageData.arrayResult);
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to load thermal data:', error);
-        messageApi.error(error instanceof Error ? error.message : '加载热力图数据失败');
-      });
-
-    // 2, 添加一个点击事件来显示位置坐标：
-    viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement: { position: Cesium.Cartesian2 }) {
-      const cartesian = viewer.camera.pickEllipsoid(movement.position, viewer.scene.globe.ellipsoid);
-      if (cartesian) {
-        const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-        const longitudeString = Cesium.Math.toDegrees(cartographic.longitude).toFixed(2);
-        const latitudeString = Cesium.Math.toDegrees(cartographic.latitude).toFixed(2);
-        messageApi.info(`Longitude: ${longitudeString}, Latitude: ${latitudeString}`);
-        // alert(`Longitude: ${longitudeString}, Latitude: ${latitudeString}`);
-      }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-    setViewer(viewer);
-    handleIcon(viewer);
-    handlePolyline(viewer);
-
-    // 销毁
-    return () => {
-      if (!viewer.isDestroyed()) viewer.destroy();
-    };
-  }, []);
-
-  const handleLonLat = () => {
-    if (!viewer) return;
-
-    function convertDMSToDD(dmsStr: string) {
-      try {
-        // 移除空格,保留数字、正负号和度分秒符号
-        const cleanStr = dmsStr.trim();
-
-        // 获取正负号
-        const sign = cleanStr.startsWith('-') ? -1 : 1;
-
-        // 提取数字部分
-        const matches = cleanStr.match(/([+-]?\d+)˚(\d+)'(\d+)''/);
-        if (!matches) {
-          console.error('Invalid DMS format:', dmsStr);
-          return null;
-        }
-
-        // 解析度分秒
-        const degrees = parseFloat(matches[1]);
-        const minutes = parseFloat(matches[2]);
-        const seconds = parseFloat(matches[3]);
-
-        // 转换为十进制度数
-        const decimal = sign * (Math.abs(degrees) + minutes / 60 + seconds / 3600);
-
-        return decimal;
-      } catch (error) {
-        console.error('Conversion error:', error);
-        return null;
-      }
-    }
-
-    let longitude = "+115˚12'266''";
-    let latitude = "-29˚33'123''";
-
-    const lonDD = convertDMSToDD(longitude);
-    const latDD = convertDMSToDD(latitude);
-
-    // 确保坐标有效再创建位置
-    if (lonDD !== null && latDD !== null && !isNaN(lonDD) && !isNaN(latDD)) {
-      const position = Cesium.Cartesian3.fromDegrees(lonDD, latDD);
-
-      viewer.entities.add({
-        position: position,
-        billboard: {
-          image: require('@/assets/Detection.png'),
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          scale: 0.6,
-        },
-      });
-    } else {
-      console.error('Invalid coordinates calculated');
-    }
-  };
-
-  return (
-    <>
-      <ProCard>
-        {contextHolder}
-        <Button className="mb-2" onClick={() => handleLonLat()}>
-          经纬度
-        </Button>
-        {initError ? <CesiumInitError /> : <div id="cesium-container" />}
-      </ProCard>
-    </>
-  );
+const KNOT_KMH = 1.852;
+const KIND_COLOR: Record<Kind, Cesium.Color> = {
+  ship: Cesium.Color.fromCssColorString('#13c2c2'),
+  aircraft: Cesium.Color.fromCssColorString('#fa8c16'),
 };
 
-export default HaiAirPosture;
+/** 按航速把航线点换成时间样本：往返运动，时长覆盖整个演示时段 */
+const buildPosition = (target: Target, start: Cesium.JulianDate, totalSeconds: number) => {
+  const property = new Cesium.SampledPositionProperty();
+  const loop = [...target.route, ...target.route.slice(0, -1).reverse()];
+  let elapsed = 0;
+  let index = 0;
+  while (elapsed <= totalSeconds) {
+    const point = loop[index % loop.length];
+    property.addSample(
+      Cesium.JulianDate.addSeconds(start, elapsed, new Cesium.JulianDate()),
+      Cesium.Cartesian3.fromDegrees(point[0], point[1], target.altitude),
+    );
+    const next = loop[(index + 1) % loop.length];
+    elapsed += (distanceKm(point, next) / (target.knots * KNOT_KMH)) * 3600;
+    index += 1;
+  }
+  return property;
+};
+
+const DURATION_SECONDS = 12 * 3600;
+
+export default function Situation() {
+  const intl = useIntl();
+  const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
+  const [speed, setSpeed] = useState(120);
+  const [trails, setTrails] = useState(true);
+  const [picked, setPicked] = useState<Target>();
+  const entitiesRef = useRef<Cesium.Entity[]>([]);
+
+  const { containerRef, viewer, error } = useCesiumViewer({
+    home: [124.4, 29.2, 1_300_000],
+    onReady: (instance) => {
+      new CesiumNavigation(instance, { enableCompass: true, enableZoomControls: true, enableDistanceLegend: true });
+      instance.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(124.4, 26.8, 900_000),
+        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-45), roll: 0 },
+      });
+      const start = Cesium.JulianDate.now();
+      const stop = Cesium.JulianDate.addSeconds(start, DURATION_SECONDS, new Cesium.JulianDate());
+      Object.assign(instance.clock, {
+        startTime: start.clone(),
+        stopTime: stop,
+        currentTime: start.clone(),
+        clockRange: Cesium.ClockRange.LOOP_STOP,
+        shouldAnimate: true,
+      });
+
+      instance.entities.add({
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(AREA.flat()),
+          material: Cesium.Color.DODGERBLUE.withAlpha(0.08),
+          outline: true,
+          outlineColor: Cesium.Color.DODGERBLUE,
+        },
+      });
+
+      entitiesRef.current = TARGETS.map((target) =>
+        instance.entities.add({
+          id: target.id,
+          position: buildPosition(target, start, DURATION_SECONDS),
+          point: {
+            pixelSize: target.kind === 'aircraft' ? 11 : 9,
+            color: KIND_COLOR[target.kind],
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+          },
+          label: {
+            text: target.id,
+            font: '12px sans-serif',
+            pixelOffset: new Cesium.Cartesian2(0, -18),
+            fillColor: Cesium.Color.WHITE,
+            showBackground: true,
+            backgroundColor: Cesium.Color.BLACK.withAlpha(0.55),
+          },
+          path: {
+            leadTime: 0,
+            trailTime: target.kind === 'aircraft' ? 1800 : 5400,
+            width: 2,
+            material: KIND_COLOR[target.kind].withAlpha(0.7),
+          },
+        }),
+      );
+
+      const handler = new Cesium.ScreenSpaceEventHandler(instance.scene.canvas);
+      handler.setInputAction((click: { position: Cesium.Cartesian2 }) => {
+        const entity = instance.scene.pick(click.position)?.id as Cesium.Entity | undefined;
+        setPicked(TARGETS.find((target) => target.id === entity?.id));
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      return () => handler.destroy();
+    },
+  });
+
+  useEffect(() => {
+    if (viewer) viewer.clock.multiplier = speed;
+  }, [viewer, speed]);
+
+  useEffect(() => {
+    entitiesRef.current.forEach((entity) => {
+      if (entity.path) entity.path.show = new Cesium.ConstantProperty(trails);
+    });
+  }, [trails, viewer]);
+
+  const kindLabel = (kind: Kind) => t(`cesium.situation.${kind}`);
+
+  const legend = (
+    <Card size="small" className="opacity-95">
+      <Space direction="vertical" size={2} className="text-xs">
+        {(['ship', 'aircraft'] as Kind[]).map((kind) => (
+          <span key={kind} className="flex items-center gap-2">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: KIND_COLOR[kind].toCssColorString() }}
+            />
+            {kindLabel(kind)}
+          </span>
+        ))}
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 border border-solid" style={{ borderColor: '#1e90ff' }} />
+          {t('cesium.situation.area')}
+        </span>
+      </Space>
+    </Card>
+  );
+
+  return (
+    <DemoPage
+      descriptionId="page.cesium.situation.desc"
+      source="src/pages/Map/Cesium/Situation.tsx"
+      extra={
+        <>
+          <Space>
+            <Typography.Text type="secondary">{t('cesium.situation.speed')}</Typography.Text>
+            <Segmented
+              value={speed}
+              onChange={(value) => setSpeed(value as number)}
+              options={[1, 60, 120, 600].map((value) => ({ value, label: `×${value}` }))}
+            />
+          </Space>
+          <Space>
+            <Switch size="small" checked={trails} onChange={setTrails} />
+            {t('cesium.situation.trails')}
+          </Space>
+        </>
+      }
+    >
+      <Alert
+        type={picked ? 'success' : 'info'}
+        showIcon
+        className="mb-4"
+        message={
+          picked
+            ? t('cesium.situation.target', { name: picked.id, kind: kindLabel(picked.kind), speed: picked.knots })
+            : t('cesium.situation.hint')
+        }
+      />
+      <Card styles={{ body: { padding: 0 } }}>
+        <CesiumStage containerRef={containerRef} viewer={viewer} error={error} overlay={legend} />
+      </Card>
+    </DemoPage>
+  );
+}

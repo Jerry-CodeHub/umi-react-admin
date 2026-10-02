@@ -7,194 +7,7 @@ export type Point = {
   latitude: number;
 };
 
-type DirectionDistancePoint = {
-  direction: number;
-  distance: number;
-};
-
-type AzimuthDistancePoint = {
-  azimuth: number;
-  distancekm: number;
-};
-
 type TurfCoordinate = [number, number];
-
-/**
- * 获取矩形区域内的实体
- * @param viewer viewer 对象
- * @param rectangle 矩形区域
- * @returns 实体数组
- */
-export function getEntitiesInRectangle(viewer: Cesium.Viewer, rectangle: Cesium.Rectangle) {
-  const entitiesInRectangle: Cesium.Entity[] = []; // 矩形内的实体
-  const entities = viewer.entities.values; // 获取所有实体
-
-  // 遍历所有实体
-  for (let i = 0; i < entities.length; i++) {
-    const entity = entities[i]; // 实体
-
-    // 判断实体是否有位置信息
-    if (entity.position) {
-      // 获取实体的位置
-      const position = entity.position.getValue(Cesium.JulianDate.now());
-
-      // 判断位置是否在矩形内
-      if (position) {
-        // 获取位置的经纬度坐标
-        const cartographic = Cesium.Cartographic.fromCartesian(position);
-        // 判断坐标是否在矩形内
-        if (Cesium.Rectangle.contains(rectangle, cartographic)) {
-          // 添加到矩形内的实体数组
-          entitiesInRectangle.push(entity);
-        }
-      }
-    }
-  }
-
-  return entitiesInRectangle;
-}
-
-/**
- * 计算 polygon 的路径
- * @param data 包含经纬度的数据
- * @returns polygon 的路径
- */
-export const handlerPolygonPath = (data: Point[]) => {
-  // let endpoint = [] as any[];
-
-  let endpoint = data.map((item) => {
-    let cartesian = Cesium.Cartesian3.fromDegrees(item.longitude, item.latitude); // 经纬度转笛卡尔坐标
-    // endpoint.push(cartesian);
-    return cartesian;
-  });
-
-  endpoint.push(endpoint[0]); // 添加第一个点, 形成闭合路径
-
-  // return endpoint;
-  return new Cesium.PolygonHierarchy(endpoint); // 创建 polygon 的路径
-};
-
-/**
- * 根据原点和方向距离计算 polygon 的路径
- * @param startLongitude 经度
- * @param startLatitude 纬度
- * @param startHeight 高度
- * @param data 包含方向和距离的数据
- * @returns polygon 的路径
- */
-export function handlerDirectionDistance(
-  startLongitude: number,
-  startLatitude: number,
-  startHeight: number,
-  data: DirectionDistancePoint[],
-) {
-  let earthRadius = Cesium.Ellipsoid.WGS84.maximumRadius; // 地球半径
-
-  let fixedPositions = Cesium.Cartographic.fromDegrees(startLongitude, startLatitude, startHeight); // 起点
-  let fixedCartesian = Cesium.Cartographic.toCartesian(fixedPositions); // 起点的笛卡尔坐标
-
-  let endPointCartesians: Cesium.Cartesian3[] = [];
-  // let currentCartesian = fixedCartesian;
-
-  data.forEach((item) => {
-    let direction = Cesium.Math.toRadians(item.direction); // 方向角度
-    let distance = item.distance * 1000; // 距离
-
-    // 计算终点的笛卡尔坐标
-    let endpointCartesian = Cesium.Cartesian3.fromRadians(
-      Cesium.Cartographic.fromCartesian(fixedCartesian).longitude + (distance / earthRadius) * Math.cos(direction),
-      Cesium.Cartographic.fromCartesian(fixedCartesian).latitude + (distance / earthRadius) * Math.sin(direction),
-      Cesium.Cartographic.fromCartesian(fixedCartesian).height,
-    );
-    endPointCartesians.push(endpointCartesian);
-  });
-
-  endPointCartesians.push(endPointCartesians[0]);
-
-  return new Cesium.PolygonHierarchy(endPointCartesians);
-}
-
-/**
- * 根据原点和方向距离计算 polygon 的路径
- * @param startLongitude 经度
- * @param startLatitude 纬度
- * @param startHeight 高度
- * @param data 包含方向和距离的数据
- * @returns polygon 的路径
- */
-export function handlerDistanceKm(
-  startLongitude: number,
-  startLatitude: number,
-  startHeight: number,
-  data: AzimuthDistancePoint[],
-) {
-  let earthRadius = Cesium.Ellipsoid.WGS84.maximumRadius; // 地球半径
-
-  let fixedPositions = Cesium.Cartographic.fromDegrees(startLongitude, startLatitude, startHeight); // 起点
-  let fixedCartesian = Cesium.Cartographic.toCartesian(fixedPositions); // 起点的笛卡尔坐标
-
-  let endPointCartesians: Cesium.Cartesian3[] = []; // 终点的笛卡尔坐标
-  // let currentCartesian = fixedCartesian;
-
-  data.forEach((item) => {
-    // let direction = Cesium.Math.toRadians(item.direction); // 方向角度
-    let direction = Cesium.Math.toRadians(item.azimuth); // 方向角度
-    // let distance = item.distance * 1000; // 距离
-    let distance = item.distancekm * 1000; // 距离
-
-    // 计算终点的笛卡尔坐标
-    let endpointCartesian = Cesium.Cartesian3.fromRadians(
-      Cesium.Cartographic.fromCartesian(fixedCartesian).longitude + (distance / earthRadius) * Math.cos(direction),
-      Cesium.Cartographic.fromCartesian(fixedCartesian).latitude + (distance / earthRadius) * Math.sin(direction),
-      Cesium.Cartographic.fromCartesian(fixedCartesian).height,
-    );
-    endPointCartesians.push(endpointCartesian);
-  });
-
-  endPointCartesians.push(endPointCartesians[0]);
-
-  return new Cesium.PolygonHierarchy(endPointCartesians);
-}
-
-/**
- * 根据每一个点的终点为下一个点的起点计算 polygon 的路径
- * @param startLongitude 经度
- * @param startLatitude 纬度
- * @param startHeight 高度
- * @param data 包含方向和距离的数据
- * @returns polygon 的路径
- */
-export function handlerPointNew(
-  startLongitude: number,
-  startLatitude: number,
-  startHeight: number,
-  data: DirectionDistancePoint[],
-) {
-  let startPoint = Cesium.Cartesian3.fromDegrees(startLongitude, startLatitude, startHeight);
-
-  let pathPoints: Cesium.Cartesian3[] = [startPoint]; // 路径点
-  let currentPoint = startPoint; // 当前点
-
-  data.forEach((item) => {
-    let direction = Cesium.Math.toRadians(item.direction); // 方向角度
-    let distance = item.distance * 1000; // 距离
-
-    // 计算终点的笛卡尔坐标
-    let newPoint = Cesium.Cartesian3.fromRadians(
-      Cesium.Cartographic.fromCartesian(currentPoint).longitude +
-        (distance / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(direction),
-      Cesium.Cartographic.fromCartesian(currentPoint).latitude +
-        (distance / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(direction),
-      Cesium.Cartographic.fromCartesian(currentPoint).height,
-    );
-    pathPoints.push(newPoint); // 添加新点
-    currentPoint = newPoint; // 更新当前点
-  });
-
-  pathPoints.push(startPoint); // 添加起始点以形成闭合路径
-
-  return pathPoints;
-}
 
 /**
  * 计算两点之间的距离, 如果距离大于 distanceMi 设定的米,则生成一个新的点
@@ -244,7 +57,7 @@ export const handlerComputePoint = (data: Point[], distanceMi: number) => {
 export function mergePolygons(polygonArrays: Point[][]) {
   // 检查输入是否有效
   if (!Array.isArray(polygonArrays) || polygonArrays.length === 0) {
-    throw new Error('输入必须是多边形坐标的非空数组。');
+    throw new Error('Input must be a non-empty array of polygon coordinates.');
   }
 
   // 检查多边形是否有效
@@ -267,7 +80,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
   const validPolygons = polygonArrays
     .map((polygon, index) => {
       if (!Array.isArray(polygon) || polygon.length < 3) {
-        console.warn(`索引处的多边形 ${index} 无效(低于3个点)。跳过。`);
+        console.warn(`Polygon at index ${index} has fewer than 3 points. Skipped.`);
         return null;
       }
 
@@ -276,7 +89,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
 
       // 确保多边形是闭合的
       if (validPoints.length < 3) {
-        console.warn(`索引处的多边形 ${index} 具有少于3个有效唯一点。跳过。`);
+        console.warn(`Polygon at index ${index} has fewer than 3 valid unique points. Skipped.`);
         return null;
       }
 
@@ -290,7 +103,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
     .filter((polygon): polygon is Point[] => Boolean(polygon));
 
   if (validPolygons.length === 0) {
-    throw new Error('没有要合并的有效多边形。');
+    throw new Error('No valid polygons to merge.');
   }
 
   // 创建 turf 多边形
@@ -300,7 +113,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
         const coordinates = pointSet.map((p): TurfCoordinate => [p.longitude, p.latitude]);
         return polygon([coordinates]);
       } catch (error) {
-        console.error(`创建 turf 多边形错误 ${index}:`, error);
+        console.error(`Failed to create turf polygon ${index}:`, error);
         return null;
       }
     })
@@ -308,7 +121,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
 
   // 检查是否有有效的 turf 多边形
   if (turfPolygons.length === 0) {
-    throw new Error('未能创建有效的 turf 多边形。');
+    throw new Error('Could not create any valid turf polygon.');
   }
 
   // 如果只有一个多边形，不需要合并
@@ -330,7 +143,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
     const merged = union(featureCollection(turfPolygons));
 
     if (!merged || !merged.geometry || !merged.geometry.coordinates) {
-      throw new Error('合并结果为空');
+      throw new Error('The merge result is empty');
     }
 
     // 规整为外环数组：Polygon 取唯一外环，MultiPolygon 逐个取外环
@@ -346,8 +159,8 @@ export function mergePolygons(polygonArrays: Point[][]) {
       })),
     );
   } catch (error: unknown) {
-    console.error('多边形合并时出错:', error);
-    throw new Error(`合并多边形失败: ${error instanceof Error ? error.message : String(error)}`);
+    console.error('Polygon merge failed:', error);
+    throw new Error(`Polygon merge failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -365,7 +178,7 @@ export function mergePolygons(polygonArrays: Point[][]) {
 
 export function mergePolygonsPath(polygonArrays: Point[][]) {
   if (!Array.isArray(polygonArrays) || polygonArrays.length === 0) {
-    throw new Error('输入必须是多边形坐标的非空数组.');
+    throw new Error('Input must be a non-empty array of polygon coordinates.');
   }
 
   function isValidPoint(p: Point | undefined): p is Point {
@@ -385,7 +198,7 @@ export function mergePolygonsPath(polygonArrays: Point[][]) {
   // 验证和清理输入多边形
   const allPoints = polygonArrays.flatMap((polygon, index) => {
     if (!Array.isArray(polygon) || polygon.length < 3) {
-      console.warn(`在索引多边形 ${index} 无效(低于3分)。跳过.`);
+      console.warn(`Polygon at index ${index} has fewer than 3 points. Skipped.`);
       return [];
     }
 
@@ -393,7 +206,7 @@ export function mergePolygonsPath(polygonArrays: Point[][]) {
   });
 
   if (allPoints.length < 3) {
-    throw new Error('没有足够的有效点来创建多边形。');
+    throw new Error('Not enough valid points to build a polygon.');
   }
 
   // 计算凸包

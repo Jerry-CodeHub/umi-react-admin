@@ -17,6 +17,13 @@ export const DEVICE_STATUS_COLOR: Record<DeviceStatus, PresetColor> = {
   fault: 'red',
 };
 
+/** 设备状态的具体色值（地图点位等非 antd 组件使用；与 DEVICE_STATUS_COLOR 同义） */
+export const DEVICE_STATUS_CSS: Record<DeviceStatus, string> = {
+  online: '#52c41a',
+  offline: '#8c8c8c',
+  fault: '#ff4d4f',
+};
+
 export const TICKET_STATUS_COLOR: Record<TicketStatus, PresetColor> = {
   todo: 'grey',
   doing: 'blue',

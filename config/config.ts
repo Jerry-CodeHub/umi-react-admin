@@ -105,9 +105,6 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: {},
-  // @umijs/max 内置了 styled-components 样式方案。
-  // https://umijs.org/docs/max/styled-components
-  styledComponents: {},
   // 路由配置
   routes,
   npmClient: 'pnpm',

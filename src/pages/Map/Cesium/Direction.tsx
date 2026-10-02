@@ -1,202 +1,161 @@
-/**
- * DirectionDistance.tsx
- */
-import { CesiumInitError, createDemoViewer } from '@/components/CesiumViewer';
-import {
-  handlerDirectionDistance,
-  handlerDistanceKm,
-  handlerPointNew,
-  handlerPolygonPath,
-} from '@/utils/MapCompute/cesiumCompute';
-import { dataPath } from '@/utils/MapCompute/dataEnd';
-import { demodulationResultList, interceptResultList, locationResultList } from '@/utils/MapCompute/exportJson';
-import { setupCesium } from '@/utils/MapCompute/setupCesium';
-import { ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Tooltip } from 'antd';
+import { CesiumStage, useCesiumViewer } from '@/components/CesiumViewer';
+import DemoPage from '@/components/DemoPage';
+import { useApi } from '@/hooks/useApi';
+import { circle, destination } from '@/utils/MapCompute/geodesy';
+import { AimOutlined, CalculatorOutlined, ClearOutlined, RadarChartOutlined } from '@ant-design/icons';
+import { useIntl } from '@umijs/max';
+import { Alert, Badge, Button, Card, Space } from 'antd';
 import * as Cesium from 'cesium';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
-setupCesium(Cesium);
+type EnvelopePoint = { azimuth: number; distanceKm: number; longitude: number; latitude: number };
+type Envelopes = { origin: [number, number] } & Record<Capability, EnvelopePoint[]>;
+type Capability = 'intercept' | 'location' | 'demodulation';
 
-const DirectionDistance: React.FC = () => {
-  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
-  const [initError, setInitError] = useState(false);
+const CAPABILITIES: Capability[] = ['location', 'intercept', 'demodulation'];
+const COLOR: Record<Capability, string> = { intercept: '#ff4d4f', location: '#1677ff', demodulation: '#52c41a' };
 
-  useEffect(() => {
-    // 创建一个 Cesium Viewer 实例
-    // 通用控件配置与初始化失败兜底见 @/components/CesiumViewer
-    const viewer = createDemoViewer('cesium-container');
-    if (!viewer) {
-      setInitError(true);
-      return;
-    }
-
-    // 修改 homeButton 的位置
-    let initView = {
-      destination: Cesium.Cartesian3.fromDegrees(116.3974, 39.9093, 15000000),
-    };
-    // viewer.camera.setView(initView);
-    viewer.camera.flyTo(initView);
-
-    setViewer(viewer);
-
-    // 销毁
-    return () => {
-      if (!viewer.isDestroyed()) viewer.destroy();
-    };
-  }, []);
-
-  // NOTE 根据方向(度)和距离(km)生成路径
-  const handlePolygonPath = () => {
-    if (!viewer) return;
-
-    let startLongitude = 116.3974;
-    let startLatitude = 39.9093;
-    let startHeight = 0;
-
-    let startPoint = handlerDirectionDistance(startLongitude, startLatitude, startHeight, dataPath);
-
-    let polygon = viewer.entities.add({
-      polygon: {
-        hierarchy: startPoint,
-        material: Cesium.Color.RED.withAlpha(0.5),
-      },
-    });
-
-    viewer.zoomTo(polygon);
-  };
-
-  // NOTE 每一个点的终点为下一个点的起点
-  const handlePointPath = () => {
-    if (!viewer) return;
-
-    let startLongitude = 116.3974;
-    let startLatitude = 39.9093;
-    let startHeight = 0;
-
-    let pathPoints = handlerPointNew(startLongitude, startLatitude, startHeight, dataPath);
-    let polygon = viewer.entities.add({
-      polygon: {
-        hierarchy: pathPoints,
-        material: Cesium.Color.RED.withAlpha(0.5),
-      },
-    });
-
-    viewer.zoomTo(polygon);
-  };
-
-  // NOTE 经纬度渲染
-  const handlerLatLon = () => {
-    if (!viewer) return;
-
-    let intercept = structuredClone(interceptResultList);
-    let location = structuredClone(locationResultList);
-    let demodulation = structuredClone(demodulationResultList);
-
-    let interceptList = handlerPolygonPath(intercept);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: interceptList,
-        // 内部填充颜色 透明度
-        material: Cesium.Color.RED.withAlpha(0.5),
-        // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
-        //   color: Cesium.Color.RED,
-        // }),
-      },
-    });
-
-    let locationList = handlerPolygonPath(location);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: locationList,
-        // 内部填充颜色 透明度
-        material: Cesium.Color.BLUE.withAlpha(0.5),
-        // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
-        //   color: Cesium.Color.BLUE,
-        // }),
-      },
-    });
-
-    let demodulationList = handlerPolygonPath(demodulation);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: demodulationList,
-        // 内部填充颜色 透明度
-        material: Cesium.Color.GREEN.withAlpha(0.5),
-        // material: new Cesium.PolylineDashMaterialProperty({ // 虚线材质
-        //   color: Cesium.Color.GREEN,
-        // }),
-      },
-    });
-  };
-
-  // NOTE 方向距离渲染
-  const handlerDistance = () => {
-    if (!viewer) return;
-
-    let intercept = structuredClone(interceptResultList);
-    let location = structuredClone(locationResultList);
-    let demodulation = structuredClone(demodulationResultList);
-
-    let startLongitude = 116.3974;
-    let startLatitude = 39.9093;
-    let startHeight = 0;
-
-    let startPoint = handlerDistanceKm(startLongitude, startLatitude, startHeight, intercept);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: startPoint,
-        material: Cesium.Color.RED.withAlpha(0.5),
-      },
-    });
-
-    let endPoint = handlerDistanceKm(startLongitude, startLatitude, startHeight, location);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: endPoint,
-        material: Cesium.Color.BLUE.withAlpha(0.5),
-      },
-    });
-
-    let demodulationPoint = handlerDistanceKm(startLongitude, startLatitude, startHeight, demodulation);
-    viewer.entities.add({
-      polygon: {
-        hierarchy: demodulationPoint,
-        material: Cesium.Color.GREEN.withAlpha(0.5),
-      },
-    });
-  };
-
-  return (
-    <>
-      <Alert className="mb-2" message="方向距离算法" type="success" />
-      <ProCard>
-        {initError ? <CesiumInitError /> : <div id="cesium-container" />}
-        <Tooltip title="根据方向(度)和距离(km)生成路径 (起始点为固定点路径完成连接终点)">
-          <Button onClick={() => handlePolygonPath()} className="mt-2">
-            以固定点为原点连接终点
-          </Button>
-        </Tooltip>
-
-        <Tooltip className="ml-2" title="根据方向(度)和距离(km)生成路径 (每一个点的终点为下一个点的起点)">
-          <Button onClick={() => handlePointPath()} className="mt-2">
-            每一个点的终点为下一个点的起点
-          </Button>
-        </Tooltip>
-
-        <Button className="mt-2 ml-2" onClick={() => handlerLatLon()}>
-          经纬度渲染
-        </Button>
-
-        <Tooltip title="根据方向(度)和距离(km)生成路径 (起始点为固定点路径完成连接终点)">
-          <Button className="mt-2 ml-2" onClick={() => handlerDistance()}>
-            方向距离渲染
-          </Button>
-        </Tooltip>
-      </ProCard>
-    </>
-  );
+const loadEnvelopes = async (): Promise<Envelopes> => {
+  const response = await fetch(`${PUBLIC_PATH}data/cesium/envelopes.json`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return (await response.json()) as Envelopes;
 };
 
-export default DirectionDistance;
+const hierarchy = (points: [number, number][]) =>
+  new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(points.flat()));
+
+export default function Direction() {
+  const intl = useIntl();
+  const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
+  const { data } = useApi(loadEnvelopes);
+  const layerRef = useRef<Cesium.CustomDataSource>(null);
+  const { containerRef, viewer, error } = useCesiumViewer({ home: [116.52, 30.39, 1_200_000] });
+
+  useEffect(() => {
+    if (!viewer || !data) return undefined;
+    const layer = new Cesium.CustomDataSource('direction');
+    viewer.dataSources.add(layer);
+    layerRef.current = layer;
+    // 监测点标记
+    viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(...data.origin),
+      point: { pixelSize: 10, color: Cesium.Color.ORANGE, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
+    });
+    return () => {
+      if (!viewer.isDestroyed()) viewer.dataSources.remove(layer, true);
+    };
+  }, [viewer, data]);
+
+  const stats = useMemo(
+    () =>
+      data
+        ? CAPABILITIES.map((key) => {
+            const distances = data[key].map((p) => p.distanceKm);
+            return {
+              key,
+              max: Math.max(...distances).toFixed(0),
+              min: Math.min(...distances).toFixed(0),
+              avg: (distances.reduce((s, d) => s + d, 0) / distances.length).toFixed(0),
+            };
+          })
+        : [],
+    [data],
+  );
+
+  const flyToLayer = () => {
+    if (viewer && layerRef.current) viewer.flyTo(layerRef.current, { duration: 1.2 });
+  };
+
+  /** 实测包络：直接用数据里的经纬度连成多边形 */
+  const drawMeasured = () => {
+    if (!data || !layerRef.current) return;
+    CAPABILITIES.forEach((key) =>
+      layerRef.current!.entities.add({
+        polygon: {
+          hierarchy: hierarchy(data[key].map((p) => [p.longitude, p.latitude])),
+          material: Cesium.Color.fromCssColorString(COLOR[key]).withAlpha(0.25),
+          outline: true,
+          outlineColor: Cesium.Color.fromCssColorString(COLOR[key]),
+        },
+      }),
+    );
+    flyToLayer();
+  };
+
+  /** 计算包络：只用「方位 + 距离」经大圆公式求终点，画成虚线，应与实测包络重合 */
+  const drawComputed = () => {
+    if (!data || !layerRef.current) return;
+    CAPABILITIES.forEach((key) => {
+      const points = data[key].map((p) => destination(...data.origin, p.azimuth, p.distanceKm));
+      layerRef.current!.entities.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray([...points, points[0]].flat()),
+          width: 2,
+          material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(COLOR[key]) }),
+          clampToGround: true,
+        },
+      });
+    });
+    flyToLayer();
+  };
+
+  const drawCircle = () => {
+    if (!data || !layerRef.current) return;
+    layerRef.current.entities.add({
+      polygon: {
+        hierarchy: hierarchy(circle(...data.origin, 100)),
+        material: Cesium.Color.WHITE.withAlpha(0.08),
+        outline: true,
+        outlineColor: Cesium.Color.WHITE,
+      },
+    });
+    flyToLayer();
+  };
+
+  const legend = (
+    <Card size="small" className="pointer-events-auto opacity-95">
+      <Space direction="vertical" size={2}>
+        {stats.map((row) => (
+          <Badge
+            key={row.key}
+            color={COLOR[row.key]}
+            text={t('cesium.direction.stats', {
+              name: t(`cesium.direction.${row.key}`),
+              max: row.max,
+              min: row.min,
+              avg: row.avg,
+            })}
+          />
+        ))}
+      </Space>
+    </Card>
+  );
+
+  return (
+    <DemoPage
+      descriptionId="page.cesium.direction.desc"
+      source="src/utils/MapCompute/geodesy.ts"
+      extra={
+        <>
+          <Button type="primary" icon={<RadarChartOutlined />} disabled={!data || !viewer} onClick={drawMeasured}>
+            {t('cesium.direction.measured')}
+          </Button>
+          <Button icon={<CalculatorOutlined />} disabled={!data || !viewer} onClick={drawComputed}>
+            {t('cesium.direction.computed')}
+          </Button>
+          <Button icon={<AimOutlined />} disabled={!data || !viewer} onClick={drawCircle}>
+            {t('cesium.direction.circle')}
+          </Button>
+          <Button icon={<ClearOutlined />} onClick={() => layerRef.current?.entities.removeAll()}>
+            {t('map.clear')}
+          </Button>
+        </>
+      }
+    >
+      <Alert type="info" showIcon className="mb-4" message={t('cesium.direction.hint')} />
+      <Card styles={{ body: { padding: 0 } }}>
+        <CesiumStage containerRef={containerRef} viewer={viewer} error={error} overlay={data && legend} />
+      </Card>
+    </DemoPage>
+  );
+}

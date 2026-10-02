@@ -35,15 +35,10 @@ const localPlugin = {
 };
 
 /**
- * 尚未完成多语言迁移的页面（按重构阶段逐步清空，见 docs 重构方案 C3）。
+ * 暂缓多语言迁移的文件清单（重构期间按阶段清空，2026-09 已清零）。
  * 新增文件不要加进来——写新代码就直接用 locales。
  */
-const I18N_PENDING = [
-  // P6 地图
-  'src/pages/Map/**',
-  'src/utils/MapCompute/**',
-  'src/components/CesiumViewer/**',
-];
+const I18N_PENDING = [];
 
 /** umi recommended：内置规则 */
 const umiCoreRules = {

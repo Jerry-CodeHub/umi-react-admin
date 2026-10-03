@@ -4,11 +4,11 @@
     "firstScreenGzipKB": 2400,
     "homeFirstLoadGzipKB": 1275,
     "recordedAt": "2026-09-21",
-    "note": "治理前（审计 perf-1）：191-192 个同步脚本、2.40MB gzip。2026-09-21 审查实测 /home 真实首屏 1275KB gzip（含被强制命名组拖入的 vendor-media/vendor-d3）；拆包修正后 1153KB。阈值 = 实测 + 约 10% 余量。"
+    "note": "治理前（审计 perf-1）：191-192 个同步脚本、2.40MB gzip。2026-09-21 审查实测 /home 真实首屏 1275KB gzip（含被强制命名组拖入的 vendor-media/vendor-d3）；拆包修正后 1153KB。阈值 = 实测 + 约 10% 余量。 2026-09-24 重构：pro-components 拆为异步 vendor-pro，入口 777→649KB、登录页 779→652KB gzip，预算随之收紧到 700KB。"
   },
   "limits": {
     "syncScripts": 6,
-    "firstScreenGzipKB": 780,
+    "firstScreenGzipKB": 700,
     "routes": {
       "p__Dashboard__index": {
         "withLayout": true,
@@ -16,7 +16,7 @@
       },
       "p__Login__index": {
         "withLayout": false,
-        "maxGzipKB": 780
+        "maxGzipKB": 700
       }
     },
     "distMB": 30,

@@ -14,7 +14,9 @@ COPY . .
 # token 经 ARG 注入（RUN 中直接可见）。不落 ENV：ENV 会把值持久化进 builder 镜像层，
 # docker history 可见（审计 2026-09-22 L-1；最终运行镜像虽不继承，但没有理由留下这层痕迹）
 ARG CESIUM_ION_TOKEN=""
-RUN pnpm build
+# 构建信息：.git 不进构建上下文，提交号经 build-arg 传入（docker build --build-arg GIT_SHA=$(git rev-parse HEAD)）
+ARG GIT_SHA=""
+RUN BUILD_TARGET=docker GITHUB_SHA="${GIT_SHA}" pnpm build
 
 # ---------- 阶段二：运行（全程非 root） ----------
 # 固定到稳定线 1.30 的具体镜像摘要（多架构 index），升级时显式更新 tag 与摘要

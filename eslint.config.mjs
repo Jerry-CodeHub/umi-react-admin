@@ -159,6 +159,8 @@ export default defineConfig(
       'src/.umi/',
       'src/.umi-production/',
       'coverage/',
+      'playwright-report/',
+      'test-results/',
       '.claude/',
       '.kilo/',
     ],
@@ -211,7 +213,9 @@ export default defineConfig(
     rules: { 'local/no-cjk-literal': 'error' },
   },
   {
+    // vitest 规则只作用于单元测试；e2e/ 下是 Playwright 用例（API 不同）
     files: ['**/*.{test,spec}.{ts,tsx,js,jsx}'],
+    ignores: ['e2e/**'],
     plugins: { vitest },
     rules: umiTestRules,
   },

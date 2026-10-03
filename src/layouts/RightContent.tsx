@@ -1,10 +1,12 @@
+import { OPEN_TOUR_EVENT } from '@/components/GuideTour';
 import { AUTH_TOKEN_KEY } from '@/constants';
 import { DEMO_MODE } from '@/demo/mode';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import { logout } from '@/services/auth';
 import { resetDemoData } from '@/services/system';
-import { THEME_STORAGE_KEY, type AppInitialState, type ThemeMode } from '@/utils/Auth/initialState';
 import { avatarColor, avatarText } from '@/utils/avatar';
 import {
+  CompassOutlined,
   GithubOutlined,
   GlobalOutlined,
   LogoutOutlined,
@@ -12,23 +14,16 @@ import {
   SunOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { getLocale, history, setLocale, useAntdConfigSetter, useIntl, useModel } from '@umijs/max';
+import { getLocale, history, setLocale, useIntl, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
-import { App, Avatar, Button, Dropdown, Tooltip, theme as antdTheme } from 'antd';
+import { App, Avatar, Button, Dropdown, Tooltip } from 'antd';
 
 const safeStorage = {
-  set: (key: string, value: string) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      // 存储不可用：本次会话内仍然生效
-    }
-  },
   remove: (key: string) => {
     try {
       localStorage.removeItem(key);
     } catch {
-      // 同上
+      // 存储不可用：内存中的登录态同样会被清除
     }
   },
 };
@@ -48,25 +43,8 @@ const RightContent = () => {
   const intl = useIntl();
   const { message, modal } = App.useApp();
   const { initialState, setInitialState } = useModel('@@initialState');
-  const setAntdConfig = useAntdConfigSetter();
-  const dark = initialState?.theme === 'realDark';
+  const { dark, toggle: toggleTheme } = useThemeMode();
   const t = (id: string) => intl.formatMessage({ id });
-
-  /** 切换主题：antd 算法经 useAntdConfigSetter 热切换，ProLayout navTheme 与持久化经 initialState 同步 */
-  const applyTheme = (mode: ThemeMode) => {
-    safeStorage.set(THEME_STORAGE_KEY, mode);
-    setAntdConfig({
-      theme: { algorithm: mode === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm },
-    });
-    setInitialState((prev: AppInitialState | undefined) => ({
-      name: '',
-      email: '',
-      nickName: '',
-      role: undefined,
-      ...prev,
-      theme: mode,
-    }));
-  };
 
   const handleLogout = async () => {
     try {
@@ -96,12 +74,16 @@ const RightContent = () => {
   const accountMenu: MenuProps = {
     items: [
       // 重置演示数据只在演示模式出现（接了真实后端就没有这个概念）
-      ...(DEMO_MODE
-        ? [{ key: 'reset', icon: <UndoOutlined />, label: t('header.resetDemo') }, { type: 'divider' as const }]
-        : []),
+      ...(DEMO_MODE ? [{ key: 'reset', icon: <UndoOutlined />, label: t('header.resetDemo') }] : []),
+      { key: 'tour', icon: <CompassOutlined />, label: t('tour.menu') },
+      { type: 'divider' as const },
       { key: 'logout', icon: <LogoutOutlined />, label: t('header.logout') },
     ],
-    onClick: ({ key }) => (key === 'reset' ? handleResetDemo() : handleLogout()),
+    onClick: ({ key }) => {
+      if (key === 'reset') handleResetDemo();
+      else if (key === 'tour') window.dispatchEvent(new Event(OPEN_TOUR_EVENT));
+      else handleLogout();
+    },
   };
 
   const localeMenu: MenuProps = {
@@ -121,10 +103,11 @@ const RightContent = () => {
     <div className="flex items-center gap-2 pr-2">
       <Tooltip title={themeLabel}>
         <Button
+          data-tour="theme"
           aria-label={themeLabel}
           type="text"
           icon={dark ? <SunOutlined /> : <MoonOutlined />}
-          onClick={() => applyTheme(dark ? 'light' : 'realDark')}
+          onClick={toggleTheme}
         />
       </Tooltip>
       <Dropdown menu={localeMenu} placement="bottomRight" trigger={['hover', 'click']}>
@@ -141,7 +124,7 @@ const RightContent = () => {
         />
       </Tooltip>
       <Dropdown menu={accountMenu} placement="bottomRight" trigger={['hover', 'click']}>
-        <Button aria-label={t('header.account')} type="text" className="flex items-center">
+        <Button data-tour="account" aria-label={t('header.account')} type="text" className="flex items-center">
           <Avatar size={26} style={{ backgroundColor: avatarColor(displayName) }}>
             {avatarText(displayName)}
           </Avatar>

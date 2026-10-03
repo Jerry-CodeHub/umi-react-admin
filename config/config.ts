@@ -1,4 +1,5 @@
 import { defineConfig } from '@umijs/max';
+import { BUILD_INFO, addVersionFile } from './buildInfo';
 import { addChunkGraph } from './chunkGraph';
 import { routes } from './routes';
 import { configureSplitChunks } from './splitChunks';
@@ -32,6 +33,7 @@ export default defineConfig({
     if (process.env.NODE_ENV === 'production') {
       configureSplitChunks(config);
       addChunkGraph(config);
+      addVersionFile(config);
     }
   },
   copy: [
@@ -77,9 +79,13 @@ export default defineConfig({
     // 可选——不配置时高德页面回落 @pansy/amap-api-loader 自带的公共 key（配额不受本项目控制）
     AMAP_KEY: process.env.AMAP_KEY,
     AMAP_SECURITY_CODE: process.env.AMAP_SECURITY_CODE,
+    // 构建信息（页脚与 dist/version.json 同源，见 ./buildInfo.ts）
+    BUILD_INFO,
   },
   // 覆盖 umi 默认的 viewport（user-scalable=no / maximum-scale=1 禁止缩放，违反 WCAG 1.4.4）
   metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+  // SVG 图标（现代浏览器均支持），GitHub Pages 产线见 config.github.ts
+  favicons: ['/logo.svg'],
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   // 产物文件名带内容哈希：配合 nginx 对哈希文件的长缓存（nginx/default.conf），发版后不会命中旧脚本
   hash: true,

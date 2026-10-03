@@ -42,6 +42,14 @@ export const configureSplitChunks = (config: WebpackChainConfig) => {
         priority: 45,
         enforce: true,
       },
+      // pro-components 只有布局与各业务页用到：单独成组并限定异步，登录页与入口不再背它（约 180KB gzip）
+      pro: {
+        name: 'vendor-pro',
+        test: /[\\/]node_modules[\\/]@ant-design[\\/]pro-[\w-]+[\\/]/,
+        chunks: 'async',
+        priority: 42,
+        enforce: true,
+      },
       antd: {
         name: 'vendor-antd',
         test: /[\\/]node_modules[\\/](@ant-design|@rc-component|antd|rc-.+)[\\/]/,

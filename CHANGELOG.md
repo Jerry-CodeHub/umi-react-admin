@@ -6,6 +6,19 @@
 
 方案见 `docs/remediation-plan-2026-09-23.md`（不入库）。
 
+### P7 部署与使用体验（2026-09-24）
+
+- 登录页重做：左侧产品说明与亮点，右侧「以管理员体验」「以访客体验（受限权限）」一键登录，表单预填；登录页可直接切换明暗与语言
+- 首次登录导览（antd Tour，4 步：菜单分组 → 主题与语言 → 账户菜单与重置 → 查看源码），可从头像菜单「功能导览」重新打开
+- 构建信息：页脚显示构建时间、部署目标与提交号（链接到提交），并输出 `dist/version.json`；Docker 经 `--build-arg GIT_SHA` 传入提交号
+- 路由切换的加载占位改为贴近页面形状的骨架；项目标识换成自制 SVG（同时作为 favicon），删除沿用的 umi 标识与未使用的图片
+- 体积：pro-components 拆为异步 `vendor-pro`，入口 JS 由 777KB 降到 649KB gzip、登录页由 779KB 降到 652KB，预算相应收紧到 700KB
+- E2E（Playwright，`e2e/`）：对 GitHub Pages 同构产物逐页断言无未捕获异常、无 console.error、无 CSP 违规；英文界面逐页断言无遗漏中文；关键流程（登录回跳、旧路径重定向、访客 403 与脱敏、KPI 与台账口径一致、告警转工单与看板拖动、重置演示数据、版本信息）。CI 新增 e2e 任务；部署后等待线上 `version.json` 切到本次提交再对线上跑 `@smoke`
+- 部署提交改用 github-actions[bot] 身份（不再计入维护者的贡献图）
+- Cesium 影像瓦片请求失败时的未处理拒绝不再刷屏（缺几块瓦片不影响使用）
+- `pnpm preview` 改用与 GitHub Pages 行为一致的静态服务器（`scripts/serve-dist.mjs`），不再用自带 mock 的 `max preview`
+- 文档：README、CONTRIBUTING、SECURITY 与新架构对齐
+
 ### P6 地图（2026-09-24）
 
 - 高德与 OpenLayers：两张地图显示同一批 240 个监测站，按状态着色、按状态筛选（带数量）、点击弹出站点卡片（两页共用一个 React 组件）；高德暗色主题切换深色底图，OpenLayers 暗色下瓦片反色

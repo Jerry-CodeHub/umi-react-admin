@@ -2,7 +2,9 @@
 // 官方补丁改走 createRoot；必须先于任何 antd 静态调用加载（升级 antd 6 后可移除）
 import '@ant-design/v5-patch-for-react-19';
 
+import BuildFooter from '@/components/BuildFooter';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import GuideTour from '@/components/GuideTour';
 import { AUTH_TOKEN_KEY } from '@/constants';
 import RightContent from '@/layouts/RightContent';
 import Forbidden from '@/pages/Exception/403';
@@ -138,10 +140,14 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     fixSiderbar: true,
     fixHeader: true,
     unAccessible: <AccessFallback />,
+    footerRender: () => <BuildFooter />,
     childrenRender: (children) => (
       <ErrorBoundary>
         <MessageBridge />
-        <AuthGuard>{children}</AuthGuard>
+        <AuthGuard>
+          {children}
+          <GuideTour />
+        </AuthGuard>
       </ErrorBoundary>
     ),
     // 更多 ProLayout 属性见：https://procomponents.ant.design/components/layout#prolayout

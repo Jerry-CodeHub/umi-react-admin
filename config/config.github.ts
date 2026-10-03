@@ -1,4 +1,5 @@
 import { defineConfig } from '@umijs/max';
+import { BUILD_INFO, addVersionFile } from './buildInfo';
 import { addChunkGraph } from './chunkGraph';
 import { buildCsp } from './csp';
 import { configureSplitChunks } from './splitChunks';
@@ -10,6 +11,7 @@ export default defineConfig({
     if (process.env.NODE_ENV === 'production') {
       configureSplitChunks(config);
       addChunkGraph(config);
+      addVersionFile(config);
     }
   },
   define: {
@@ -19,6 +21,8 @@ export default defineConfig({
     UMI_APP_API_BASE: process.env.UMI_APP_API_BASE,
     AMAP_KEY: process.env.AMAP_KEY,
     AMAP_SECURITY_CODE: process.env.AMAP_SECURITY_CODE,
+    // 构建信息（页脚与 dist/version.json 同源，见 ./buildInfo.ts）
+    BUILD_INFO,
   },
   // umi 对 metas 数组为整体覆盖（不与 config.ts 逐项合并），viewport 需一并带上。
   // meta CSP（审计 2026-09-22 H-3）：GitHub Pages 无法自定义响应头，只能走 meta；
@@ -31,7 +35,7 @@ export default defineConfig({
       content: buildCsp({ meta: true }),
     },
   ],
-  favicons: ['/umi-react-admin/favicon.ico'],
+  favicons: ['/umi-react-admin/logo.svg'],
   base: '/umi-react-admin/',
   publicPath: '/umi-react-admin/',
 });

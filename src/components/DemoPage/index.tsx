@@ -19,7 +19,14 @@ type DemoPageProps = Omit<PageContainerProps, 'content'> & {
 export default function DemoPage({ descriptionId, source, extra, children, ...rest }: DemoPageProps) {
   const intl = useIntl();
   const sourceButton = source ? (
-    <Button key="source" icon={<GithubOutlined />} href={REPO_BLOB + source} target="_blank" rel="noopener noreferrer">
+    <Button
+      key="source"
+      data-tour="source"
+      icon={<GithubOutlined />}
+      href={REPO_BLOB + source}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {intl.formatMessage({ id: 'common.viewSource' })}
     </Button>
   ) : null;

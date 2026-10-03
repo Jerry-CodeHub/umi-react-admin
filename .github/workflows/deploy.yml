@@ -73,3 +73,21 @@ jobs:
           # 且旧产物（含已泄露未轮换的历史 token）不再被新克隆拉取。
           # 注意：开启后首次部署将重建整棵部署树。
           force_orphan: true
+          # 部署提交以机器人身份提交（默认用触发者身份，每次部署都会计入维护者的贡献图）
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Install Chromium（部署后冒烟用）
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: 部署后冒烟（等待线上 version.json 切到本次提交，再跑 @smoke 用例）
+        env:
+          E2E_BASE_URL: https://jerry-codehub.github.io/umi-react-admin/
+        run: |
+          for i in $(seq 1 30); do
+            sha=$(curl -fsSL "${E2E_BASE_URL}version.json?t=$(date +%s)" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).sha)}catch{}})") || true
+            if [ "$sha" = "$GITHUB_SHA" ]; then echo "线上已是 $sha"; break; fi
+            echo "等待 GitHub Pages 生效（当前 ${sha:-未知}）…"; sleep 20
+          done
+          [ "$sha" = "$GITHUB_SHA" ] || { echo "::error::10 分钟内线上版本没有切到 $GITHUB_SHA"; exit 1; }
+          pnpm exec playwright test --grep @smoke

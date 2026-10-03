@@ -86,9 +86,16 @@ export const useCesiumViewer = ({
       return undefined;
     }
     instance.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(...home) });
+    // 影像瓦片请求失败（离线、被 CSP 拦截、服务限流）时 Cesium 内部以 RequestErrorEvent 未处理拒绝；
+    // 缺几块瓦片不影响场景可用，这里吞掉这一类，避免刷屏 Uncaught (in promise)
+    const onRejection = (event: PromiseRejectionEvent) => {
+      if (event.reason instanceof Cesium.RequestErrorEvent) event.preventDefault();
+    };
+    window.addEventListener('unhandledrejection', onRejection);
     const cleanup = onReadyRef.current?.(instance);
     setViewer(instance);
     return () => {
+      window.removeEventListener('unhandledrejection', onRejection);
       cleanup?.();
       if (!instance.isDestroyed()) instance.destroy();
     };

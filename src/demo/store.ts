@@ -8,10 +8,10 @@
  */
 import { generateDataset, type Dataset, type DemoLocale } from './generate';
 
-export const STORE_VERSION = 1;
+export const STORE_VERSION = 2;
 export const STORE_KEY = `umi-react-admin:demo-store:v${STORE_VERSION}`;
 /** 历史版本遗留的存储键（加载时顺手清理） */
-const LEGACY_KEYS = ['umi-react-admin-demo-users'];
+const LEGACY_KEYS = ['umi-react-admin-demo-users', 'umi-react-admin:demo-store:v1'];
 
 export type CollectionName = 'users' | 'roles' | 'tickets' | 'alarms' | 'logs' | 'events';
 const COLLECTIONS: CollectionName[] = ['users', 'roles', 'tickets', 'alarms', 'logs', 'events'];

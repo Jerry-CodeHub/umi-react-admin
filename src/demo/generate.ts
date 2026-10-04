@@ -485,7 +485,10 @@ const generateLogs = (locale: DemoLocale, now: Date, users: User[], alarms: Alar
   const active = users.filter((u) => u.status !== 'disabled');
   const admins = active.filter((u) => u.role === 'admin');
   const opsPeople = active.filter((u) => u.role === 'operator' || u.role === 'lead');
+  const leads = active.filter((u) => u.role === 'lead');
   const logs: OperationLog[] = [];
+  // 同一条告警 / 工单的同一种操作只记一次（此前随机抽取会出现「同一人两次派发同一张工单」）
+  const handled = new Set<string>();
 
   for (let k = LOG_WINDOW_DAYS - 1; k >= 0; k--) {
     const day = addDays(today, -k);
@@ -519,7 +522,11 @@ const generateLogs = (locale: DemoLocale, now: Date, users: User[], alarms: Alar
         );
         const ticket = candidates[Math.floor(roll * candidates.length)];
         target = ticket?.id ?? '';
-        actor = users.find((u) => u.id === ticket?.assigneeId) ?? actor;
+        // 派单由值班长操作，结单由处理人本人操作
+        actor =
+          action === 'ticketAssign' && leads.length
+            ? rng.pick(leads)
+            : (users.find((u) => u.id === ticket?.assigneeId) ?? actor);
       } else if (action === 'reportExport') {
         target = REPORT_NAMES[Math.floor(roll * REPORT_NAMES.length)][lang];
       } else if (action === 'roleUpdate') {
@@ -531,7 +538,14 @@ const generateLogs = (locale: DemoLocale, now: Date, users: User[], alarms: Alar
       }
       return { action, actor, target, failed, at, ip, userAgent };
     })
-      .filter((d) => d.at <= nowMs && !((d.action === 'alarmHandle' || d.action.startsWith('ticket')) && !d.target))
+      .filter((d) => {
+        if (d.at > nowMs) return false;
+        if (d.action !== 'alarmHandle' && !d.action.startsWith('ticket')) return true;
+        const key = `${d.action}:${d.target}`;
+        if (!d.target || handled.has(key)) return false;
+        handled.add(key);
+        return true;
+      })
       .sort((a, b) => a.at - b.at);
 
     drafts.forEach((draft, index) => {

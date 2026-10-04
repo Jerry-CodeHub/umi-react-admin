@@ -24,6 +24,19 @@ const loadEnvelopes = async (): Promise<Envelopes> => {
 const hierarchy = (points: [number, number][]) =>
   new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(points.flat()));
 
+/** 实测包络：直接用数据里的经纬度连成多边形 */
+const addMeasured = (layer: Cesium.CustomDataSource, data: Envelopes) =>
+  CAPABILITIES.forEach((key) =>
+    layer.entities.add({
+      polygon: {
+        hierarchy: hierarchy(data[key].map((p) => [p.longitude, p.latitude])),
+        material: Cesium.Color.fromCssColorString(COLOR[key]).withAlpha(0.25),
+        outline: true,
+        outlineColor: Cesium.Color.fromCssColorString(COLOR[key]),
+      },
+    }),
+  );
+
 export default function Direction() {
   const intl = useIntl();
   const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
@@ -41,6 +54,8 @@ export default function Direction() {
       position: Cesium.Cartesian3.fromDegrees(...data.origin),
       point: { pixelSize: 10, color: Cesium.Color.ORANGE, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
     });
+    // 进入页面直接画出实测包络（初始视角已框住），其余两种作为对比按需叠加
+    addMeasured(layer, data);
     return () => {
       if (!viewer.isDestroyed()) viewer.dataSources.remove(layer, true);
     };
@@ -66,19 +81,9 @@ export default function Direction() {
     if (viewer && layerRef.current) viewer.flyTo(layerRef.current, { duration: 1.2 });
   };
 
-  /** 实测包络：直接用数据里的经纬度连成多边形 */
   const drawMeasured = () => {
     if (!data || !layerRef.current) return;
-    CAPABILITIES.forEach((key) =>
-      layerRef.current!.entities.add({
-        polygon: {
-          hierarchy: hierarchy(data[key].map((p) => [p.longitude, p.latitude])),
-          material: Cesium.Color.fromCssColorString(COLOR[key]).withAlpha(0.25),
-          outline: true,
-          outlineColor: Cesium.Color.fromCssColorString(COLOR[key]),
-        },
-      }),
-    );
+    addMeasured(layerRef.current, data);
     flyToLayer();
   };
 

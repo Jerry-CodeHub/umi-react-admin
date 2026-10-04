@@ -1,4 +1,5 @@
-import { CATEGORY_COLORS, type PresetColor } from '@/constants/semantic';
+import { CATEGORY_COLORS, LEVEL_COLOR, type PresetColor } from '@/constants/semantic';
+import type { AlarmLevel } from '@/services/types';
 import { useModel } from '@umijs/max';
 import { theme } from 'antd';
 import { createContext, useContext, useMemo } from 'react';
@@ -18,12 +19,19 @@ export const useChartTheme = () => {
 
   return useMemo(() => {
     const color = (name: PresetColor) => (name === 'grey' ? token.colorTextQuaternary : token[name]);
+    /**
+     * 告警级别在图表里的颜色：提示级数量最多，用满饱和的主蓝会在堆叠图里压过严重 / 重要，
+     * 所以降一档（浅色主题更浅、暗色主题更暗），让视线先落在红橙色上。表格 Tag 仍用 LEVEL_COLOR
+     */
+    const levelColor = (level: AlarmLevel) =>
+      level === 'info' ? (dark ? token.blue5 : token.blue4) : color(LEVEL_COLOR[level]);
     return {
       dark,
       /** @ant-design/plots 的 theme 属性 */
       g2Theme: dark ? 'classicDark' : 'classic',
       token,
       color,
+      levelColor,
       categories: CATEGORY_COLORS.map(color),
       text: token.colorText,
       textSecondary: token.colorTextSecondary,

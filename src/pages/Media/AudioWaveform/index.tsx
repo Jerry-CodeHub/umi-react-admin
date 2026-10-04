@@ -19,6 +19,7 @@ export default function AudioWaveform() {
   const [surfer, setSurfer] = useState<WaveSurfer>();
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState({ current: 0, total: 0 });
+  const [meta, setMeta] = useState<{ channels: number; rate: string }>();
 
   // 切换音频或主题时重建（波形颜色取当前主题）
   useEffect(() => {
@@ -26,18 +27,25 @@ export default function AudioWaveform() {
     const ws = WaveSurfer.create({
       container: containerRef.current,
       url: CLIPS[clip],
-      height: 120,
-      waveColor: chart.color('purple'),
-      progressColor: chart.color('blue'),
-      cursorColor: chart.text,
-      barWidth: 2,
-      barGap: 1,
-      barRadius: 2,
+      height: 128,
+      // 按峰值归一化：合成音振幅小，不归一化时波形只是一条细线
+      normalize: true,
+      // 未播放部分用中性灰、已播放部分用主色：进度一眼可见，颜色不和内容抢层级
+      waveColor: chart.token.colorTextQuaternary,
+      progressColor: chart.token.colorPrimary,
+      cursorColor: chart.token.colorPrimary,
+      barWidth: 3,
+      barGap: 2,
+      barRadius: 3,
       plugins: [Timeline.create({ style: { color: chart.textSecondary } })],
     });
     const round = (value: number) => Math.round(value * 10) / 10;
     const subscriptions = [
-      ws.on('ready', (duration) => setPosition({ current: 0, total: round(duration) })),
+      ws.on('ready', (duration) => {
+        setPosition({ current: 0, total: round(duration) });
+        const buffer = ws.getDecodedData();
+        if (buffer) setMeta({ channels: buffer.numberOfChannels, rate: (buffer.sampleRate / 1000).toFixed(1) });
+      }),
       ws.on('timeupdate', (time) => setPosition((p) => ({ ...p, current: round(time) }))),
       ws.on('play', () => setPlaying(true)),
       ws.on('pause', () => setPlaying(false)),
@@ -80,6 +88,7 @@ export default function AudioWaveform() {
             </Button>
           </Space>
           <Typography.Text type="secondary" className="tabular-nums">
+            {meta && `${t('audio.meta', meta)} · `}
             {t('audio.position', { current: position.current.toFixed(1), total: position.total.toFixed(1) })}
           </Typography.Text>
         </div>

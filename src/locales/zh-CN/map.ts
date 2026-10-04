@@ -38,7 +38,7 @@ export default {
   'cesium.route.result': '路线全长 {length} km，生成 {count} 个采样点',
   'cesium.route.tooLong': '路线过长（超过 {max} 个采样点），请缩短',
   'cesium.route.merge': '合并三种能力包络',
-  'cesium.route.mergeMany': '合并东北区 {count} 个站点覆盖',
+  'cesium.route.mergeMany': '合并 {count} 个覆盖多边形',
   'cesium.route.showMany': '逐个显示（不合并）',
   'cesium.route.hint': '覆盖合并使用 turf 做多边形并集；大量多边形先取凸包再合并，渲染从 200+ 个实体降到 1 个。',
   'cesium.select.box': '框选站点',

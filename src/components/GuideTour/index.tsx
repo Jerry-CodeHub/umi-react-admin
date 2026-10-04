@@ -58,6 +58,8 @@ export default function GuideTour() {
   return (
     <Tour
       open={open}
+      // 第一步的目标（顶部菜单）贴着视口上沿：默认 6px 纵向留白会让遮罩矩形高度为负、控制台报错
+      gap={{ offset: [6, 4] }}
       onClose={close}
       onFinish={close}
       steps={steps}

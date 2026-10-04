@@ -7,7 +7,7 @@ import { BlockOutlined, CheckOutlined, ClearOutlined, GatewayOutlined, NodeIndex
 import { useIntl } from '@umijs/max';
 import { Alert, App, Button, Card } from 'antd';
 import * as Cesium from 'cesium';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const SAMPLE_METERS = 1000;
 const MAX_SAMPLES = 2000;
@@ -36,7 +36,8 @@ export default function Trajectory() {
   const samplesRef = useRef<Cesium.PointPrimitiveCollection>(null);
 
   const { containerRef, viewer, error } = useCesiumViewer({
-    home: [126.6, 46.4, 1_600_000],
+    // 初始视角对准三种能力包络（进入页面即自动合并展示）；覆盖多边形在东北，点按钮时再飞过去
+    home: [116.52, 30.39, 1_200_000],
     onReady: (instance) => {
       const layer = new Cesium.CustomDataSource('routes');
       instance.dataSources.add(layer);
@@ -114,6 +115,7 @@ export default function Trajectory() {
 
   /** 三种能力包络的并集（turf union） */
   const mergeEnvelopes = async () => {
+    if (!viewer) return;
     clear();
     const data =
       await fetchJson<Record<'intercept' | 'location' | 'demodulation', Envelope>>('data/cesium/envelopes.json');
@@ -135,10 +137,19 @@ export default function Trajectory() {
         polygon: { hierarchy: toPositions(ring), material: Cesium.Color.GOLD.withAlpha(0.35), height: 20_000 },
       }),
     );
-    viewer!.flyTo(layerRef.current!, { duration: 1.2 });
+    if (!viewer.isDestroyed()) void viewer.flyTo(layerRef.current!, { duration: 1.2 });
   };
 
-  /** 东北区 200+ 个站点覆盖：先取凸包再合并成一个多边形，或逐个显示对比 */
+  // 进入页面即展示三种包络的合并结果（数据约 20 KB）；画路线、覆盖合并按需点按钮
+  const autoDrawn = useRef(false);
+  useEffect(() => {
+    if (!viewer || autoDrawn.current) return;
+    autoDrawn.current = true;
+    void mergeEnvelopes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewer]);
+
+  /** 200+ 个覆盖多边形（东北一次路测的分片覆盖）：先取凸包再合并成一个多边形，或逐个显示对比 */
   const drawCoverage = async (merge: boolean) => {
     clear();
     const polygons = await fetchJson<Point[][]>('data/cesium/coverage-polygons.json');

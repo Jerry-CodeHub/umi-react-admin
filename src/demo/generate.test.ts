@@ -180,11 +180,20 @@ describe('日志与日程', () => {
     expect(data.logs.every((l) => /^(192\.0\.2|198\.51\.100|203\.0\.113)\.\d+$/.test(l.ip))).toBe(true);
   });
 
-  it('工单类日志的操作人就是工单处理人', () => {
+  it('派单由值班长操作、结单由工单处理人操作', () => {
     const tickets = new Map(data.tickets.map((x) => [x.id, x]));
+    const roles = new Map(data.users.map((u) => [u.id, u.role]));
     data.logs
-      .filter((l) => l.action === 'ticketClose' || l.action === 'ticketAssign')
+      .filter((l) => l.action === 'ticketClose')
       .forEach((l) => expect(l.actorId).toBe(tickets.get(l.target)?.assigneeId));
+    data.logs.filter((l) => l.action === 'ticketAssign').forEach((l) => expect(roles.get(l.actorId)).toBe('lead'));
+  });
+
+  it('同一条告警 / 工单的同一种操作只记一次日志', () => {
+    const keys = data.logs
+      .filter((l) => l.action === 'alarmHandle' || l.action.startsWith('ticket'))
+      .map((l) => `${l.action}:${l.target}`);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
   it('日程覆盖前后五周，每周都有值班交接', () => {

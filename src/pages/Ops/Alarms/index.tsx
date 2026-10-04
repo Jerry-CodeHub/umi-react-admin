@@ -2,6 +2,7 @@ import DemoPage from '@/components/DemoPage';
 import { ALARM_LEVEL_KEYS, ALARM_STATUS_KEYS, ALARM_TYPE_KEYS, REGION_KEYS } from '@/constants/enums';
 import { LEVEL_COLOR } from '@/constants/semantic';
 import { useEnums } from '@/hooks/useEnums';
+import { useResponsiveTable } from '@/hooks/useResponsiveTable';
 import { handleAlarm, listAlarms } from '@/services/ops';
 import type { Alarm, AlarmHandleAction } from '@/services/types';
 import { humanizeDuration } from '@/utils/duration';
@@ -18,6 +19,7 @@ export default function Alarms() {
   const intl = useIntl();
   const t = (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values);
   const enums = useEnums();
+  const table = useResponsiveTable();
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(undefined);
   const [activeOnly, setActiveOnly] = useState(false);
@@ -38,7 +40,7 @@ export default function Alarms() {
     {
       title: t('alarms.column.level'),
       dataIndex: 'level',
-      width: 80,
+      width: 90,
       valueEnum: enums.valueEnum('alarmLevel', ALARM_LEVEL_KEYS),
       render: (_, alarm) => <Tag color={LEVEL_COLOR[alarm.level]}>{enums.label('alarmLevel', alarm.level)}</Tag>,
     },
@@ -65,7 +67,7 @@ export default function Alarms() {
     {
       title: t('alarms.column.location'),
       dataIndex: 'region',
-      width: 120,
+      width: 130,
       valueEnum: enums.valueEnum('region', REGION_KEYS),
       render: (_, alarm) => `${enums.label('region', alarm.region)} · ${alarm.city}`,
     },
@@ -73,7 +75,7 @@ export default function Alarms() {
       title: t('alarms.column.occurredAt'),
       dataIndex: 'occurredAt',
       valueType: 'dateTimeRange',
-      width: 160,
+      width: 140,
       search: { transform: ([from, to]: [string, string]) => ({ from, to }) },
       render: (_, alarm) => (
         <Tooltip title={fromNow(alarm.occurredAt, intl.locale)}>
@@ -99,7 +101,7 @@ export default function Alarms() {
     {
       title: t('alarms.column.status'),
       dataIndex: 'status',
-      width: 150,
+      width: 130,
       valueEnum: enums.valueEnum('alarmStatus', ALARM_STATUS_KEYS, (key) => ({
         status: { active: 'Error', recovered: 'Success', ticketed: 'Processing', falsePositive: 'Default' }[key],
       })),
@@ -120,14 +122,14 @@ export default function Alarms() {
       dataIndex: 'source',
       search: false,
       width: 100,
-      responsive: ['xl'],
+      responsive: ['xxl'],
       render: (_, alarm) => enums.label('alarmSource', alarm.source),
     },
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 100,
-      fixed: 'right',
+      width: 110,
+      fixed: table.fixedRight,
       render: (_, alarm) =>
         alarm.status === 'active' ? (
           <Dropdown
@@ -150,7 +152,7 @@ export default function Alarms() {
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        scroll={{ x: 1300 }}
+        scroll={table.scroll}
         search={{ labelWidth: 'auto' }}
         params={{ activeOnly }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}

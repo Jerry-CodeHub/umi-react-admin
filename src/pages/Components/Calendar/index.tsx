@@ -26,6 +26,7 @@ import { useCallback, useState } from 'react';
 import '@fullcalendar/react/skeleton.css';
 import '@fullcalendar/react/themes/classic/palette.css';
 import '@fullcalendar/react/themes/classic/theme.css';
+import './calendar.css';
 
 /** 日程类型色：与全站分类色板一致 */
 export const EVENT_COLOR: Record<EventType, PresetColor> = {
@@ -161,8 +162,8 @@ export default function Calendar() {
         </Col>
         <Col xs={24} xl={18}>
           <Card>
-            {/* v7 经典主题的调色板按祖先 [data-color-scheme] 切换暗色变量，与应用主题同源 */}
-            <div data-color-scheme={chart.dark ? 'dark' : 'light'}>
+            {/* v7 经典主题的调色板按祖先 [data-color-scheme] 切换暗色变量；calendar-skin 再把颜色接到 antd token */}
+            <div className="calendar-skin" data-color-scheme={chart.dark ? 'dark' : 'light'}>
               <FullCalendar
                 locale={intl.locale === 'en-US' ? 'en' : zhLocale}
                 plugins={[classicTheme, dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin]}

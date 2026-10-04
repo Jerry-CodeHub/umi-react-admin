@@ -70,24 +70,36 @@ export default function Roles() {
                 dataSource={roles}
                 renderItem={(role) => (
                   <List.Item
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={role.id === activeId}
                     onClick={() => setActiveId(role.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setActiveId(role.id);
+                      }
+                    }}
                     className="cursor-pointer rounded-md px-4!"
                     style={{
                       background: role.id === activeId ? 'var(--ant-control-item-bg-active)' : undefined,
                     }}
                   >
+                    {/* 成员数放在标题行右侧：说明文字独占整行，窄屏上不会被挤成两栏交错 */}
                     <List.Item.Meta
                       title={
-                        <Space>
-                          {enums.label('role', role.id)}
-                          {role.id === 'admin' && <LockOutlined className="opacity-50" />}
-                        </Space>
+                        <div className="flex items-center justify-between gap-2">
+                          <Space>
+                            {enums.label('role', role.id)}
+                            {role.id === 'admin' && <LockOutlined className="opacity-50" />}
+                          </Space>
+                          <Typography.Text type="secondary" className="whitespace-nowrap text-xs font-normal">
+                            <TeamOutlined /> {t('roles.members', { count: role.memberCount })}
+                          </Typography.Text>
+                        </div>
                       }
                       description={t(`role.${role.id}.desc`)}
                     />
-                    <Typography.Text type="secondary" className="whitespace-nowrap text-xs">
-                      <TeamOutlined /> {t('roles.members', { count: role.memberCount })}
-                    </Typography.Text>
                   </List.Item>
                 )}
               />

@@ -1,4 +1,3 @@
-import { LEVEL_COLOR } from '@/constants/semantic';
 import { useChartTheme } from '@/hooks/useChartTheme';
 import type { AlarmLevel, DashboardOverview } from '@/services/types';
 import { Column } from '@ant-design/plots';
@@ -34,7 +33,7 @@ export default function AlarmTrend({
       height={height}
       theme={chart.g2Theme}
       scale={{
-        color: { domain: LEVELS.map(label), range: LEVELS.map((level) => chart.color(LEVEL_COLOR[level])) },
+        color: { domain: LEVELS.map(label), range: LEVELS.map(chart.levelColor) },
       }}
       axis={{
         x: {

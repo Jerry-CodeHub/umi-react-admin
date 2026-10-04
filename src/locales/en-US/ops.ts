@@ -2,7 +2,6 @@
 export default {
   'devices.column.device': 'Device',
   'devices.column.region': 'Region',
-  'devices.column.city': 'City',
   'devices.column.model': 'Model',
   'devices.column.band': 'Monitored band',
   'devices.column.status': 'Status',

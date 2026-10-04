@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { KEY_BANDS, type ModelCoverage } from './bands';
 
 const MARGIN = { top: 56, right: 24, bottom: 44, left: 120 };
+/** 最小绘制宽度：再窄对数轴刻度与频段标注会重叠 */
+const MIN_WIDTH = 720;
 const ROW_HEIGHT = 44;
 
 /** 以 MHz 为单位的频率标签：≥1000 显示 GHz */
@@ -24,7 +26,10 @@ export default function CoverageChart({ models }: { models: ModelCoverage[] }) {
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return undefined;
-    const observer = new ResizeObserver(([entry]) => setWidth(Math.floor(entry.contentRect.width)));
+    // 低于 MIN_WIDTH 时按最小宽度绘制、容器横向滚动：对数轴刻度与频段标注在手机宽度下会互相重叠
+    const observer = new ResizeObserver(([entry]) =>
+      setWidth(Math.max(MIN_WIDTH, Math.floor(entry.contentRect.width))),
+    );
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
@@ -130,7 +135,7 @@ export default function CoverageChart({ models }: { models: ModelCoverage[] }) {
   }, [width, models, chart, intl]);
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden">
+    <div ref={containerRef} className="w-full overflow-x-auto">
       <svg ref={svgRef} role="img" aria-label={intl.formatMessage({ id: 'spectrum.coverage' })} />
     </div>
   );

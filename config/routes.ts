@@ -181,9 +181,9 @@ export const routes: RouteItem[] = [
     icon: 'WarningOutlined',
     routes: [
       { path: '/exception', redirect: '/exception/403' },
-      { name: '403', path: '/exception/403', component: './Exception/403' },
-      { name: '404', path: '/exception/404', component: './Exception/404' },
-      { name: '500', path: '/exception/500', component: './Exception/500' },
+      { name: '403', path: '/exception/403', icon: 'StopOutlined', component: './Exception/403' },
+      { name: '404', path: '/exception/404', icon: 'FileUnknownOutlined', component: './Exception/404' },
+      { name: '500', path: '/exception/500', icon: 'BugOutlined', component: './Exception/500' },
     ],
   },
   ...Object.entries(LEGACY_REDIRECTS).map(([path, redirect]) => ({ path, redirect })),

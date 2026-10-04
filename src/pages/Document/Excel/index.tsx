@@ -1,9 +1,9 @@
 import DemoPage from '@/components/DemoPage';
 import type { User } from '@/services/types';
 import { createUser, listUsers } from '@/services/users';
-import { DownloadOutlined, FileExcelOutlined, UploadOutlined } from '@ant-design/icons';
+import { DownloadOutlined, FileExcelOutlined, InboxOutlined } from '@ant-design/icons';
 import { Link, useIntl } from '@umijs/max';
-import { Alert, App, Button, Card, Empty, Space, Table, Tag, Typography, Upload } from 'antd';
+import { Alert, App, Button, Card, Space, Spin, Table, Tag, Typography, Upload } from 'antd';
 import { useState } from 'react';
 import { FIELDS, buildUsersWorkbook, downloadWorkbook, parseUsersWorkbook, type ParsedRow } from './userSheet';
 
@@ -92,17 +92,23 @@ export default function Excel() {
           <Button icon={<FileExcelOutlined />} onClick={handleTemplate}>
             {t('excel.template')}
           </Button>
-          <Upload accept=".xlsx" beforeUpload={handleImport} showUploadList={false}>
-            <Button type="primary" icon={<UploadOutlined />} loading={busy === 'import'}>
-              {t('excel.import')}
-            </Button>
-          </Upload>
         </>
       }
     >
       {!rows ? (
+        // 空状态即导入入口：拖拽区本身就是主操作，并说明需要哪些列
         <Card>
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('excel.emptyHint')} />
+          <Spin spinning={busy === 'import'}>
+            <Upload.Dragger accept=".xlsx" beforeUpload={handleImport} showUploadList={false}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">{t('excel.dropTitle')}</p>
+              <p className="ant-upload-hint mx-auto max-w-xl px-4">
+                {t('excel.dropHint', { fields: FIELDS.map((field) => t(`users.column.${field}`)).join(' / ') })}
+              </p>
+            </Upload.Dragger>
+          </Spin>
         </Card>
       ) : (
         <Card

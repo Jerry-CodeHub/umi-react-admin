@@ -2,7 +2,6 @@
 export default {
   'devices.column.device': '设备',
   'devices.column.region': '大区',
-  'devices.column.city': '城市',
   'devices.column.model': '型号',
   'devices.column.band': '监测频段',
   'devices.column.status': '状态',

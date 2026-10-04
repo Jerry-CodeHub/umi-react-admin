@@ -35,7 +35,7 @@ export default {
   'menu.document.pdf': 'PDF 预览',
   'menu.document.excel': 'Excel 导入导出',
   'menu.exception': '异常页',
-  'menu.exception.403': '403',
-  'menu.exception.404': '404',
-  'menu.exception.500': '500',
+  'menu.exception.403': '403 无权限',
+  'menu.exception.404': '404 页面不存在',
+  'menu.exception.500': '500 服务异常',
 };

@@ -35,7 +35,7 @@ export default {
   'menu.document.pdf': 'PDF viewer',
   'menu.document.excel': 'Excel import/export',
   'menu.exception': 'Exceptions',
-  'menu.exception.403': '403',
-  'menu.exception.404': '404',
-  'menu.exception.500': '500',
+  'menu.exception.403': '403 Forbidden',
+  'menu.exception.404': '404 Not found',
+  'menu.exception.500': '500 Server error',
 };

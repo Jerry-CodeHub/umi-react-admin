@@ -3,6 +3,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { DEPARTMENT_KEYS, USER_STATUS_KEYS } from '@/constants/enums';
 import { ROLE_KEYS } from '@/constants/permissions';
 import { useEnums } from '@/hooks/useEnums';
+import { useResponsiveTable } from '@/hooks/useResponsiveTable';
 import type { User, UserBatchAction, UserInput } from '@/services/types';
 import { batchUsers, createUser, deleteUser, listUsers, updateUser } from '@/services/users';
 import { formatDateTime, fromNow } from '@/utils/format';
@@ -24,6 +25,7 @@ export default function Users() {
   const actionRef = useRef<ActionType>(undefined);
   const [editing, setEditing] = useState<User | null | undefined>(undefined);
   const [viewing, setViewing] = useState<User>();
+  const table = useResponsiveTable();
 
   const reload = () => actionRef.current?.reload();
 
@@ -51,7 +53,7 @@ export default function Users() {
       title: t('users.column.user'),
       dataIndex: 'name',
       search: false,
-      width: 240,
+      width: 220,
       render: (_, user) => <UserAvatar name={user.name} description={user.email} onClick={() => setViewing(user)} />,
     },
     { title: t('users.column.id'), dataIndex: 'id', search: false, width: 90, sorter: true },
@@ -70,7 +72,7 @@ export default function Users() {
         <Tag color={user.role === 'admin' ? 'blue' : undefined}>{enums.label('role', user.role)}</Tag>
       ),
     },
-    { title: t('users.column.phone'), dataIndex: 'phone', search: false, width: 130, responsive: ['xl'] },
+    { title: t('users.column.phone'), dataIndex: 'phone', search: false, width: 130, responsive: ['xxl'] },
     {
       title: t('users.column.status'),
       dataIndex: 'status',
@@ -98,14 +100,15 @@ export default function Users() {
       search: false,
       sorter: true,
       width: 120,
-      responsive: ['lg'],
+      responsive: ['xxl'],
       render: (_, user) => formatDateTime(user.createdAt, 'YYYY-MM-DD'),
     },
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 170,
-      fixed: 'right',
+      // 英文「Edit / Disable / Delete」比中文宽，按英文留足，避免最后一个按钮被截断
+      width: 210,
+      fixed: table.fixedRight,
       render: (_, user) => {
         const locked = PROTECTED.has(user.username);
         return [
@@ -164,7 +167,7 @@ export default function Users() {
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        scroll={{ x: 1300 }}
+        scroll={table.scroll}
         search={{ labelWidth: 'auto' }}
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         rowSelection={{}}

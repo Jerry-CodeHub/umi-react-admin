@@ -21,6 +21,9 @@ const ADMIN_ROUTES = [
 export default function AccessDemo() {
   const intl = useIntl();
   const t = (id: string) => intl.formatMessage({ id });
+  /** 文案里嵌一段代码（代码不翻译，也不写进文案：ICU 会把花括号 / 尖括号当语法解析） */
+  const withCode = (id: string, code: string) =>
+    intl.formatMessage({ id }, { code: <Typography.Text code>{code}</Typography.Text> });
   const enums = useEnums();
   const access = useAccess();
   const { token } = theme.useToken();
@@ -67,7 +70,9 @@ export default function AccessDemo() {
         <Row gutter={[16, 16]}>
           <Col xs={24} lg={8}>
             <Card title={t('access.route.title')} className="h-full">
-              <Typography.Paragraph type="secondary">{t('access.route.desc')}</Typography.Paragraph>
+              <Typography.Paragraph type="secondary">
+                {withCode('access.route.desc', "access: 'canSeeAdmin'")}
+              </Typography.Paragraph>
               <List
                 dataSource={ADMIN_ROUTES}
                 renderItem={(route) => (
@@ -90,7 +95,9 @@ export default function AccessDemo() {
           </Col>
           <Col xs={24} lg={8}>
             <Card title={t('access.button.title')} className="h-full">
-              <Typography.Paragraph type="secondary">{t('access.button.desc')}</Typography.Paragraph>
+              <Typography.Paragraph type="secondary">
+                {withCode('access.button.desc', '<Access accessible={…}>')}
+              </Typography.Paragraph>
               <Space wrap>
                 <Button>{t('access.button.export')}</Button>
                 <Access accessible={isAdmin}>

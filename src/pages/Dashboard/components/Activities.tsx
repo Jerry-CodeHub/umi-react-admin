@@ -1,4 +1,3 @@
-import { LEVEL_COLOR } from '@/constants/semantic';
 import { useChartTheme } from '@/hooks/useChartTheme';
 import type { DashboardOverview } from '@/services/types';
 import { fromNow } from '@/utils/format';
@@ -27,9 +26,7 @@ export default function Activities({ data }: { data: DashboardOverview['activiti
     );
   };
   const dotColor = (item: DashboardOverview['activities'][number]) =>
-    item.kind === 'alarm'
-      ? chart.color(LEVEL_COLOR[item.level!])
-      : chart.color(item.kind === 'ticketDone' ? 'green' : 'blue');
+    item.kind === 'alarm' ? chart.levelColor(item.level!) : chart.color(item.kind === 'ticketDone' ? 'green' : 'blue');
 
   return (
     <Timeline

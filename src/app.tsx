@@ -159,8 +159,18 @@ export const antd: RuntimeAntdConfig = (memo) => {
   // 启动初始算法与 layout 的 navTheme 同源（读同一 localStorage 键）
   memo.theme.algorithm = readTheme() === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
   // 开启 CSS 变量注入：--ant-* 变量挂在 antd 组件根的 .css-var-* 作用域（不在 :root），
-  // tailwind 侧 token 类经 var() 桥接随算法联动，只在 antd 组件树内生效（见 tailwind.config.js）
+  // tailwind 侧 token 类经 var() 桥接随算法联动，只在 antd 组件树内生效（见 tailwind.css 的 @theme inline）
   memo.theme.cssVar = true;
+  // 暗色主题下 ProLayout 用 dark 菜单，选中项默认整块主色填充，比浅色主题（浅灰底）重得多、抢视线；
+  // 改成与浅色一致的「浅底 + 高亮文字」（这两个 token 只作用于 dark 菜单，浅色主题不受影响）
+  memo.theme.components = {
+    ...memo.theme.components,
+    Menu: {
+      ...memo.theme.components?.Menu,
+      darkItemSelectedBg: 'rgba(255, 255, 255, 0.1)',
+      darkItemSelectedColor: '#fff',
+    },
+  };
   memo.appConfig = {
     message: {
       maxCount: 3,

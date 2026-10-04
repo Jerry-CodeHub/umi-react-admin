@@ -1,7 +1,7 @@
 import DemoPage from '@/components/DemoPage';
 import { demoLyrics } from '@/demo/lyrics';
 import { useIntl } from '@umijs/max';
-import { Card, Segmented, Space, Typography } from 'antd';
+import { Card, Grid, Segmented, Select, Space, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import Player from 'xgplayer';
 import MusicPreset, { Analyze, Lyric } from 'xgplayer-music';
@@ -33,6 +33,7 @@ export default function AudioPlayer() {
   const analyzeRef = useRef<InstanceType<typeof Analyze>>(undefined);
   const [mode, setMode] = useState<SpectrumMode>('waves');
   const [playing, setPlaying] = useState(false);
+  const { md } = Grid.useBreakpoint();
 
   useEffect(() => {
     if (!playerRef.current || !spectrumRef.current || !lyricsRef.current) return undefined;
@@ -63,8 +64,9 @@ export default function AudioPlayer() {
     analyzeRef.current = new Analyze(player, canvas, { bgColor: 'rgba(0,0,0,0)', stroke: 3 });
     const lyric = new Lyric([demoLyrics[intl.locale === 'en-US' ? 'en-US' : 'zh-CN']], lyricsRef.current);
     lyric.bind(player);
+    // 歌词只渲染一次、播放前就可见（show() 每调用一次会追加一份歌词列表，不能放在 playing 事件里）
+    lyric.show();
     player.on('playing', () => {
-      lyric.show();
       (player as PlayerWithMode).mode = 2;
       setPlaying(true);
     });
@@ -92,7 +94,18 @@ export default function AudioPlayer() {
       extra={
         <Space>
           <Typography.Text type="secondary">{t('audio.mode')}</Typography.Text>
-          <Segmented<SpectrumMode> size="small" value={mode} onChange={setMode} options={MODES} />
+          {/* 六个选项的分段控件约 430px 宽，手机上改用下拉，避免撑出横向滚动 */}
+          {md ? (
+            <Segmented<SpectrumMode> size="small" value={mode} onChange={setMode} options={MODES} />
+          ) : (
+            <Select<SpectrumMode>
+              size="small"
+              className="w-32"
+              value={mode}
+              onChange={setMode}
+              options={MODES.map((value) => ({ value, label: value }))}
+            />
+          )}
         </Space>
       }
     >

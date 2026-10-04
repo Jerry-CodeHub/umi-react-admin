@@ -1,4 +1,5 @@
 import DemoPage from '@/components/DemoPage';
+import { ALARM_LEVEL_KEYS } from '@/constants/enums';
 import { LEVEL_COLOR } from '@/constants/semantic';
 import { useApi } from '@/hooks/useApi';
 import { useChartTheme } from '@/hooks/useChartTheme';
@@ -75,15 +76,11 @@ export default function Screenshot() {
       }
     >
       <Typography.Paragraph type="secondary">{t('screenshot.hint')}</Typography.Paragraph>
-      <div className="max-w-3xl rounded-lg border border-dashed p-4" style={{ borderColor: chart.border }}>
+      {/* 虚线框用 colorBorder（colorBorderSecondary 在浅色背景上几乎看不见） */}
+      <div className="max-w-3xl rounded-lg border border-dashed p-4" style={{ borderColor: chart.token.colorBorder }}>
         <div ref={captureRef} className="p-2">
           <Card
-            title={
-              <Space>
-                {t('screenshot.cardTitle')}
-                {data && <Typography.Text type="secondary">{data.alarm.id}</Typography.Text>}
-              </Space>
-            }
+            title={t('screenshot.cardTitle')}
             extra={
               data && (
                 <Tag color={LEVEL_COLOR[data.alarm.level]}>
@@ -95,10 +92,15 @@ export default function Screenshot() {
             <Skeleton active loading={loading || !data}>
               {data && (
                 <>
-                  <Typography.Title level={4} className="!mt-0">
+                  {/* 类型是主信息（大号），告警编号是辅助信息（小号灰字），不再与标题、级别标签挤在卡片头 */}
+                  <Typography.Title level={4} className="!mb-1 !mt-0">
                     {intl.formatMessage({ id: `alarmType.${data.alarm.type}` })}
                   </Typography.Title>
-                  <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                  <Typography.Text type="secondary" className="mb-4 block text-xs">
+                    {data.alarm.id}
+                  </Typography.Text>
+                  {/* 响应式列数要写全各断点：只写 xs / sm 时，更宽的断点会回落到默认 3 列 */}
+                  <Descriptions column={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2, xxl: 2 }} size="small">
                     <Descriptions.Item label={t('screenshot.device')}>{data.device.name}</Descriptions.Item>
                     <Descriptions.Item label={t('screenshot.location')}>
                       {intl.formatMessage({ id: `region.${data.device.region}` })} · {data.device.city}
@@ -131,11 +133,12 @@ export default function Screenshot() {
                     yField="value"
                     colorField="level"
                     height={60}
+                    autoFit
                     theme={chart.g2Theme}
                     scale={{
                       color: {
-                        domain: Object.keys(LEVEL_COLOR),
-                        range: Object.values(LEVEL_COLOR).map(chart.color),
+                        domain: ALARM_LEVEL_KEYS,
+                        range: ALARM_LEVEL_KEYS.map(chart.levelColor),
                       },
                     }}
                     tooltip={false}

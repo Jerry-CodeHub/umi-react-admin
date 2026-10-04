@@ -98,21 +98,59 @@
 .audio-player-demo .xgplayer-lyric-item {
   display: block;
   text-align: center;
-  line-height: 22px !important;
-  font-size: 12px !important;
-  color: rgb(225 225 225 / 80%) !important;
+  line-height: 36px !important;
+  font-size: 15px !important;
+  color: rgb(225 225 225 / 60%) !important;
+  transition:
+    color 0.2s,
+    font-size 0.2s;
 }
 
 .audio-player-demo .xgplayer-lyric-item-active {
+  font-size: 17px !important;
   color: rgb(49 194 124) !important;
+}
+
+/* 窄屏：左右两栏会让歌词压在唱片与标题上，改为上方「唱片 + 标题」一行、下方歌词 */
+@media (width < 768px) {
+  .audio-player-demo .stage-left {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    inset: 0 0 auto;
+    padding: 24px;
+  }
+
+  .audio-player-demo .album {
+    flex: none;
+    width: 96px;
+  }
+
+  .audio-player-demo .info {
+    margin-top: 0;
+  }
+
+  .audio-player-demo .lyrics-mask {
+    inset: 144px 0 50px;
+  }
 }
 
 /* 以下为 xgplayer-music 自带的类名（第三方命名，不受本项目命名规则约束） */
 /* stylelint-disable selector-class-pattern */
+
+/* 上下留出约三分之一高度：播放前第一句也落在遮罩的清晰区域，而不是贴着顶部被淡出 */
 .audio-player-demo .xgplayer-lrcWrap {
+  box-sizing: border-box;
   height: 100% !important;
-  padding: 0 !important;
+  padding: 30% 0 !important;
   border: 0 !important;
+  scrollbar-width: none;
+}
+
+@media (width < 768px) {
+  .audio-player-demo .xgplayer-lrcWrap {
+    padding: 40px 0 !important;
+  }
 }
 
 .audio-player-demo .xgplayer-lrcForward {

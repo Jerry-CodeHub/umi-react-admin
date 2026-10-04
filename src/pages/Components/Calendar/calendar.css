@@ -1,0 +1,28 @@
+/*
+ * FullCalendar v7 经典主题换肤：调色板变量接到 antd token（cssVar 模式下 --ant-* 随明暗算法切换），
+ * 工具栏按钮、边框、文字与站内其它组件一致（默认皮肤是深石板灰按钮，和 antd 蓝色主题不搭）。
+ * 只覆盖颜色，布局与字号仍用 FullCalendar 自带样式。
+ */
+.calendar-skin {
+  /* 工具栏按钮：默认态同 antd 默认按钮，按下 / 当前视图用主色浅底 + 主色描边 */
+  --fc-classic-button: var(--ant-color-bg-container);
+  --fc-classic-button-border: var(--ant-color-border);
+  --fc-classic-button-strong: var(--ant-color-primary-bg);
+  --fc-classic-button-strong-border: var(--ant-color-primary);
+  --fc-classic-button-outline: var(--ant-color-primary-border);
+  --fc-classic-button-foreground: var(--ant-color-text);
+  --fc-classic-primary: var(--ant-color-primary);
+
+  /* 内容区 */
+  --fc-classic-highlight: var(--ant-color-primary-bg);
+  --fc-classic-today: var(--ant-color-warning-bg);
+  --fc-classic-now: var(--ant-color-error);
+
+  /* 中性色 */
+  --fc-classic-background: var(--ant-color-bg-container);
+  --fc-classic-foreground: var(--ant-color-text);
+  --fc-classic-muted-foreground: var(--ant-color-text-secondary);
+  --fc-classic-faint-foreground: var(--ant-color-text-quaternary);
+  --fc-classic-border: var(--ant-color-border-secondary);
+  --fc-classic-strong-border: var(--ant-color-border);
+}

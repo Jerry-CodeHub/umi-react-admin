@@ -1,4 +1,3 @@
-import { LEVEL_COLOR } from '@/constants/semantic';
 import { useChartTheme } from '@/hooks/useChartTheme';
 import type { DashboardOverview } from '@/services/types';
 import { Sankey } from '@ant-design/plots';
@@ -21,10 +20,10 @@ export default function Disposition({ data, height }: { data: DashboardOverview[
   };
   // 节点颜色：级别沿用语义色，其余节点按处置结果着色
   const nodeColor: Record<string, string> = {
-    'level:critical': chart.color(LEVEL_COLOR.critical),
-    'level:major': chart.color(LEVEL_COLOR.major),
-    'level:minor': chart.color(LEVEL_COLOR.minor),
-    'level:info': chart.color(LEVEL_COLOR.info),
+    'level:critical': chart.levelColor('critical'),
+    'level:major': chart.levelColor('major'),
+    'level:minor': chart.levelColor('minor'),
+    'level:info': chart.levelColor('info'),
     'disposition:recovered': chart.color('green'),
     'disposition:ticketed': chart.color('purple'),
     'disposition:falsePositive': chart.color('grey'),

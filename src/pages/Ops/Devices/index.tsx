@@ -3,6 +3,7 @@ import { DEVICE_STATUS_KEYS, REGION_KEYS } from '@/constants/enums';
 import { LEVEL_COLOR } from '@/constants/semantic';
 import { useApi } from '@/hooks/useApi';
 import { useEnums } from '@/hooks/useEnums';
+import { useResponsiveTable } from '@/hooks/useResponsiveTable';
 import { getDevice, listDevices } from '@/services/ops';
 import type { Device } from '@/services/types';
 import { formatDateTime, fromNow } from '@/utils/format';
@@ -30,7 +31,7 @@ const DeviceDrawer = ({ id, onClose }: { id?: string; onClose: () => void }) => 
               <Descriptions.Item label={t('devices.column.device')}>
                 {data.name} <Typography.Text type="secondary">{data.id}</Typography.Text>
               </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.region')}>
+              <Descriptions.Item label={t('alarms.column.location')}>
                 {enums.label('region', data.region)} · {data.city}
               </Descriptions.Item>
               <Descriptions.Item label={t('devices.column.model')}>
@@ -86,6 +87,7 @@ export default function Devices() {
   const t = (id: string) => intl.formatMessage({ id });
   const enums = useEnums();
   const [viewing, setViewing] = useState<string>();
+  const table = useResponsiveTable();
 
   const columns: ProColumns<Device>[] = [
     {
@@ -98,7 +100,7 @@ export default function Devices() {
       title: t('devices.column.device'),
       dataIndex: 'name',
       search: false,
-      width: 200,
+      width: 180,
       render: (_, device) => (
         <Typography.Link onClick={() => setViewing(device.id)}>
           <span className="block">{device.name}</span>
@@ -108,13 +110,20 @@ export default function Devices() {
         </Typography.Link>
       ),
     },
+    // 大区只作筛选项；表格里与城市合并成一列「位置」（与告警中心一致），省出一列宽度
     {
       title: t('devices.column.region'),
       dataIndex: 'region',
-      width: 100,
+      hideInTable: true,
       valueEnum: enums.valueEnum('region', REGION_KEYS),
     },
-    { title: t('devices.column.city'), dataIndex: 'city', search: false, width: 100 },
+    {
+      title: t('alarms.column.location'),
+      dataIndex: 'city',
+      search: false,
+      width: 140,
+      render: (_, device) => `${enums.label('region', device.region)} · ${device.city}`,
+    },
     {
       title: t('devices.column.model'),
       dataIndex: 'model',
@@ -125,13 +134,13 @@ export default function Devices() {
       title: t('devices.column.band'),
       dataIndex: 'band',
       search: false,
-      width: 140,
+      width: 130,
       render: (_, device) => `${device.band[0]}–${device.band[1]} MHz`,
     },
     {
       title: t('devices.column.status'),
       dataIndex: 'status',
-      width: 90,
+      width: 100,
       valueEnum: enums.valueEnum('deviceStatus', DEVICE_STATUS_KEYS, (key) => ({
         status: { online: 'Success', offline: 'Default', fault: 'Error' }[key],
       })),
@@ -141,7 +150,7 @@ export default function Devices() {
       dataIndex: 'uptime30d',
       search: false,
       sorter: true,
-      width: 160,
+      width: 150,
       render: (_, device) => (
         <Progress
           percent={device.uptime30d}
@@ -171,7 +180,7 @@ export default function Devices() {
         </Tooltip>
       ),
     },
-    { title: t('devices.column.firmware'), dataIndex: 'firmware', search: false, width: 90, responsive: ['xl'] },
+    { title: t('devices.column.firmware'), dataIndex: 'firmware', search: false, width: 90, responsive: ['xxl'] },
   ];
 
   return (
@@ -179,7 +188,7 @@ export default function Devices() {
       <ProTable<Device>
         rowKey="id"
         columns={columns}
-        scroll={{ x: 1250 }}
+        scroll={table.scroll}
         search={{ labelWidth: 'auto' }}
         pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         request={async (params, sort) => {

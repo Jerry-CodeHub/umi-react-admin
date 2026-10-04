@@ -4,7 +4,7 @@ import { ClearOutlined, DotChartOutlined, HeatMapOutlined } from '@ant-design/ic
 import { useIntl } from '@umijs/max';
 import { Alert, Button, Card, Spin } from 'antd';
 import * as Cesium from 'cesium';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Sample = { longitude: number; latitude: number; fieldStrength: number };
 type FieldStrengthData = {
@@ -120,6 +120,15 @@ export default function Heatmap() {
       pointsRef.current = points;
       viewer!.camera.flyTo({ destination: bounds(samples), duration: 1.2 });
     });
+
+  // 进入页面直接铺上热力图（首次拉取约 1.6 MB，期间有加载提示），不让用户面对一张空地图去找按钮
+  const autoDrawn = useRef(false);
+  useEffect(() => {
+    if (!viewer || autoDrawn.current) return;
+    autoDrawn.current = true;
+    void drawTexture();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewer]);
 
   const clear = () => {
     if (!viewer) return;

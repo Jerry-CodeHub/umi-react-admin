@@ -123,4 +123,7 @@ export default defineConfig({
   },
   tailwindcss: {},
   esbuildMinifyIIFE: true, // 开启 esbuild 压缩
+  // MFSU eager 模式会扫描 src 下所有文件（含 *.test.ts）的 import，把 vitest 当成页面依赖预编译，
+  // vitest → vite 引用 node:module，dev 每次启动都报 UnhandledSchemeError。测试依赖不进浏览器，排除即可
+  mfsu: { exclude: ['vitest'] },
 });

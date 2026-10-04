@@ -40,7 +40,7 @@ export default {
   'cesium.route.result': 'Route is {length} km long with {count} sample points',
   'cesium.route.tooLong': 'The route is too long (more than {max} samples). Please shorten it',
   'cesium.route.merge': 'Merge the three envelopes',
-  'cesium.route.mergeMany': 'Merge coverage of {count} Northeast stations',
+  'cesium.route.mergeMany': 'Merge {count} coverage polygons',
   'cesium.route.showMany': 'Show one by one (no merge)',
   'cesium.route.hint':
     'Coverage merging uses turf polygon union; many polygons are reduced to a convex hull first, turning 200+ entities into one.',

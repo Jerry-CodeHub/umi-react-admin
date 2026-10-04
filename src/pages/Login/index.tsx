@@ -67,7 +67,7 @@ const Login: React.FC = () => {
     // 背景与文字色用 antd token 类（登录页在 umi 包裹的 antd <App> 容器内），暗色模式随算法切换
     <div className="flex min-h-screen bg-bg-layout">
       <aside
-        className="hidden w-[44%] max-w-[640px] flex-col justify-between p-12 text-white lg:flex"
+        className="hidden w-5/12 max-w-[640px] flex-col justify-between p-12 text-white lg:flex"
         style={{ background: 'linear-gradient(150deg, #0b1a33 0%, #12345c 55%, #1d4f8f 100%)' }}
       >
         <div className="flex items-center gap-3 text-lg font-semibold">

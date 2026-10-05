@@ -40,7 +40,7 @@ src/
 ├── components/       # DemoPage 外壳、ChartCard、CesiumViewer（useCesiumViewer）、GuideTour、ErrorBoundary
 ├── demo/             # 浏览器内演示后端：generate（数据）、store（补丁持久化）、server（路由）、adapter
 ├── services/         # 接口调用；types.ts 是前后端契约
-├── hooks/            # useApi / useChartTheme / useEnums / useThemeMode
+├── hooks/            # useApi / useChartTheme / useEnums / useThemeMode / useResponsiveTable
 ├── locales/          # zh-CN / en-US，按领域拆分到同名目录
 ├── constants/        # 枚举顺序、语义色、权限点树
 ├── utils/            # 请求层、i18n 兜底、格式化、MapCompute（geodesy / geoHash / turf 合并）
@@ -114,6 +114,7 @@ config/
 - **登录后跳转要等登录态提交**：在 `setInitialState` 之后立即 `history.push` 会被路由守卫弹回登录页（登录页用 effect 监听 `initialState.name` 再跳）
 - **html2canvas 1.x 解析不了 `oklch()`**：Tailwind 4 调色板是 oklch，被截图区域不要用 Tailwind 颜色工具类或任意 `[#hex]` 颜色类（后者体积门禁也识别不了），改用 style 或 antd token
 - **入口体积预算 700KB gzip**（size-budget.json）：新增全局依赖前先 `pnpm size`
+- **列表页表格用 `useResponsiveTable`**：`scroll.x` 取 max-content、固定列只在 md 以上生效；不要再写死 `scroll={{ x: 1300 }}`（宽屏上列会被固定操作列盖住，手机上数据列被挤没）
 - **产物秘钥扫描不能用固定 grep**：Cesium 的 `Ion.js` 自带公开的默认 ion token（HS256 JWT），打包后必然进产物；CI 用 `scripts/check-dist-secrets.mjs`（白名单从 Ion.js 动态读取，只输出指纹）
 
 ### 国际化
@@ -122,6 +123,7 @@ config/
 - 菜单项键名: `menu.<父级>.<name>`（路由表测试校验双语齐全）
 - 组件内用 `useIntl()`；组件外（请求层、错误边界）用 `@/utils/i18n` 的 `t()`
 - 代码里直接写中文会被 ESLint `local/no-cjk-literal` 拦下（`src/demo`、locales、测试除外）；英文界面无遗漏由 e2e 断言
+- 文案按 ICU 语法解析：不要在文案里直接写 `{a.b}`、`<Tag>` 这类代码片段（解析失败会回退成原文并报错），用 `{code}` 占位符传入（`locales.test.ts` 把关）
 
 ### 权限控制
 

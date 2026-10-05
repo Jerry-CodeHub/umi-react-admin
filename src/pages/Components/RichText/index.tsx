@@ -66,7 +66,7 @@ export default function RichText() {
       <Card>
         <Skeleton active loading={!draftRef.current} paragraph={{ rows: 12 }}>
           <Editor
-            key={dark ? 'dark' : 'light'}
+            key={`${dark ? 'dark' : 'light'}-${intl.locale}`}
             licenseKey="gpl"
             onInit={(_evt, editor) => (editorRef.current = editor)}
             initialValue={draftRef.current}
@@ -79,8 +79,11 @@ export default function RichText() {
               toolbar:
                 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright | ' +
                 'bullist numlist outdent indent | table link | removeformat',
+              // 段落格式下拉跟随界面语言（没有打包 TinyMCE 语言包，工具栏其余部分是图标）
+              block_formats: t('richText.blockFormats'),
+              // 正文限宽居中，像一页文档：满宽的长行不好读
               content_style:
-                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.7 }',
+                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.7; max-width: 800px; margin: 16px auto; padding: 0 16px }',
             }}
           />
         </Skeleton>

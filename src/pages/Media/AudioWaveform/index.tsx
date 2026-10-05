@@ -31,7 +31,8 @@ export default function AudioWaveform() {
       // 按峰值归一化：合成音振幅小，不归一化时波形只是一条细线
       normalize: true,
       // 未播放部分用中性灰、已播放部分用主色：进度一眼可见，颜色不和内容抢层级
-      waveColor: chart.token.colorTextQuaternary,
+      // （tertiary 而非 quaternary：图形与背景对比度要到 3:1）
+      waveColor: chart.token.colorTextTertiary,
       progressColor: chart.token.colorPrimary,
       cursorColor: chart.token.colorPrimary,
       barWidth: 3,

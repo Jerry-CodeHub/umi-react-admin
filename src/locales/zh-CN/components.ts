@@ -27,6 +27,7 @@ export default {
   'calendar.saved': '日程已保存',
   'calendar.allDay': '全天',
   'calendar.hint': '在日历上框选时间段新建日程；拖动或拉伸日程可改期，改动会保存。',
+  'richText.blockFormats': '正文=p; 标题 1=h1; 标题 2=h2; 标题 3=h3; 引用=blockquote',
   'richText.preview': '预览内容',
   'richText.previewTitle': '内容回显（已经过 DOMPurify 消毒）',
   'richText.report.title': '运维周报（{from} ~ {to}）',

@@ -9,6 +9,17 @@ export const OPEN_TOUR_EVENT = 'umi-react-admin:open-tour';
 const target = (selector: string) => () => document.querySelector<HTMLElement>(selector) as HTMLElement;
 
 /**
+ * 第一步指向顶部菜单；手机上顶部菜单收进了左上角的菜单按钮，改为指向按钮里的图标
+ * （按钮本身撑满整个顶栏高度，贴着视口上沿，高亮框会越界）
+ */
+const navTarget = () => {
+  const menu = document.querySelector<HTMLElement>('[data-tour="nav"], .ant-menu-horizontal');
+  return (
+    menu?.offsetWidth ? menu : document.querySelector<HTMLElement>('.ant-pro-global-header-collapsed-button .anticon')
+  ) as HTMLElement;
+};
+
+/**
  * 首次登录后的四步导览：菜单分组 → 主题与语言 → 账户菜单（重置演示数据）→ 查看源码。
  * 只在工作台自动出现一次；之后可从头像菜单重新打开。
  */
@@ -48,7 +59,7 @@ export default function GuideTour() {
     {
       title: t('tour.nav.title'),
       description: t('tour.nav.desc'),
-      target: target('[data-tour="nav"], .ant-menu-horizontal'),
+      target: navTarget,
     },
     { title: t('tour.theme.title'), description: t('tour.theme.desc'), target: target('[data-tour="theme"]') },
     { title: t('tour.account.title'), description: t('tour.account.desc'), target: target('[data-tour="account"]') },

@@ -2,6 +2,7 @@ import { useChartTheme } from '@/hooks/useChartTheme';
 import type { AlarmLevel, DashboardOverview } from '@/services/types';
 import { Column } from '@ant-design/plots';
 import { useIntl } from '@umijs/max';
+import { Grid } from 'antd';
 import dayjs from 'dayjs';
 
 const LEVELS: AlarmLevel[] = ['critical', 'major', 'minor', 'info'];
@@ -18,6 +19,9 @@ export default function AlarmTrend({
 }) {
   const intl = useIntl();
   const chart = useChartTheme();
+  // 窄屏按周取刻度（90 天按三周）：自动隐藏只保证不重叠，手机上日期会首尾相接连成一串
+  const { md } = Grid.useBreakpoint();
+  const tickStep = md === false ? (days > 30 ? 21 : 7) : 1;
   const label = (level: AlarmLevel) => intl.formatMessage({ id: `alarmLevel.${level}` });
   const dates = [...new Set(data.map((row) => row.date))].slice(-days);
   const since = dates[0];
@@ -41,6 +45,7 @@ export default function AlarmTrend({
           labelFormatter: (value: string) => dayjs(value).format('MM-DD'),
           labelAutoRotate: false,
           labelAutoHide: true,
+          tickFilter: tickStep > 1 ? (_: unknown, index: number) => index % tickStep === 0 : undefined,
         },
         y: { title: false },
       }}

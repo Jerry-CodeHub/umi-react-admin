@@ -425,6 +425,7 @@ const generateAlarmsAndTickets = (locale: DemoLocale, now: Date, devices: Device
             city: device.city,
             priority: 'P3',
             createdAt: iso(createdAt),
+            scheduledAt: iso(respondedAt),
             slaHours: SLA_HOURS.maintenance,
           },
           { createdAt, respondedAt, resolvedAt },

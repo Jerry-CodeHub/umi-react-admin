@@ -114,60 +114,77 @@ const Login: React.FC = () => {
           </Dropdown>
         </div>
 
-        <Card className="w-full max-w-sm shadow-sm" title={t('login.title')}>
-          <div className="flex flex-col gap-3">
-            <Button
-              size="large"
-              type="primary"
-              block
-              icon={<SafetyCertificateOutlined />}
-              loading={pending === 'admin'}
-              onClick={() => signIn({ name: 'admin', password: 'demo' })}
-            >
-              {t('login.asAdmin')}
-            </Button>
-            <Typography.Text type="secondary" className="-mt-2 text-center text-xs">
-              {t('login.asAdminDesc')}
-            </Typography.Text>
-            <Button
-              size="large"
-              block
-              icon={<EyeOutlined />}
-              loading={pending === 'guest'}
-              onClick={() => signIn({ name: 'guest', password: 'demo' })}
-            >
-              {t('login.asGuest')}
-            </Button>
-            <Typography.Text type="secondary" className="-mt-2 text-center text-xs">
-              {t('login.asGuestDesc')}
-            </Typography.Text>
+        <div className="w-full max-w-sm">
+          {/* 窄屏隐藏了左侧产品介绍：卡片上方保留标识与一句话定位，不至于只剩一个孤零零的登录框 */}
+          <div className="mb-6 flex items-center gap-3 lg:hidden">
+            <img src={`${PUBLIC_PATH}logo.svg`} alt="" className="h-10 w-10" />
+            <div className="min-w-0">
+              <Typography.Text strong className="block text-lg">
+                React Admin
+              </Typography.Text>
+              <Typography.Text type="secondary" className="text-xs">
+                {t('login.headline')}
+              </Typography.Text>
+            </div>
           </div>
-          <Divider plain className="text-xs!">
-            {t('login.or')}
-          </Divider>
-          <Form<LoginParams> initialValues={{ name: 'admin', password: 'demo' }} layout="vertical" onFinish={signIn}>
-            <Form.Item
-              label={t('login.username')}
-              name="name"
-              rules={[{ required: true, message: t('login.usernameRequired') }]}
-            >
-              <Input autoComplete="username" />
-            </Form.Item>
-            <Form.Item
-              label={t('login.password')}
-              name="password"
-              rules={[{ required: true, message: t('login.passwordRequired') }]}
-            >
-              <Input.Password autoComplete="current-password" />
-            </Form.Item>
-            <Button block htmlType="submit" loading={!!pending && pending !== 'admin' && pending !== 'guest'}>
-              {t('login.submit')}
-            </Button>
-          </Form>
-          <Typography.Paragraph type="secondary" className="mt-4 mb-0 text-center text-xs">
-            {t('login.demoHint')}
-          </Typography.Paragraph>
-        </Card>
+          <Card className="shadow-sm" title={t('login.title')}>
+            <div className="flex flex-col gap-3">
+              <Button
+                size="large"
+                type="primary"
+                block
+                icon={<SafetyCertificateOutlined />}
+                loading={pending === 'admin'}
+                onClick={() => signIn({ name: 'admin', password: 'demo' })}
+              >
+                {t('login.asAdmin')}
+              </Button>
+              <Typography.Text type="secondary" className="-mt-2 text-center text-xs">
+                {t('login.asAdminDesc')}
+              </Typography.Text>
+              <Button
+                size="large"
+                block
+                icon={<EyeOutlined />}
+                loading={pending === 'guest'}
+                onClick={() => signIn({ name: 'guest', password: 'demo' })}
+              >
+                {t('login.asGuest')}
+              </Button>
+              <Typography.Text type="secondary" className="-mt-2 text-center text-xs">
+                {t('login.asGuestDesc')}
+              </Typography.Text>
+            </div>
+            {/* 分隔说明是辅助信息，用次要文字色，不和上下两组操作抢视线 */}
+            <Divider plain>
+              <Typography.Text type="secondary" className="text-xs">
+                {t('login.or')}
+              </Typography.Text>
+            </Divider>
+            <Form<LoginParams> initialValues={{ name: 'admin', password: 'demo' }} layout="vertical" onFinish={signIn}>
+              <Form.Item
+                label={t('login.username')}
+                name="name"
+                rules={[{ required: true, message: t('login.usernameRequired') }]}
+              >
+                <Input autoComplete="username" />
+              </Form.Item>
+              <Form.Item
+                label={t('login.password')}
+                name="password"
+                rules={[{ required: true, message: t('login.passwordRequired') }]}
+              >
+                <Input.Password autoComplete="current-password" />
+              </Form.Item>
+              <Button block htmlType="submit" loading={!!pending && pending !== 'admin' && pending !== 'guest'}>
+                {t('login.submit')}
+              </Button>
+            </Form>
+            <Typography.Paragraph type="secondary" className="mt-4 mb-0 text-center text-xs">
+              {t('login.demoHint')}
+            </Typography.Paragraph>
+          </Card>
+        </div>
       </main>
     </div>
   );

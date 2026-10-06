@@ -114,6 +114,8 @@ config/
 - **登录后跳转要等登录态提交**：在 `setInitialState` 之后立即 `history.push` 会被路由守卫弹回登录页（登录页用 effect 监听 `initialState.name` 再跳）
 - **html2canvas 1.x 解析不了 `oklch()`**：Tailwind 4 调色板是 oklch，被截图区域不要用 Tailwind 颜色工具类或任意 `[#hex]` 颜色类（后者体积门禁也识别不了），改用 style 或 antd token
 - **入口体积预算 700KB gzip**（size-budget.json）：新增全局依赖前先 `pnpm size`
+- **FullCalendar v7 在 render 阶段就发起事件拉取**：页面挂载后再渲染日历（Calendar 页的 `mounted` 开关），否则被 React 丢弃的那次渲染在拉取完成时回写状态，dev 报 "hasn't mounted yet"
+- **看板拖拽用 Mouse + Touch（长按）+ Keyboard 传感器**：PointerSensor 在触屏上会被浏览器滚动手势抢走；单击 / 回车留给详情抽屉
 - **列表页表格用 `useResponsiveTable`**：`scroll.x` 取 max-content、固定列只在 md 以上生效；不要再写死 `scroll={{ x: 1300 }}`（宽屏上列会被固定操作列盖住，手机上数据列被挤没）
 - **产物秘钥扫描不能用固定 grep**：Cesium 的 `Ion.js` 自带公开的默认 ion token（HS256 JWT），打包后必然进产物；CI 用 `scripts/check-dist-secrets.mjs`（白名单从 Ion.js 动态读取，只输出指纹）
 

@@ -65,7 +65,7 @@ export default {
   'logAction.ticketAssign': 'Assign ticket',
   'logAction.ticketClose': 'Complete ticket',
   'logAction.reportExport': 'Export report',
-  'logAction.roleUpdate': 'Change role permissions',
+  'logAction.roleUpdate': 'Edit role',
   'logResult.success': 'Success',
   'logResult.failure': 'Failed',
   'eventType.duty': 'Handover',

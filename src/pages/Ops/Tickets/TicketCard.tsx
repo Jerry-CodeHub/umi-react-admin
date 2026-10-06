@@ -2,26 +2,36 @@ import UserAvatar from '@/components/UserAvatar';
 import { PRIORITY_COLOR } from '@/constants/semantic';
 import type { Ticket } from '@/services/types';
 import { humanizeDuration } from '@/utils/duration';
-import { fromNow } from '@/utils/format';
+import { formatDateTime, fromNow } from '@/utils/format';
 import { CalendarOutlined, CheckCircleOutlined, ToolOutlined } from '@ant-design/icons';
 import { useIntl } from '@umijs/max';
 import { Card, Tag, Tooltip, Typography, theme } from 'antd';
 
 const HOUR = 3_600_000;
 
-/** 时限状态：进行中看剩余 / 超时，已完成看是否在时限内 */
-const useSla = (ticket: Ticket) => {
+/**
+ * 时限状态：已排期未开工的巡检看计划开工日；进行中看剩余 / 超时；已完成看是否在时限内。
+ * 卡片与详情抽屉共用
+ */
+export const useSla = (ticket: Ticket) => {
   const intl = useIntl();
   const t = (id: string, values: Record<string, string | number>) => intl.formatMessage({ id }, values);
   const deadline = new Date(ticket.createdAt).getTime() + ticket.slaHours * HOUR;
   if (ticket.resolvedAt) {
     const met = new Date(ticket.resolvedAt).getTime() <= deadline;
-    return { text: intl.formatMessage({ id: met ? 'tickets.sla.met' : 'tickets.sla.missed' }), danger: !met };
+    return { text: intl.formatMessage({ id: met ? 'tickets.sla.met' : 'tickets.sla.missed' }), danger: !met, deadline };
+  }
+  if (ticket.status === 'todo' && ticket.scheduledAt && new Date(ticket.scheduledAt).getTime() > Date.now()) {
+    return {
+      text: t('tickets.scheduled', { time: formatDateTime(ticket.scheduledAt, 'MM-DD') }),
+      danger: false,
+      deadline,
+    };
   }
   const left = deadline - Date.now();
   return left >= 0
-    ? { text: t('tickets.sla.left', { duration: humanizeDuration(left, t) }), danger: left < 2 * HOUR }
-    : { text: t('tickets.sla.overdue', { duration: humanizeDuration(left, t) }), danger: true };
+    ? { text: t('tickets.sla.left', { duration: humanizeDuration(left, t) }), danger: left < 2 * HOUR, deadline }
+    : { text: t('tickets.sla.overdue', { duration: humanizeDuration(left, t) }), danger: true, deadline };
 };
 
 export default function TicketCard({ ticket, dragging }: { ticket: Ticket; dragging?: boolean }) {

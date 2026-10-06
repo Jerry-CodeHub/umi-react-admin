@@ -183,6 +183,8 @@ export interface Ticket {
   assigneeId: string;
   assigneeName: string;
   createdAt: string;
+  /** 例行巡检的计划开工时间（故障工单没有排期） */
+  scheduledAt?: string;
   respondedAt?: string;
   resolvedAt?: string;
   /** 时限（小时），按优先级：P1 4h / P2 12h / P3 48h；例行巡检 14 天 */

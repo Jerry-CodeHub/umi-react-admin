@@ -62,6 +62,31 @@ test('告警转工单后出现在看板，拖到「处理中」并写回', async
   await expect(columns.nth(1).locator('.ant-card')).toHaveCount(before + 1);
 });
 
+test('点击看板卡片查看详情，并在详情里流转状态（不用拖拽，手机上同样可用）', async ({ page }) => {
+  await signIn(page);
+  await navigate(page, '/ops/tickets');
+  const columns = page.locator('.grid > div');
+  const todo = columns.nth(0).locator('.ant-card');
+  await expect(todo.first()).toBeVisible();
+  const done = await columns.nth(2).locator('.ant-card').count();
+  await todo.first().click();
+  const drawer = page.locator('.ant-drawer-content');
+  await expect(drawer).toContainText('处理进度');
+  await drawer.locator('.ant-segmented-item').nth(2).click();
+  await expect(page.locator('.ant-message')).toContainText('已完成');
+  await expect(columns.nth(2).locator('.ant-card')).toHaveCount(done + 1);
+});
+
+test('点击日程先看详情，不直接弹删除确认', async ({ page }) => {
+  await signIn(page);
+  await navigate(page, '/components/calendar');
+  await page.locator('.calendar-skin [role=button]').filter({ hasText: '值班交接' }).first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('值班交接');
+  await expect(dialog.getByRole('button', { name: /删\s*除/ })).toBeVisible();
+  await expect(page.getByText(/删除日程「/)).toHaveCount(0);
+});
+
 test('重置演示数据清除改动', async ({ page }) => {
   await signIn(page);
   await navigate(page, '/system/users');

@@ -8,6 +8,7 @@ import type { CalendarEvent, EventType } from '@/services/types';
 import { formatDateTime } from '@/utils/format';
 import FullCalendar, {
   type DateSelectInfo,
+  type EventApi,
   type EventChangeInfo,
   type EventClickInfo,
   type EventInput,
@@ -15,13 +16,31 @@ import FullCalendar, {
 } from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/react/daygrid';
 import interactionPlugin from '@fullcalendar/react/interaction';
+import listPlugin from '@fullcalendar/react/list';
 import zhLocale from '@fullcalendar/react/locales/zh-cn';
 import multiMonthPlugin from '@fullcalendar/react/multimonth';
 import classicTheme from '@fullcalendar/react/themes/classic';
 import timeGridPlugin from '@fullcalendar/react/timegrid';
 import { useIntl } from '@umijs/max';
-import { App, Badge, Card, Checkbox, Col, Form, Input, List, Modal, Row, Select, Typography } from 'antd';
-import { useCallback, useState } from 'react';
+import {
+  App,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Form,
+  Grid,
+  Input,
+  List,
+  Modal,
+  Popconfirm,
+  Row,
+  Select,
+  Typography,
+} from 'antd';
+import dayjs from 'dayjs';
+import { useCallback, useLayoutEffect, useState } from 'react';
 
 import '@fullcalendar/react/skeleton.css';
 import '@fullcalendar/react/themes/classic/palette.css';
@@ -40,16 +59,41 @@ export const EVENT_COLOR: Record<EventType, PresetColor> = {
 
 type Draft = { start: string; end: string; allDay: boolean };
 
+/** 日程时间的可读形式：全天日程只写日期（跨天写起止），定时日程写「日期 时:分–时:分」 */
+const describeTime = (event: EventApi, allDayLabel: string) => {
+  const start = dayjs(event.start);
+  if (event.allDay) {
+    // FullCalendar 全天日程的 end 是「结束日的次日 0 点」（开区间）
+    const last = event.end ? dayjs(event.end).subtract(1, 'day') : start;
+    const range = last.isAfter(start, 'day')
+      ? `${start.format('MM-DD')} ~ ${last.format('MM-DD')}`
+      : start.format('MM-DD');
+    return `${range} · ${allDayLabel}`;
+  }
+  return `${start.format('MM-DD HH:mm')}${event.end ? ` – ${dayjs(event.end).format('HH:mm')}` : ''}`;
+};
+
 export default function Calendar() {
   const intl = useIntl();
   const t = (id: string, values?: Record<string, string>) => intl.formatMessage({ id }, values);
   const enums = useEnums();
   const chart = useChartTheme();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   // 事件源函数的引用变化时 FullCalendar 会重新拉取：新建后递增 version 即可刷新
   const [version, setVersion] = useState(0);
   const [weekends, setWeekends] = useState(true);
   const [draft, setDraft] = useState<Draft>();
+  const [viewing, setViewing] = useState<EventApi>();
+  // 手机上月视图一格只放得下两个字：默认改用按周列表。initialView 只在挂载时读取一次，
+  // 所以用同步的 matchMedia 判断（Grid.useBreakpoint 首帧还是空对象）；工具栏则随断点实时切换
+  const [compact] = useState(() => typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches);
+  const { md } = Grid.useBreakpoint();
+  const narrow = md === undefined ? compact : !md;
+  // FullCalendar 在 render 阶段就发起事件拉取；路由切换的渲染可能被 React 打断丢弃，
+  // 被丢弃的那个实例拉取完成后回写状态，开发环境会报 "Can't perform a React state update on a component
+  // that hasn't mounted yet"。等本组件挂载（layout effect，绘制前同步完成、不会闪）后再渲染日历
+  const [mounted, setMounted] = useState(false);
+  useLayoutEffect(() => setMounted(true), []);
   const [upcoming, setUpcoming] = useState<CalendarEvent[]>([]);
   const [form] = Form.useForm<{ title: string; type: EventType }>();
 
@@ -110,21 +154,22 @@ export default function Calendar() {
     }
   };
 
-  const handleClick = ({ event }: EventClickInfo) => {
-    modal.confirm({
-      title: t('calendar.deleteConfirm', { title: event.title }),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        await deleteEvent(event.id);
-        event.remove();
-      },
-    });
+  /** 点击日程先看详情（此前一点就弹「确认删除」，查看和删除混在一起） */
+  const handleClick = ({ event }: EventClickInfo) => setViewing(event);
+
+  const handleDelete = async () => {
+    if (!viewing) return;
+    await deleteEvent(viewing.id);
+    viewing.remove();
+    setViewing(undefined);
+    message.success(t('common.deleted'));
   };
 
   return (
     <DemoPage descriptionId="page.calendar.desc" source="src/pages/Components/Calendar/index.tsx">
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={6}>
+        {/* 窄屏上日历在前、侧栏（说明 / 图例 / 接下来）在后 */}
+        <Col xs={{ span: 24, order: 2 }} xl={{ span: 6, order: 1 }}>
           <Card className="h-full">
             <Typography.Paragraph type="secondary">{t('calendar.hint')}</Typography.Paragraph>
             <Checkbox checked={weekends} onChange={(e) => setWeekends(e.target.checked)}>
@@ -160,34 +205,72 @@ export default function Calendar() {
             />
           </Card>
         </Col>
-        <Col xs={24} xl={18}>
+        <Col xs={{ span: 24, order: 1 }} xl={{ span: 18, order: 2 }}>
           <Card>
             {/* v7 经典主题的调色板按祖先 [data-color-scheme] 切换暗色变量；calendar-skin 再把颜色接到 antd token */}
             <div className="calendar-skin" data-color-scheme={chart.dark ? 'dark' : 'light'}>
-              <FullCalendar
-                locale={intl.locale === 'en-US' ? 'en' : zhLocale}
-                plugins={[classicTheme, dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin]}
-                headerToolbar={{
-                  left: 'prev,next today',
-                  center: 'title',
-                  right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                }}
-                initialView="dayGridMonth"
-                height="auto"
-                editable
-                selectable
-                selectMirror
-                dayMaxEvents={3}
-                weekends={weekends}
-                events={fetchEvents}
-                select={handleSelect}
-                eventChange={handleChange}
-                eventClick={handleClick}
-              />
+              {mounted && (
+                <FullCalendar
+                  locale={intl.locale === 'en-US' ? 'en' : zhLocale}
+                  plugins={[
+                    classicTheme,
+                    dayGridPlugin,
+                    timeGridPlugin,
+                    listPlugin,
+                    interactionPlugin,
+                    multiMonthPlugin,
+                  ]}
+                  headerToolbar={
+                    narrow
+                      ? { left: 'prev,next', center: 'title', right: 'listWeek,dayGridMonth' }
+                      : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }
+                  }
+                  initialView={compact ? 'listWeek' : 'dayGridMonth'}
+                  height="auto"
+                  editable
+                  selectable
+                  selectMirror
+                  dayMaxEvents={3}
+                  weekends={weekends}
+                  events={fetchEvents}
+                  select={handleSelect}
+                  eventChange={handleChange}
+                  eventClick={handleClick}
+                />
+              )}
             </div>
           </Card>
         </Col>
       </Row>
+      <Modal
+        open={!!viewing}
+        title={viewing?.title}
+        onCancel={() => setViewing(undefined)}
+        destroyOnHidden
+        footer={[
+          <Popconfirm
+            key="delete"
+            title={t('calendar.deleteConfirm', { title: viewing?.title ?? '' })}
+            okButtonProps={{ danger: true }}
+            onConfirm={handleDelete}
+          >
+            <Button danger>{t('common.delete')}</Button>
+          </Popconfirm>,
+          <Button key="close" type="primary" onClick={() => setViewing(undefined)}>
+            {t('common.confirm')}
+          </Button>,
+        ]}
+      >
+        {viewing && (
+          <div className="flex flex-col gap-2">
+            <Badge
+              color={chart.color(EVENT_COLOR[viewing.extendedProps.type as EventType])}
+              text={enums.label('eventType', viewing.extendedProps.type as EventType)}
+            />
+            <Typography.Text type="secondary">{describeTime(viewing, t('calendar.allDay'))}</Typography.Text>
+          </div>
+        )}
+      </Modal>
       <Modal
         title={t('calendar.newEvent')}
         open={!!draft}

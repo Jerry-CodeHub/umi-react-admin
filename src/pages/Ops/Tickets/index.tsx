@@ -9,7 +9,8 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useDraggable,
   useDroppable,
   useSensor,
@@ -21,6 +22,7 @@ import { useIntl } from '@umijs/max';
 import { Alert, App, Badge, Empty, Segmented, Skeleton, Typography, theme } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import TicketCard from './TicketCard';
+import TicketDrawer from './TicketDrawer';
 
 type KindFilter = 'all' | Ticket['kind'];
 const PRIORITY_ORDER = { P1: 0, P2: 1, P3: 2 };
@@ -47,16 +49,36 @@ const columnJumpCoordinates: KeyboardCoordinateGetter = (event, { context }) => 
   return next ? { x: next.left + 12, y: next.top + 48 } : undefined;
 };
 
-const DraggableTicket = ({ ticket }: { ticket: Ticket }) => {
+/** 点击 / 回车打开详情；拖动（鼠标移动 6px 以上、触屏长按）才进入拖拽，二者不冲突 */
+const DraggableTicket = ({ ticket, onOpen }: { ticket: Ticket; onOpen: (ticket: Ticket) => void }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: ticket.id, data: { ticket } });
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} style={{ opacity: isDragging ? 0.35 : 1 }}>
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={() => onOpen(ticket)}
+      onKeyDown={(event) => {
+        listeners?.onKeyDown?.(event);
+        if (event.key === 'Enter' && !event.defaultPrevented) onOpen(ticket);
+      }}
+      // 触屏上保留页面滚动手势；拖拽靠长按激活（TouchSensor 的 delay）
+      style={{ opacity: isDragging ? 0.35 : 1, touchAction: 'manipulation' }}
+    >
       <TicketCard ticket={ticket} />
     </div>
   );
 };
 
-const Column = ({ status, tickets }: { status: TicketStatus; tickets: Ticket[] }) => {
+const Column = ({
+  status,
+  tickets,
+  onOpen,
+}: {
+  status: TicketStatus;
+  tickets: Ticket[];
+  onOpen: (ticket: Ticket) => void;
+}) => {
   const intl = useIntl();
   const chart = useChartTheme();
   const { token } = theme.useToken();
@@ -84,7 +106,7 @@ const Column = ({ status, tickets }: { status: TicketStatus; tickets: Ticket[] }
       </div>
       <div className="flex flex-col gap-2">
         {tickets.length ? (
-          tickets.map((ticket) => <DraggableTicket key={ticket.id} ticket={ticket} />)
+          tickets.map((ticket) => <DraggableTicket key={ticket.id} ticket={ticket} onOpen={onOpen} />)
         ) : (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={intl.formatMessage({ id: 'tickets.empty' })} />
         )}
@@ -101,9 +123,18 @@ export default function Tickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [kind, setKind] = useState<KindFilter>('all');
   const [dragging, setDragging] = useState<Ticket>();
+  const [viewingId, setViewingId] = useState<string>();
+  const viewing = tickets.find((ticket) => ticket.id === viewingId);
+  // 鼠标移动 6px 才算拖动（单击留给「查看详情」）；触屏长按 250ms 才拖动，否则是正常滚动页面
+  // （此前用 PointerSensor：触屏上浏览器先接管滚动手势，卡片根本拖不动）；
+  // 键盘只用空格拿起 / 放下，回车留给「查看详情」
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: columnJumpCoordinates }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: columnJumpCoordinates,
+      keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space'] },
+    }),
   );
 
   useEffect(() => {
@@ -123,12 +154,9 @@ export default function Tickets() {
     ) as Record<TicketStatus, Ticket[]>;
   }, [tickets, kind]);
 
-  /** 乐观更新：先移动卡片，接口失败再退回（错误提示由请求层统一弹出） */
-  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
-    setDragging(undefined);
-    const ticket = tickets.find((item) => item.id === active.id);
-    const status = over?.id as TicketStatus | undefined;
-    if (!ticket || !status || status === ticket.status) return;
+  /** 乐观更新：先移动卡片，接口失败再退回（错误提示由请求层统一弹出）。拖拽与详情抽屉共用 */
+  const move = async (ticket: Ticket, status: TicketStatus) => {
+    if (status === ticket.status) return;
     const previous = tickets;
     setTickets((list) => list.map((item) => (item.id === ticket.id ? { ...item, status } : item)));
     try {
@@ -138,6 +166,13 @@ export default function Tickets() {
     } catch {
       setTickets(previous);
     }
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    setDragging(undefined);
+    const ticket = tickets.find((item) => item.id === active.id);
+    const status = over?.id as TicketStatus | undefined;
+    if (ticket && status) void move(ticket, status);
   };
 
   return (
@@ -165,12 +200,18 @@ export default function Tickets() {
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {TICKET_STATUS_KEYS.map((status) => (
-              <Column key={status} status={status} tickets={columns[status]} />
+              <Column
+                key={status}
+                status={status}
+                tickets={columns[status]}
+                onOpen={(ticket) => setViewingId(ticket.id)}
+              />
             ))}
           </div>
           <DragOverlay>{dragging && <TicketCard ticket={dragging} dragging />}</DragOverlay>
         </DndContext>
       </Skeleton>
+      <TicketDrawer ticket={viewing} onMove={move} onClose={() => setViewingId(undefined)} />
     </DemoPage>
   );
 }

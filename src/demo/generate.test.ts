@@ -173,6 +173,14 @@ describe('工单', () => {
     expect(data.tickets.filter((x) => x.status === 'doing').length).toBeGreaterThan(0);
     expect(data.tickets.filter((x) => x.resolvedAt && t(x.resolvedAt) > since).length).toBeGreaterThan(5);
   });
+
+  it('例行巡检都有排期：计划开工在创建之后，已开工的按计划时刻开工', () => {
+    const maintenance = data.tickets.filter((x) => x.kind === 'maintenance');
+    expect(maintenance.length).toBeGreaterThan(0);
+    expect(maintenance.every((x) => !!x.scheduledAt && x.scheduledAt > x.createdAt)).toBe(true);
+    expect(maintenance.filter((x) => x.respondedAt).every((x) => x.respondedAt === x.scheduledAt)).toBe(true);
+    expect(data.tickets.filter((x) => x.kind === 'fault').every((x) => !x.scheduledAt)).toBe(true);
+  });
 });
 
 describe('日志与日程', () => {

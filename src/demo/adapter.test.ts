@@ -27,6 +27,17 @@ describe('演示 adapter', () => {
     expect(error).toMatchObject({ isAxiosError: true, response: { status: 401 } });
   });
 
+  it('响应按发出顺序返回：后发的请求不会先于先发的完成', async () => {
+    const { demoAdapter } = await loadAdapter();
+    const order: number[] = [];
+    await Promise.all(
+      Array.from({ length: 8 }, (_, i) =>
+        demoAdapter({ method: 'post', url: '/api/v1/login', data: { name: 'admin' } }).then(() => order.push(i)),
+      ),
+    );
+    expect(order).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  });
+
   it('从 AxiosHeaders 风格的 get() 读取 Authorization', async () => {
     const { demoAdapter } = await loadAdapter();
     const login = await demoAdapter({ method: 'post', url: '/api/v1/login', data: { name: 'guest' } });

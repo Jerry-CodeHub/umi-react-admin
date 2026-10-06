@@ -30,11 +30,22 @@ const loadServer = () => {
   return serverPromise;
 };
 
-/** 模拟网络耗时，让加载态在演示里真实可见 */
-const latency = () =>
-  new Promise<void>((resolve) => {
+/** 上一个请求的「轮到它返回」的时刻：所有请求排成一队 */
+let queue: Promise<void> = Promise.resolve();
+
+/**
+ * 模拟网络耗时，让加载态在演示里真实可见；响应按发出顺序返回（像同一条连接上的请求）。
+ * 耗时随机却允许乱序时，快速切换筛选（如告警页「只看未恢复」）的旧请求可能晚到：ProTable 的中止
+ * 只停 loading、不拦已发出请求的回写，旧结果会覆盖新结果；读写交错时读请求也可能读到写之前的数据
+ */
+const latency = () => {
+  const own = new Promise<void>((resolve) => {
     setTimeout(resolve, 120 + Math.random() * 200);
   });
+  const turn = Promise.all([own, queue]).then(() => undefined);
+  queue = turn;
+  return turn;
+};
 
 const header = (headers: AdapterConfig['headers'], name: string) =>
   String(headers?.get?.(name) ?? headers?.[name] ?? '') || undefined;

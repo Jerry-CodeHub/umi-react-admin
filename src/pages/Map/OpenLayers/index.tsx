@@ -136,7 +136,7 @@ export default function OpenLayersPage() {
                   icon={<CloseOutlined />}
                   className="float-right -mt-1 -mr-1"
                   onClick={closePopup}
-                  aria-label="close"
+                  aria-label={intl.formatMessage({ id: 'common.close' })}
                 />
                 <StationCard device={selected} />
               </Card>

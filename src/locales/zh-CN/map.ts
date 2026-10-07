@@ -6,7 +6,7 @@ export default {
   'map.stations': '{count} 个监测站',
   'map.clickHint': '点击站点查看详情',
   'map.loadFailed': '地图加载失败：{reason}',
-  'map.device.region': '大区',
+  'map.device.region': '位置',
   'map.device.model': '型号',
   'map.device.uptime': '在线率',
   'map.device.heartbeat': '心跳',

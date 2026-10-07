@@ -7,6 +7,7 @@ export default {
   'common.saved': '已保存',
   'common.deleted': '已删除',
   'common.cancel': '取消',
+  'common.close': '关闭',
   'common.confirm': '确定',
   'common.reset': '重置',
   'common.search': '查询',

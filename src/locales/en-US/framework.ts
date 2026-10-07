@@ -7,6 +7,7 @@ export default {
   'common.saved': 'Saved',
   'common.deleted': 'Deleted',
   'common.cancel': 'Cancel',
+  'common.close': 'Close',
   'common.confirm': 'OK',
   'common.reset': 'Reset',
   'common.search': 'Search',

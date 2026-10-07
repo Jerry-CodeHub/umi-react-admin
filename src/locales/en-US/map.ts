@@ -6,7 +6,7 @@ export default {
   'map.stations': '{count} stations',
   'map.clickHint': 'Click a station for details',
   'map.loadFailed': 'Map failed to load: {reason}',
-  'map.device.region': 'Region',
+  'map.device.region': 'Location',
   'map.device.model': 'Model',
   'map.device.uptime': 'Uptime',
   'map.device.heartbeat': 'Heartbeat',

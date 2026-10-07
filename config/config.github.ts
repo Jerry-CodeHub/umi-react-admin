@@ -1,5 +1,6 @@
 import { defineConfig } from '@umijs/max';
 import { addChunkGraph } from './chunkGraph';
+import { buildCsp } from './csp';
 import { configureSplitChunks } from './splitChunks';
 // import { routes } from './routes';
 
@@ -22,19 +23,12 @@ export default defineConfig({
   // umi 对 metas 数组为整体覆盖（不与 config.ts 逐项合并），viewport 需一并带上。
   // meta CSP（审计 2026-09-22 H-3）：GitHub Pages 无法自定义响应头，只能走 meta；
   // meta 版不支持 frame-ancestors（点击劫持防护为平台限制，README 已声明）与 report-only。
-  // 来源清单与 nginx/security-headers.conf、vercel.json 保持一致（后者含 frame-ancestors）。
+  // 来源清单单一来源见 ./csp.ts（vercel.json 与 nginx 副本由 scripts/csp-consistency.test.ts 比对）。
   metas: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     {
       'http-equiv': 'Content-Security-Policy',
-      content:
-        "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; " +
-        "script-src 'self' 'unsafe-eval' https://*.amap.com; style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: blob: https://gw.alipayobjects.com https://img.alicdn.com https://*.amap.com https://*.autonavi.com " +
-        'https://tile.openstreetmap.org https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; ' +
-        "connect-src 'self' blob: https://*.amap.com https://*.autonavi.com https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; " +
-        "font-src 'self' data:; media-src 'self' https://sf1-cdn-tos.huoshanstatic.com; " +
-        "worker-src 'self' blob:; frame-src 'self'",
+      content: buildCsp({ meta: true }),
     },
   ],
   favicons: ['/umi-react-admin/favicon.ico'],

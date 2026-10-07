@@ -9,7 +9,8 @@ export default function VideoPlayer() {
     const player = new Player({
       id: 'mse',
       url: 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-360p.mp4',
-      poster: 'https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/poster.jpg',
+      // 封面自制并随站点托管（此前热链的第三方图片被 CSP img-src 拦截，播放器区为白底）
+      poster: `${PUBLIC_PATH}media/video-poster.svg`,
       height: '70vh',
       width: '100%',
     });

@@ -66,4 +66,10 @@ export default {
   'request.offline': 'Network error, please check your connection.',
   'request.network': 'Network error, please try again later.',
   'request.failed': 'Request failed',
+  // NOTE 错误边界
+  'error.title': 'Something went wrong',
+  'error.retry': 'Retry',
+  'error.updated.title': 'A new version is available',
+  'error.updated.subTitle': 'This page is running an outdated build. Reload to continue.',
+  'error.reload': 'Reload',
 };

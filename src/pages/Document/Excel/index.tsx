@@ -123,7 +123,7 @@ export default function Excel() {
             className="mb-4"
             showIcon
             type={valid.length === rows.length ? 'success' : 'warning'}
-            message={t('excel.summary', {
+            title={t('excel.summary', {
               total: rows.length,
               valid: valid.length,
               invalid: rows.length - valid.length,

@@ -119,9 +119,7 @@ export default function Amap() {
         </>
       }
     >
-      {loadError && (
-        <Alert type="error" showIcon className="mb-4" message={t('map.loadFailed', { reason: loadError })} />
-      )}
+      {loadError && <Alert type="error" showIcon className="mb-4" title={t('map.loadFailed', { reason: loadError })} />}
       <Card styles={{ body: { padding: 0 } }}>
         <div className="relative h-[calc(100vh-280px)] min-h-[480px] overflow-hidden rounded-lg">
           <div ref={containerRef} className="absolute inset-0" />

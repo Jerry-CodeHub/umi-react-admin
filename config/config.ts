@@ -110,7 +110,9 @@ export default defineConfig({
   model: {},
   initialState: {},
   request: {},
-  layout: {},
+  // ProLayout v3（pro-components 3）的菜单国际化默认关闭（getMenuData 取 menu.locale || false），
+  // umi 模板把 layout.locale 透传为 menu.locale，这里显式开启
+  layout: { locale: true },
   // 路由配置
   routes,
   npmClient: 'pnpm',

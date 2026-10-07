@@ -16,7 +16,7 @@ updates:
     ignore:
       # 锁版跟随 react-pdf 内置版本（repo-hygiene 门禁强制一致），随 react-pdf 升级手动同步
       - dependency-name: pdfjs-dist
-      # icons 6 面向 antd 6 / React 19；antd 5 内部锁 ^5，单升会产生双副本，待 antd 6 一并评估
+      # icons 主版本跟随 antd 大版本一起评估（现 antd 6 / icons 6），icons 7+ 单独评估无意义
       - dependency-name: '@ant-design/icons'
         update-types: ['version-update:semver-major']
     groups:

@@ -1,6 +1,6 @@
-// antd 5 的静态方法（message/Modal.confirm 等）内部用 ReactDOM.render 挂载，React 19 已删除该 API，
-// 官方补丁改走 createRoot；必须先于任何 antd 静态调用加载（升级 antd 6 后可移除）
-import '@ant-design/v5-patch-for-react-19';
+// umi 的 antd 插件对 antd 6 不再自动注入 reset.css（插件源码 `if (!isV6)`），而本项目关闭了
+// Tailwind preflight、基础 reset 由 antd 独占（见 tailwind.css），这里手动补回
+import 'antd/dist/reset.css';
 
 import BuildFooter from '@/components/BuildFooter';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -130,7 +130,9 @@ export const layout: RunTimeLayoutConfig = (initialState) => {
     title: 'React Admin',
     // 经 PUBLIC_PATH 拼接：GitHub Pages 部署在 /umi-react-admin/ 子路径下
     logo: `${PUBLIC_PATH}logo.svg`,
-    rightContentRender: () => <RightContent />,
+    // ProLayout v3 移除了 rightContentRender（umi 布局模板仍按 v2 传它，v3 直接忽略），顶栏右侧改走 actionsRender
+    rightContentRender: false,
+    actionsRender: () => [<RightContent key="right-content" />],
     menuHeaderRender: undefined,
     appList: appList(),
     layout: 'mix',
@@ -158,9 +160,8 @@ export const antd: RuntimeAntdConfig = (memo) => {
   memo.theme ??= {};
   // 启动初始算法与 layout 的 navTheme 同源（读同一 localStorage 键）
   memo.theme.algorithm = readTheme() === 'realDark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
-  // 开启 CSS 变量注入：--ant-* 变量挂在 antd 组件根的 .css-var-* 作用域（不在 :root），
+  // antd 6 默认注入 CSS 变量：--ant-* 变量挂在 antd 组件根的 .css-var-* 作用域（不在 :root），
   // tailwind 侧 token 类经 var() 桥接随算法联动，只在 antd 组件树内生效（见 tailwind.css 的 @theme inline）
-  memo.theme.cssVar = true;
   // 暗色主题下 ProLayout 用 dark 菜单，选中项默认整块主色填充，比浅色主题（浅灰底）重得多、抢视线；
   // 改成与浅色一致的「浅底 + 高亮文字」（这两个 token 只作用于 dark 菜单，浅色主题不受影响）
   memo.theme.components = {

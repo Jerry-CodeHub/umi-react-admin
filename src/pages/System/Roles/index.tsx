@@ -134,7 +134,7 @@ export default function Roles() {
                   ]
             }
           >
-            {locked && <Alert type="info" showIcon className="mb-4" message={t('roles.adminLocked')} />}
+            {locked && <Alert type="info" showIcon className="mb-4" title={t('roles.adminLocked')} />}
             <Skeleton active loading={!active}>
               <Typography.Paragraph type="secondary">
                 {t('roles.selectedCount', {

@@ -101,11 +101,11 @@ export default function Pdf() {
     >
       <Card styles={{ body: { background: 'var(--ant-color-fill-tertiary)' } }}>
         {loadError && (
-          <Alert showIcon type="warning" className="mb-4" message={t('pdf.loadFailed')} description={loadError} />
+          <Alert showIcon type="warning" className="mb-4" title={t('pdf.loadFailed')} description={loadError} />
         )}
         {!file && !loadError ? (
           <div className="flex min-h-[480px] items-center justify-center">
-            <Spin tip={t('pdf.generating')}>
+            <Spin description={t('pdf.generating')}>
               <div className="h-24 w-64" />
             </Spin>
           </div>

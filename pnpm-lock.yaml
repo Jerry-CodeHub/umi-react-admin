@@ -152,8 +152,8 @@ importers:
         specifier: ^26.9.14
         version: 26.9.14
       wavesurfer.js:
-        specifier: ^7.12.12
-        version: 7.12.12
+        specifier: ^8.0.1
+        version: 8.0.1
       xgplayer:
         specifier: ^3.0.26
         version: 3.0.26(core-js@3.37.1)
@@ -8502,8 +8502,8 @@ packages:
     resolution: {integrity: sha512-6i/00NBjP4yGPs+caKSyRfpTF/8Torsu0MOW3mMzIbhgISFder8i7xbqgHlLMwJrdiN8ndBV3UA1/AfzPSr+jg==}
     engines: {node: '>=10.13.0'}
 
-  wavesurfer.js@7.12.12:
-    resolution: {integrity: sha512-fyKNuREQTliCl4b9w7pUzpFXQIkX5tcdYu1o6vBdH+NlUXvTxshvfbG2hj8OxDevzQNZlDTHzZGyAT3FhuutWw==}
+  wavesurfer.js@8.0.1:
+    resolution: {integrity: sha512-h0OnRWSVTqIYLSw3/IVrBtsun/xw9L5u4FA3bjfSDTFMX/xswVWS1JwK4fFu3ulmxRUSHg8zQORl6zENG983eg==}
 
   wbuf@1.7.3:
     resolution: {integrity: sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==}
@@ -18658,7 +18658,7 @@ snapshots:
     dependencies:
       graceful-fs: 4.2.11
 
-  wavesurfer.js@7.12.12: {}
+  wavesurfer.js@8.0.1: {}
 
   wbuf@1.7.3:
     dependencies:

@@ -38,3 +38,5 @@
 - `decode-uri-component@0.2.2`（moderate）：@umijs/history 传递依赖，畸形 percent-encoding 的 DoS，需超长构造串，风险低。
 - `postcss-selector-parser`（low，**已消解**）：构建链使用。已通过 6.1.3 / 7.1.3 两条 override 消除（2026-09-23）。
 - `elliptic`（low）：审计命中的是 umi 构建链 node-libs-browser → crypto-browserify，上游无补丁。产物里另有一份随 exceljs 预打包浏览器版带入的 elliptic，exceljs 只用 createHash 做工作表保护哈希，不做 EC 签名/验签，不触及该公告的风险路径。
+- `braces`（high，GHSA-vfj7-8cjw-p6xm，**无补丁**）：栈耗尽 DoS，<=3.0.3 全系受影响，上游暂无修复版本。路径仅 @umijs/lint 构建链（typescript-estree → micromatch → braces），不进运行时产物，CI 已以 `auditConfig.ignoreGhsas` 登记忽略；补丁发布后移除该忽略并 override。
+- `sprintf-js`（moderate，GHSA-hp3w-g68c-fv3c，**无补丁**）：仅 umi 测试链（@umijs/test → babel-jest → argparse）引用，构建与运行时产物不涉及。

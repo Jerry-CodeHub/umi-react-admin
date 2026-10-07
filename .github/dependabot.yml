@@ -13,6 +13,12 @@ updates:
       interval: weekly
     # 演示模板：只自动提补丁与小版本，大版本升级（umi/antd/react 等）人工评估
     open-pull-requests-limit: 5
+    ignore:
+      # 锁版跟随 react-pdf 内置版本（repo-hygiene 门禁强制一致），随 react-pdf 升级手动同步
+      - dependency-name: pdfjs-dist
+      # icons 6 面向 antd 6 / React 19；antd 5 内部锁 ^5，单升会产生双副本，待 antd 6 一并评估
+      - dependency-name: '@ant-design/icons'
+        update-types: ['version-update:semver-major']
     groups:
       patch-and-minor:
         update-types:

@@ -202,7 +202,7 @@ export default function Trajectory() {
         type={drawing ? 'warning' : 'info'}
         showIcon
         className="mb-4"
-        message={drawing ? t('cesium.route.drawing') : (result ?? t('cesium.route.hint'))}
+        title={drawing ? t('cesium.route.drawing') : (result ?? t('cesium.route.hint'))}
       />
       <Card styles={{ body: { padding: 0 } }}>
         <CesiumStage containerRef={containerRef} viewer={viewer} error={error} />

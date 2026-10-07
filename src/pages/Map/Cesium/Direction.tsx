@@ -157,7 +157,7 @@ export default function Direction() {
         </>
       }
     >
-      <Alert type="info" showIcon className="mb-4" message={t('cesium.direction.hint')} />
+      <Alert type="info" showIcon className="mb-4" title={t('cesium.direction.hint')} />
       <Card styles={{ body: { padding: 0 } }}>
         <CesiumStage containerRef={containerRef} viewer={viewer} error={error} overlay={data && legend} />
       </Card>

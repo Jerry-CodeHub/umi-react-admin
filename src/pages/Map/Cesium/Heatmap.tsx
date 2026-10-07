@@ -170,9 +170,9 @@ export default function Heatmap() {
         </>
       }
     >
-      <Alert type="info" showIcon className="mb-4" message={t('cesium.heatmap.hint')} />
+      <Alert type="info" showIcon className="mb-4" title={t('cesium.heatmap.hint')} />
       <Card styles={{ body: { padding: 0 } }}>
-        <Spin spinning={loading} tip={t('cesium.heatmap.loading')}>
+        <Spin spinning={loading} description={t('cesium.heatmap.loading')}>
           <div className="relative">
             <CesiumStage containerRef={containerRef} viewer={viewer} error={error} overlay={legend} />
             {tooltip && (

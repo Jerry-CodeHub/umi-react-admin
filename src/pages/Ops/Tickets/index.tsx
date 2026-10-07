@@ -190,7 +190,7 @@ export default function Tickets() {
         />
       }
     >
-      <Alert type="info" showIcon className="mb-4" message={t('tickets.dragHint')} />
+      <Alert type="info" showIcon className="mb-4" title={t('tickets.dragHint')} />
       <Skeleton active loading={loading && !data} paragraph={{ rows: 10 }}>
         <DndContext
           sensors={sensors}

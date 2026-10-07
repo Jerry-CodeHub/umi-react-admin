@@ -137,7 +137,7 @@ export default function AccessDemo() {
             </Card>
           </Col>
         </Row>
-        <Alert type="info" showIcon message={t('access.note')} />
+        <Alert type="info" showIcon title={t('access.note')} />
       </Space>
     </DemoPage>
   );

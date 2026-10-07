@@ -260,7 +260,7 @@ export default function Situation() {
         type={picked ? 'success' : 'info'}
         showIcon
         className="mb-4"
-        message={
+        title={
           picked
             ? t('cesium.situation.target', { name: picked.id, kind: kindLabel(picked.kind), speed: picked.knots })
             : t('cesium.situation.hint')

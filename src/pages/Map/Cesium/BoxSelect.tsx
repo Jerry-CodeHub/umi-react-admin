@@ -164,7 +164,7 @@ export default function BoxSelect() {
         </>
       }
     >
-      <Alert type={tool ? 'warning' : 'info'} showIcon className="mb-4" message={hint} />
+      <Alert type={tool ? 'warning' : 'info'} showIcon className="mb-4" title={hint} />
       <div className="flex flex-col gap-4 xl:flex-row">
         <Card className="min-w-0 flex-1" styles={{ body: { padding: 0 } }}>
           <CesiumStage containerRef={containerRef} viewer={viewer} error={error} overlay={legend} />

@@ -75,7 +75,7 @@
     "temporal-polyfill": "^1.0.5",
     "tinymce": "^8.9.2",
     "tinymce-i18n": "^26.9.28",
-    "wavesurfer.js": "^7.12.12",
+    "wavesurfer.js": "^8.0.1",
     "xgplayer": "^3.0.26",
     "xgplayer-music": "^3.0.26"
   },

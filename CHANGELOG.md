@@ -2,7 +2,18 @@
 
 本文件基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式维护；历史提交明细见 git log。
 
-## [未发布] - 2026-09 演示重构（refactor/*）
+## [1.0.0] - 2026-10-07
+
+首个正式发布基线：2026-09 演示重构（refactor/* 链，PR #23–#33）+ 依赖与安全加固。
+
+### 依赖与安全加固（2026-10-07，PR #35/#36/#21）
+
+- 安全 overrides 清零新披露的 2 critical + 7 high（piscina、proxy-addr、compression、source-map-js、brace-expansion、fast-uri 等）；braces（GHSA-vfj7-8cjw-p6xm）与 sprintf-js 无上游补丁，登记接受（THIRD-PARTY-NOTICES，跟踪 issue #38/#39）
+- dependabot：ignore `pdfjs-dist`（锁版跟随 react-pdf 内置版本）与 `@ant-design/icons` major（待 antd 6）
+- patch-and-minor 组 12 项升级（@umijs/max 4.7.22、vitest 5、eslint 10.12、stylelint 17.16 等），wavesurfer.js 8.0.1
+- master 开启 branch protection（required: check / build / e2e）
+
+### 2026-09 演示重构（refactor/*）
 
 方案见 `docs/remediation-plan-2026-09-23.md`（不入库）。
 

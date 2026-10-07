@@ -19,3 +19,6 @@ interface Window {
   /** AMap JS API 2.0 的安全密钥配置（必须在 JS API 脚本加载前设置） */
   _AMapSecurityConfig?: { securityJsCode: string };
 }
+
+// 构建信息（config/buildInfo.ts）
+declare const BUILD_INFO: { sha: string; time: string; target: string };

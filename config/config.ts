@@ -1,6 +1,6 @@
 import { defineConfig } from '@umijs/max';
+import { BUILD_INFO, addVersionFile } from './buildInfo';
 import { addChunkGraph } from './chunkGraph';
-import { mockConfig } from './mock';
 import { routes } from './routes';
 import { configureSplitChunks } from './splitChunks';
 
@@ -33,6 +33,7 @@ export default defineConfig({
     if (process.env.NODE_ENV === 'production') {
       configureSplitChunks(config);
       addChunkGraph(config);
+      addVersionFile(config);
     }
   },
   copy: [
@@ -78,9 +79,13 @@ export default defineConfig({
     // 可选——不配置时高德页面回落 @pansy/amap-api-loader 自带的公共 key（配额不受本项目控制）
     AMAP_KEY: process.env.AMAP_KEY,
     AMAP_SECURITY_CODE: process.env.AMAP_SECURITY_CODE,
+    // 构建信息（页脚与 dist/version.json 同源，见 ./buildInfo.ts）
+    BUILD_INFO,
   },
   // 覆盖 umi 默认的 viewport（user-scalable=no / maximum-scale=1 禁止缩放，违反 WCAG 1.4.4）
   metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+  // SVG 图标（现代浏览器均支持），GitHub Pages 产线见 config.github.ts
+  favicons: ['/logo.svg'],
   headScripts: CLARITY_ID ? [{ src: `https://www.clarity.ms/tag/${CLARITY_ID}`, async: true }] : [],
   // 产物文件名带内容哈希：配合 nginx 对哈希文件的长缓存（nginx/default.conf），发版后不会命中旧脚本
   hash: true,
@@ -99,24 +104,26 @@ export default defineConfig({
     configProvider: {},
   },
   access: {},
-  // mock 目录只放接口定义；测试文件排除见 config/mock.ts
-  mock: mockConfig,
+  // 不用 umi mock：演示接口由浏览器内的演示后端响应（src/demo，经请求层 adapter 接入），
+  // dev 与所有静态部署走同一套实现
+  mock: false,
   model: {},
   initialState: {},
   request: {},
   layout: {},
-  // @umijs/max 内置了 styled-components 样式方案。
-  // https://umijs.org/docs/max/styled-components
-  styledComponents: {},
   // 路由配置
   routes,
   npmClient: 'pnpm',
   // 多语言配置 https://umijs.org/docs/max/i18n
   locale: {
-    // 默认使用 src/locales/zh-CN.ts 作为多语言文件
+    // 默认 zh-CN；首次访问按浏览器语言选择（英文浏览器进来即英文界面），之后以用户在顶栏的选择为准
     default: 'zh-CN',
+    baseNavigator: true,
     baseSeparator: '-',
   },
   tailwindcss: {},
   esbuildMinifyIIFE: true, // 开启 esbuild 压缩
+  // MFSU eager 模式会扫描 src 下所有文件（含 *.test.ts）的 import，把 vitest 当成页面依赖预编译，
+  // vitest → vite 引用 node:module，dev 每次启动都报 UnhandledSchemeError。测试依赖不进浏览器，排除即可
+  mfsu: { exclude: ['vitest'] },
 });

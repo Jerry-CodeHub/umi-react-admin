@@ -1,0 +1,4 @@
+/* 暗色主题：OSM 瓦片反色 + 色相回转，得到深色底图；点位图层不受影响 */
+.ol-dark .osm-tiles {
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}

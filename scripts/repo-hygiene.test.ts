@@ -13,10 +13,11 @@ const readJson = (file: string) => JSON.parse(readFileSync(new URL(file, root), 
  */
 const importSpecifiers = (source: string) => {
   const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
-  // 关键字前不能是标识符字符、点或连字符：'vitest/no-mocks-import': 'error' 这类字符串不是导入
-  const typeOnlyStatement = /(?<![\w$.-])import\s+type\s[^;]*?\bfrom\s*['"]([^'"]+)['"]/g;
+  // 关键字前不能是标识符字符、点、连字符或引号：'vitest/no-mocks-import': 'error'、busy === 'import' 这类字符串不是导入；
+  // 模块名里不会有空白与逗号：文案结尾的 "... to import'," 不会被当成导入了一个叫 ",\n  " 的包
+  const typeOnlyStatement = /(?<![\w$.'"`-])import\s+type\s[^;]*?\bfrom\s*['"]([^'"\s,]+)['"]/g;
   const valuePattern =
-    /(?<![\w$.-])from\s*['"]([^'"]+)['"]|(?<![\w$.-])import\s*\(?\s*['"]([^'"]+)['"]|(?<![\w$.-])require(?:\.resolve)?\(\s*['"]([^'"]+)['"]/g;
+    /(?<![\w$.'"`-])from\s*['"]([^'"\s,]+)['"]|(?<![\w$.'"`-])import\s*\(?\s*['"]([^'"\s,]+)['"]|(?<![\w$.'"`-])require(?:\.resolve)?\(\s*['"]([^'"\s,]+)['"]/g;
   return [
     ...[...code.matchAll(typeOnlyStatement)].map((m) => ({ specifier: m[1], typeOnly: true })),
     ...[...code.replace(typeOnlyStatement, '').matchAll(valuePattern)].map((m) => ({

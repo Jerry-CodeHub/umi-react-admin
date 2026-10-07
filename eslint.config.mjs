@@ -8,6 +8,38 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+/**
+ * 本项目规则：界面文案必须走 src/locales（中英双语）。检查字符串、模板字符串与 JSX 文本里的中文
+ * （含全角标点）；注释不受影响。演示数据（src/demo）、文案文件本身与测试不检查。
+ */
+const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
+const localPlugin = {
+  rules: {
+    'no-cjk-literal': {
+      meta: {
+        type: 'problem',
+        messages: { cjk: '界面文案请放进 src/locales 并用 intl.formatMessage 取用（中英双语），不要直接写中文' },
+      },
+      create(context) {
+        const check = (node, text) => {
+          if (CJK.test(text)) context.report({ node, messageId: 'cjk' });
+        };
+        return {
+          Literal: (node) => typeof node.value === 'string' && check(node, node.value),
+          TemplateElement: (node) => check(node, node.value.raw),
+          JSXText: (node) => check(node, node.value),
+        };
+      },
+    },
+  },
+};
+
+/**
+ * 暂缓多语言迁移的文件清单（重构期间按阶段清空，2026-09 已清零）。
+ * 新增文件不要加进来——写新代码就直接用 locales。
+ */
+const I18N_PENDING = [];
+
 /** umi recommended：内置规则 */
 const umiCoreRules = {
   // 不需要返回就用 forEach
@@ -127,6 +159,8 @@ export default defineConfig(
       'src/.umi/',
       'src/.umi-production/',
       'coverage/',
+      'playwright-report/',
+      'test-results/',
       '.claude/',
       '.kilo/',
     ],
@@ -173,7 +207,15 @@ export default defineConfig(
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/locales/**', 'src/demo/**', '**/*.test.{ts,tsx}', ...I18N_PENDING],
+    plugins: { local: localPlugin },
+    rules: { 'local/no-cjk-literal': 'error' },
+  },
+  {
+    // vitest 规则只作用于单元测试；e2e/ 下是 Playwright 用例（API 不同）
     files: ['**/*.{test,spec}.{ts,tsx,js,jsx}'],
+    ignores: ['e2e/**'],
     plugins: { vitest },
     rules: umiTestRules,
   },

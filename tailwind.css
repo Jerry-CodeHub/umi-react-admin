@@ -39,7 +39,7 @@
  * preflight 已去掉，但 border 系工具类依赖 preflight 的边框基线：
  * .border 只设 border-width，缺了 border-style: solid 时边框根本不显示。
  * 这里只补回 preflight 中与边框相关的两条；放在原生 base 层，任何未分层样式（含 antd）都能覆盖它。
- * 边框默认色沿用 v3 的 gray-200（v4 默认改为 currentColor）。
+ * 边框默认色沿用 v3 的 gray-200（v4 默认改为 currentColor），以 rgb 写出（原因见下方注释）。
  */
 @layer base {
   *,
@@ -47,7 +47,10 @@
   ::after {
     border-width: 0;
     border-style: solid;
-    border-color: var(--color-gray-200, currentcolor);
+
+    /* 写死 rgb 而不是引用 --color-gray-200：v4 的调色板是 oklch()，html2canvas 1.x 解析不了，
+       截图页与 PDF 报告会整体失败（它会读取每个元素的计算样式） */
+    border-color: rgb(229 231 235);
   }
 
   /* 上面把 border-width 归零后，hr 需要恢复顶边线（同 preflight） */

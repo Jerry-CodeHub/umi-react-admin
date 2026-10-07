@@ -8,7 +8,6 @@
  * - style 'unsafe-inline'：antd cssinjs 运行时注入 + tailwind 任意值
  * - 高德 / autonavi：AMap JS API 2.0；openstreetmap：OpenLayers 瓦片；cesium.com：ion 影像
  * - virtualearth.net：未配置 ion token 时 Cesium 的 Bing 影像兜底
- * - alipayobjects / alicdn：应用列表图标
  * - media blob:：wavesurfer 7 把音频解码后以 blob URL 交给 <audio> 播放（缺了它音频可视页无法播放）
  * - huoshanstatic：xgplayer 演示视频
  */
@@ -26,8 +25,6 @@ export const CSP_DIRECTIVES: [string, string[]][] = [
       "'self'",
       'data:',
       'blob:',
-      'https://gw.alipayobjects.com',
-      'https://img.alicdn.com',
       'https://*.amap.com',
       'https://*.autonavi.com',
       'https://tile.openstreetmap.org',

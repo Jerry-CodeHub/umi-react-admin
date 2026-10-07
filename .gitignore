@@ -29,3 +29,7 @@ docs/remediation-plan-*.md
 
 # 测试覆盖率产物
 coverage/
+
+# Playwright
+/playwright-report/
+/test-results/

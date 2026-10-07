@@ -19,7 +19,6 @@ export default {
       '^([a-z][a-z0-9]*(-[a-z0-9]+)*|[a-z][a-zA-Z0-9]+)$',
       { message: 'Expected class selector to be kebab-case or lowerCamelCase' },
     ],
-    // 与 less 的 { math: always } 冲突
     'color-function-notation': null,
     // 单独的 PingFangSC 字体多是从 Sketch 无意复制，缺字体的设备会渲染错字体（umijs/umi#11001）
     'declaration-property-value-disallowed-list': [
@@ -38,12 +37,4 @@ export default {
     // Tailwind v4 只按字符串形式解析 @import（standard 默认要求 url()）
     'import-notation': 'string',
   },
-  overrides: [
-    {
-      files: ['**/*.less'],
-      customSyntax: 'postcss-less',
-      // umi 构建链内置的 Less 解析不了媒体查询范围语法（(width <= 768px) 报 Missing closing ')'）
-      rules: { 'media-feature-range-notation': 'prefix' },
-    },
-  ],
 };

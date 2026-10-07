@@ -8,7 +8,6 @@ export default defineConfig({
     },
   },
   test: {
-    // 不收录 mock/：umi 会把 mock 目录下的所有 ts/js 当 mock 加载，测试文件不能放那里（见 config/mock.ts）
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     coverage: {
       provider: 'v8',
@@ -18,7 +17,7 @@ export default defineConfig({
         'src/utils/Auth/userInfo.ts',
         'src/utils/BizError.ts',
         'src/utils/requestConfig.ts',
-        'src/services/demo/userQuery.ts',
+        'src/demo/**/*.ts',
       ],
       thresholds: {
         statements: 60,

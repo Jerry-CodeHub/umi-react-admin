@@ -1,8 +1,11 @@
 import { AUTH_TOKEN_KEY } from '@/constants';
+import { demoAdapter } from '@/demo/adapter';
+import { DEMO_MODE } from '@/demo/mode';
 import type { RequestConfig, RequestOptions } from '@umijs/max';
-import { getIntl, history } from '@umijs/max';
+import { history } from '@umijs/max';
 import { BizError } from './BizError';
 import { getMessage } from './antdMessage';
+import { t } from './i18n';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
@@ -21,15 +24,6 @@ const getErrorMessage = (data: unknown, fallback: string) => {
     }
   }
   return fallback;
-};
-
-/** 非组件环境取 intl 文案，locale 插件未就绪或键缺失时回退中文默认值 */
-const t = (id: string, fallback: string) => {
-  try {
-    return getIntl().formatMessage({ id, defaultMessage: fallback });
-  } catch {
-    return fallback;
-  }
 };
 
 const getAuthToken = () => {
@@ -62,9 +56,10 @@ const isCanceled = (error: unknown) =>
 
 export const requestConfig: RequestConfig = {
   timeout: 15000,
-  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_BASE 全局常量，
-  // 未配置时为 undefined 走相对路径（dev 由 umi mock 接管，静态演示走 services/demo 的本地实现）
+  // 真实后端地址（可选）：经 config define 注入的 UMI_APP_API_BASE 全局常量。
+  // 未配置时为演示模式：请求交给浏览器内的演示后端（src/demo/adapter.ts），不发网络请求
   baseURL: UMI_APP_API_BASE,
+  adapter: DEMO_MODE ? (demoAdapter as unknown as RequestConfig['adapter']) : undefined,
   errorConfig: {
     // 后端 success:false 的业务错误统一转成 BizError 抛给调用方
     errorThrower: (res) => {
@@ -103,10 +98,10 @@ export const requestConfig: RequestConfig = {
         switch (status) {
           case 400:
             // 参数错误：仅提示，保留表单上下文
-            message.error(getErrorMessage(data, t('request.badRequest', '请求参数错误。')));
+            message.error(getErrorMessage(data, t('request.badRequest')));
             break;
           case 401:
-            message.error(t('request.unauthorized', '登录失效，即将跳转至登录页面'));
+            message.error(t('request.unauthorized'));
             if (typeof window !== 'undefined') {
               localStorage.removeItem(AUTH_TOKEN_KEY);
               // 整页跳转而非 SPA 路由（审计 2026-09-22 L-2）：重置内存中的 initialState
@@ -115,29 +110,29 @@ export const requestConfig: RequestConfig = {
             }
             break;
           case 403:
-            message.error(getErrorMessage(data, t('request.forbidden', '没有权限访问该资源。')));
-            history.push('/403');
+            message.error(getErrorMessage(data, t('request.forbidden')));
+            history.push('/exception/403');
             break;
           case 404:
             // 资源不存在：仅提示，停留当前页
-            message.error(getErrorMessage(data, t('request.notFound', '请求的资源不存在。')));
+            message.error(getErrorMessage(data, t('request.notFound')));
             break;
           case 500:
-            message.error(getErrorMessage(data, t('request.serverError', '服务器错误，请稍后重试。')));
+            message.error(getErrorMessage(data, t('request.serverError')));
             break;
           default:
-            message.error(`${t('request.failed', '请求失败')}（HTTP ${status}）`);
+            message.error(t('request.failedWithStatus', { status }));
         }
         return;
       }
 
       // 网络层错误（超时 / 断网）
       if (isRecord(error) && error.code === 'ECONNABORTED') {
-        message.error(t('request.timeout', '请求超时，请稍后重试。'));
+        message.error(t('request.timeout'));
       } else if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        message.error(t('request.offline', '网络异常，请检查网络连接。'));
+        message.error(t('request.offline'));
       } else {
-        message.error(t('request.network', '网络异常，请稍后重试。'));
+        message.error(t('request.network'));
       }
     },
   },

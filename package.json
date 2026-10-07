@@ -74,6 +74,7 @@
     "signature_pad": "^5.1.4",
     "temporal-polyfill": "^1.0.5",
     "tinymce": "^8.9.2",
+    "tinymce-i18n": "^26.9.14",
     "wavesurfer.js": "^7.12.12",
     "xgplayer": "^3.0.26",
     "xgplayer-music": "^3.0.26"

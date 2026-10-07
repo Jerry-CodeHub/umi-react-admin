@@ -28,6 +28,7 @@ export default {
   'calendar.allDay': 'All day',
   'calendar.hint': 'Select a time range to create an event; drag or resize events to reschedule. Changes are saved.',
   'richText.blockFormats': 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Quote=blockquote',
+  'richText.tinymce.undo': 'Undo',
   'richText.preview': 'Preview',
   'richText.previewTitle': 'Rendered content (sanitized with DOMPurify)',
   'richText.report.title': 'Weekly ops report ({from} – {to})',

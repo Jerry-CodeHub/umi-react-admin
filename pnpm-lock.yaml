@@ -143,6 +143,9 @@ importers:
       tinymce:
         specifier: ^8.9.2
         version: 8.9.2
+      tinymce-i18n:
+        specifier: ^26.9.14
+        version: 26.9.14
       wavesurfer.js:
         specifier: ^7.12.12
         version: 7.12.12
@@ -8096,6 +8099,9 @@ packages:
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
+
+  tinymce-i18n@26.9.14:
+    resolution: {integrity: sha512-Wr1Y1N2r6lBJi4DZOGOXhVxz1N03ihqMINZgGr8r023/sqHvsesu7sG83Npz0GSWuZaFK89fnDRyILXfQ0wG0Q==}
 
   tinymce@8.9.2:
     resolution: {integrity: sha512-Qh6ADSC0x1F/KsrupfResNJFAaINJQBtfVjx5zxxWJ0ZrGtaKldtAXDMI6uEA57s2n+0rEtXmtbitiU4zV7+0Q==}
@@ -18273,6 +18279,8 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
+
+  tinymce-i18n@26.9.14: {}
 
   tinymce@8.9.2: {}
 

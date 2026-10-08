@@ -2,6 +2,15 @@
 
 本文件基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式维护；历史提交明细见 git log。
 
+## [未发布]
+
+### antd 6（2026-10-07，PR #41）
+
+- antd 5.29 → 6.6.5、@ant-design/pro-components 2 → 3.1.14-7、@ant-design/icons 5 → 6.3.4（闭环 #22 遗留项）
+- 移除 `@ant-design/v5-patch-for-react-19`（v6 原生支持 React 19），手动注入 `antd/dist/reset.css`
+- ProLayout v3：`rightContentRender` → `actionsRender`，`layout.locale` 显式开启；antd 6 默认注入 CSS 变量
+- 迁移弃用 props：12 处 `Alert message→title`、2 处 `Spin tip→description`
+
 ## [1.0.0] - 2026-10-07
 
 首个正式发布基线：2026-09 演示重构（refactor/* 链，PR #23–#33）+ 依赖与安全加固。

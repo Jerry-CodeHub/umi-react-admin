@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- 项目标识（自制，随项目 MIT）：监测站信号波纹，深浅背景下都清晰 -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4096ff"/>
+      <stop offset="1" stop-color="#1d39c4"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <circle cx="22" cy="42" r="5" fill="#fff"/>
+  <path d="M22 28a14 14 0 0 1 14 14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M22 16a26 26 0 0 1 26 26" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+</svg>

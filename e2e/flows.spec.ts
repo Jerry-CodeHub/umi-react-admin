@@ -70,7 +70,8 @@ test('点击看板卡片查看详情，并在详情里流转状态（不用拖�
   await expect(todo.first()).toBeVisible();
   const done = await columns.nth(2).locator('.ant-card').count();
   await todo.first().click();
-  const drawer = page.locator('.ant-drawer-content');
+  // antd 6 起 Drawer 内层的 .ant-drawer-content 元素被 .ant-drawer-section（role=dialog）取代
+  const drawer = page.locator('.ant-drawer-section');
   await expect(drawer).toContainText('处理进度');
   await drawer.locator('.ant-segmented-item').nth(2).click();
   await expect(page.locator('.ant-message')).toContainText('已完成');

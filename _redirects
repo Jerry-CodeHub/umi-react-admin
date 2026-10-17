@@ -1,0 +1,9 @@
+# Cloudflare Pages：/api 闭合失败（审查 F6；https://developers.cloudflare.com/pages/configuration/redirects/）。
+# 没有顶层 404.html 时 Pages 按 SPA 模式把任何未命中的路径回落到 index.html，/api/* 也不例外——
+# 那正是 F6 要消除的「把 SPA HTML 当接口响应」。这里在回落之前把 /api 改写到一份静态 JSON。
+# 平台限制：_redirects 只支持 3xx 跳转与 200 改写，不能返回 404，所以状态码是 200；
+# JSON 里带 success:false / errorCode:404，前端请求层会把它当业务失败（BizError）处理，同样闭合失败。
+# 其他产线各自返回真正的 404/503（nginx/api-fail-closed.conf、api/[...path].js、scripts/serve-dist.mjs），
+# 比对回归见 scripts/deploy-routing.test.ts。
+/api /api-not-configured.json 200
+/api/* /api-not-configured.json 200

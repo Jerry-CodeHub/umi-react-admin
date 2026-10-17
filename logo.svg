@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- 项目标识（自制，随项目 MIT）：监测雷达——扫描扇区掠过监测范围，扇区里的青色目标点即「发现信号 / 告警」，
+       对应演示主线的监测站 → 告警 → 工单。十字准线 + 宽扇区是雷达的辨识点（只有单环单针会被读成秒表）。
+       应用内（ProLayout、登录页）用本文件；16–32px 的标签页图标用简化版 favicon.svg；
+       PNG / ICO 由 scripts/make-icons.mjs 从这两份 SVG 生成，改图后重新执行即可 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4096ff"/>
+      <stop offset="1" stop-color="#0b3fbf"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="17.86" y1="0" x2="46.14" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".7"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <path d="M32 12v40M12 32h40" stroke="#fff" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M32 32L17.86 17.86A20 20 0 0 1 46.14 17.86z" fill="url(#sweep)"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="10.5" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="3"/>
+  <path d="M32 32L46.14 17.86" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="4" fill="#fff"/>
+  <circle cx="26.9" cy="21.1" r="4.25" fill="#5cdbd3"/>
+</svg>

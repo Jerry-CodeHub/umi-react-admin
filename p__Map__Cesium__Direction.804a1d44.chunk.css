@@ -1,0 +1,1 @@
+.cesium-stage{position:relative;width:100%;height:calc(100vh - 300px);min-height:520px;overflow:hidden;border-radius:8px}.cesium-stage .cesium-widget,.cesium-stage .cesium-widget canvas{width:100%;height:100%}@media(max-width:768px){.cesium-stage{height:calc(100vh - 340px);min-height:420px}}

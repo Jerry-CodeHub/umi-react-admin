@@ -1,0 +1,7 @@
+{
+  "success": false,
+  "data": null,
+  "errorCode": 404,
+  "error": "not_found",
+  "message": "static host has no API backend"
+}

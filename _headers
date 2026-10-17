@@ -1,0 +1,12 @@
+# Cloudflare Pages 响应头（https://developers.cloudflare.com/pages/configuration/headers/）。
+# 与 vercel.json、nginx/security-headers.conf 是同一组安全头；CSP 的单一来源是 config/csp.ts。
+# scripts/csp-consistency.test.ts 逐项比对三处副本，改任何一处都必须同步另外两处。
+# 平台限制：单个响应头 ≤ 2000 字符、规则 ≤ 100 条（测试同样断言）。
+# 其他产线（Vercel / Docker / GitHub Pages）会把本文件当作普通静态文件原样带上，内容本就公开，不影响它们的行为。
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Strict-Transport-Security: max-age=31536000
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' 'unsafe-eval' https://webapi.amap.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.amap.com https://*.autonavi.com https://tile.openstreetmap.org https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; connect-src 'self' blob: https://*.amap.com https://*.autonavi.com https://tile.openstreetmap.org https://ion.cesium.com https://api.cesium.com https://assets.ion.cesium.com https://*.virtualearth.net; font-src 'self' data:; media-src 'self' blob: https://sf1-cdn-tos.huoshanstatic.com; worker-src 'self' blob:; frame-src 'self'

@@ -7,7 +7,7 @@
 # scripts/dockerfile-frontend.test.ts 会在「用了外部 frontend 能力却没固定」时失败。
 
 # ---------- 阶段一：构建 ----------
-FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
+FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS builder
 WORKDIR /app
 
 # 先装依赖以利用层缓存
@@ -42,7 +42,7 @@ RUN if [ -z "$UMI_APP_API_BASE" ]; then unset UMI_APP_API_BASE; fi; \
 
 # ---------- 阶段二：运行（全程非 root） ----------
 # 固定到稳定线 1.30 的具体镜像摘要（多架构 index），升级时显式更新 tag 与摘要
-FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:04a3275f25d766cff8926d2e57b2ff34a783d6b12a702dc98bb82226d2d9a508
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf

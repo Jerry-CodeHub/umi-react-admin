@@ -112,7 +112,12 @@ export default function KpiCards({ kpi, loading }: { kpi?: DashboardOverview['kp
       footer: kpi && (
         <Delta
           value={alarmDiff}
-          text={formatPercent(Math.abs(alarmDiffRatio), locale, 0)}
+          // 昨日同期为 0 时比率无定义（此前回落成 0.0% 却配上升箭头）：改示绝对增量
+          text={
+            kpi.alarmsYesterdaySamePeriod
+              ? formatPercent(Math.abs(alarmDiffRatio), locale, 0)
+              : formatNumber(Math.abs(alarmDiff), locale)
+          }
           higherIsBetter={false}
           label={t('dashboard.kpi.vsYesterday')}
         />

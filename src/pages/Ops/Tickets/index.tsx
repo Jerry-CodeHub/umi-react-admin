@@ -65,6 +65,10 @@ const columnJumpCoordinates: KeyboardCoordinateGetter = (event, { context }) => 
   return next ? { x: next.left + 12, y: next.top + 48 } : undefined;
 };
 
+/** 拖拽结束后浏览器仍会补发一次 click（dnd 的 pointer sensor 只 preventDefault mouseup）：
+ *  记录最近一次 dragEnd 时刻，短窗口内忽略 click，避免拖动后放回原地的卡片弹出详情抽屉 */
+const lastDragEndAt = { current: 0 };
+
 /** 点击 / 回车打开详情；拖动（鼠标移动 6px 以上、触屏长按）才进入拖拽，二者不冲突 */
 const DraggableTicket = ({ ticket, onOpen }: { ticket: Ticket; onOpen: (ticket: Ticket) => void }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: ticket.id, data: { ticket } });
@@ -73,7 +77,10 @@ const DraggableTicket = ({ ticket, onOpen }: { ticket: Ticket; onOpen: (ticket: 
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      onClick={() => onOpen(ticket)}
+      onClick={() => {
+        if (Date.now() - lastDragEndAt.current < 150) return;
+        onOpen(ticket);
+      }}
       onKeyDown={(event) => {
         listeners?.onKeyDown?.(event);
         if (event.key === 'Enter' && !event.defaultPrevented) onOpen(ticket);
@@ -311,14 +318,16 @@ export default function Tickets() {
   /** 乐观更新：先移动卡片，接口失败再退回（错误提示由请求层统一弹出）。拖拽与详情抽屉共用 */
   const move = async (ticket: Ticket, status: TicketStatus) => {
     if (status === ticket.status) return;
-    const previous = tickets;
+    // 只记录被移动那张卡的原状态：整表快照回滚会一并吞掉调用期间落地的其他变更
+    // （看板刷新合并、第二张卡的移动、经办人变更）
+    const previousStatus = ticket.status;
     setTickets((list) => list.map((item) => (item.id === ticket.id ? { ...item, status } : item)));
     try {
       const updated = await moveTicket(ticket.id, status);
       setTickets((list) => list.map((item) => (item.id === ticket.id ? updated : item)));
       message.success(t('tickets.moved', { id: ticket.id, status: t(`ticketStatus.${status}`) }));
     } catch {
-      setTickets(previous);
+      setTickets((list) => list.map((item) => (item.id === ticket.id ? { ...item, status: previousStatus } : item)));
     }
   };
 
@@ -336,6 +345,7 @@ export default function Tickets() {
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setDragging(undefined);
+    lastDragEndAt.current = Date.now();
     const ticket = tickets.find((item) => item.id === active.id);
     const status = over?.id as TicketStatus | undefined;
     if (ticket && status) void move(ticket, status);

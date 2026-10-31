@@ -10,7 +10,8 @@ export default function RegionOnline({ data, height }: { data: DashboardOverview
   const rows = data
     .map((row) => ({
       region: intl.formatMessage({ id: `region.${row.region}` }),
-      rate: Math.round((row.online / row.total) * 1000) / 10,
+      // total 为 0 的大区此前会算出 NaN%（NaN 还会污染按 rate 的排序）：按 0 处理
+      rate: row.total ? Math.round((row.online / row.total) * 1000) / 10 : 0,
       detail: intl.formatMessage({ id: 'dashboard.regions.online' }, { online: row.online, total: row.total }),
     }))
     .sort((a, b) => b.rate - a.rate);

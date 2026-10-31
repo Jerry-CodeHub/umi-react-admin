@@ -63,8 +63,13 @@ export default function BoxSelect() {
   const measureRef = useRef<[number, number][]>([]);
   devicesRef.current = devices ?? [];
   toolRef.current = tool;
+  // fmtLen 被 onReady 里的 CallbackProperty/标签闭包长期持有，直接读 state 会冻结在首次渲染的
+  // 单位上（切 km→nmi 后侧板变了、圆半径与量测标签不变）：走 ref 取当前值
+  const unitsRef = useRef(units);
+  unitsRef.current = units;
 
-  const fmtLen = (km: number) => (units === 'km' ? `${km.toFixed(1)} km` : `${(km * NMI_PER_KM).toFixed(1)} nmi`);
+  const fmtLen = (km: number) =>
+    unitsRef.current === 'km' ? `${km.toFixed(1)} km` : `${(km * NMI_PER_KM).toFixed(1)} nmi`;
 
   const { containerRef, viewer, error, basemapFailed, retry } = useCesiumViewer({
     home: [108, 35, 4_600_000],

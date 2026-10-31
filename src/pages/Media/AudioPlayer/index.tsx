@@ -77,6 +77,9 @@ export default function AudioPlayer() {
 
     return () => {
       observer.disconnect();
+      // Analyze 有自调度的 rAF 渲染循环，只有它的 destroy()（内部 stop()）会取消；
+      // player.destroy() 只关 AudioContext，不先销毁 Analyze 的话循环会在卸载后一直画
+      analyzeRef.current?.destroy();
       analyzeRef.current = undefined;
       player.destroy();
     };

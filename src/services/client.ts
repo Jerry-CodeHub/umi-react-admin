@@ -1,3 +1,4 @@
+import { BizError } from '@/utils/BizError';
 import { request, type RequestOptions } from '@umijs/max';
 import type { ApiEnvelope } from './types';
 
@@ -7,6 +8,11 @@ import type { ApiEnvelope } from './types';
  */
 export const api = async <T>(url: string, options: RequestOptions = { method: 'GET' }): Promise<T> => {
   const envelope = await request<ApiEnvelope<T>>(url, { ...options, getResponse: false as const });
+  // 200 但不是信封（网关错误页、被截断的响应等）：envelope.data 的 TypeError 信息不可读，
+  // 也不会走 errorHandler 弹提示——这里显式判形并抛 BizError
+  if (envelope === null || typeof envelope !== 'object' || !('data' in envelope)) {
+    throw new BizError({ message: 'api: response is not an ApiEnvelope' });
+  }
   return envelope.data;
 };
 

@@ -66,15 +66,16 @@ export default function Alarms() {
 
   /** 误报关闭会让告警直接离开「未恢复」池、不派生工单，先确认；转工单 / 标记恢复是常规处置，直接执行 */
   const confirmAndHandle = (alarm: Alarm, action: AlarmHandleAction) => {
+    // 失败提示由请求层 toast，这里接住 rejection 避免 fire-and-forget 的 unhandled rejection
     if (action !== 'falsePositive') {
-      void handle(alarm, action);
+      void handle(alarm, action).catch(() => undefined);
       return;
     }
     modal.confirm({
       title: t('alarms.falsePositiveConfirm', { id: alarm.id }),
       content: t('alarms.falsePositiveConfirmDesc'),
       okButtonProps: { danger: true },
-      onOk: () => handle(alarm, action),
+      onOk: () => handle(alarm, action).catch(() => undefined),
     });
   };
 

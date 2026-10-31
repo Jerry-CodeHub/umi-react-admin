@@ -27,9 +27,14 @@ const AssigneeSelect = ({ ticket, onChanged }: { ticket: Ticket; onChanged?: (ti
   useEffect(() => {
     if (!access.permission('ops.ticket.assign')) return;
     let cancelled = false;
-    void listUsers({ status: 'active', pageSize: 200 })
-      .then((page) => {
-        if (!cancelled) setUsers(page.list);
+    // 服务端按角色过滤（UserQuery.role）：此前「pageSize 200 全量捞再客户端筛 operator/lead」，
+    // 活跃用户超过 200 时选择器会静默丢候选人
+    void Promise.all([
+      listUsers({ status: 'active', role: 'operator', pageSize: 100 }),
+      listUsers({ status: 'active', role: 'lead', pageSize: 100 }),
+    ])
+      .then(([operators, leads]) => {
+        if (!cancelled) setUsers([...operators.list, ...leads.list]);
       })
       .catch(() => undefined);
     return () => {

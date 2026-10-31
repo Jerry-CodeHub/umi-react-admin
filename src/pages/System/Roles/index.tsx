@@ -71,10 +71,16 @@ export default function Roles() {
     }
   };
 
+  // 恢复默认与保存共用 saving 态：无防连点时双击会并发触发两次重置，失败也会留下未处理的 rejection
   const restore = async () => {
-    await resetRolePermissions(activeId);
-    message.success(t('common.saved'));
-    reload();
+    setSaving(true);
+    try {
+      await resetRolePermissions(activeId);
+      message.success(t('common.saved'));
+      reload();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -142,7 +148,7 @@ export default function Roles() {
               locked
                 ? undefined
                 : [
-                    <Button key="restore" type="link" onClick={restore}>
+                    <Button key="restore" type="link" loading={saving} onClick={restore}>
                       {t('roles.restoreDefault')}
                     </Button>,
                     <Button key="save" type="primary" disabled={!dirty} loading={saving} onClick={save}>

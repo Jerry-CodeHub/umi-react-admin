@@ -9,5 +9,8 @@ export const avatarColor = (name: string) => {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
-/** 头像文字：中文取姓，英文取首字母 */
-export const avatarText = (name: string) => (/^[a-z]/i.test(name) ? name.slice(0, 1).toUpperCase() : name.slice(0, 1));
+/** 头像文字：中文取姓，英文取首字母（按码点取首字符——slice(0,1) 会把 emoji 拆成孤立代理项） */
+export const avatarText = (name: string) => {
+  const first = Array.from(name)[0] ?? '';
+  return /^[a-z]$/i.test(first) ? first.toUpperCase() : first;
+};

@@ -19,6 +19,7 @@ import {
   Empty,
   Listy,
   Progress,
+  Result,
   Skeleton,
   theme,
   Tooltip,
@@ -40,78 +41,94 @@ const DeviceDrawer = ({ id, onClose }: { id?: string; onClose: () => void }) => 
   const intl = useIntl();
   const t = (key: string) => intl.formatMessage({ id: key });
   const enums = useEnums();
-  const { data, loading } = useApi(() => (id ? getDevice(id) : Promise.resolve(undefined)), [id]);
+  const { data, loading, error, reload } = useApi(() => (id ? getDevice(id) : Promise.resolve(undefined)), [id]);
   return (
     <Drawer open={!!id} onClose={onClose} size={520} title={t('devices.detail')} destroyOnHidden>
-      <Skeleton active loading={loading || !data}>
-        {data && (
-          <>
-            <Descriptions column={1} size="small" bordered>
-              <Descriptions.Item label={t('devices.column.device')}>
-                {data.name} <Typography.Text type="secondary">{data.id}</Typography.Text>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('alarms.column.location')}>
-                {enums.label('region', data.region)} · {data.city}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.model')}>
-                {data.model} · {data.firmware}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.band')}>
-                {data.band[0]}–{data.band[1]} MHz
-              </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.status')}>
-                <Badge
-                  status={data.status === 'online' ? 'success' : data.status === 'fault' ? 'error' : 'default'}
-                  text={enums.label('deviceStatus', data.status)}
-                />
-              </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.uptime')}>{data.uptime30d}%</Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.signal')}>{data.signalDbm} dBm</Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.heartbeat')}>
-                {formatDateTime(data.lastHeartbeatAt, 'YYYY-MM-DD HH:mm:ss')}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('devices.column.installedAt')}>
-                {formatDateTime(data.installedAt, 'YYYY-MM-DD')}
-              </Descriptions.Item>
-            </Descriptions>
-            {/* 同一业务对象的跳转链（E03）：地图定位 + 告警明细，浏览器返回可回到这里 */}
-            <Button
-              className="mt-4"
-              icon={<AimOutlined />}
-              data-tour="device-locate"
-              onClick={() => history.push(`/map/openlayers?focus=${encodeURIComponent(data.id)}`)}
-            >
-              {t('devices.locateOnMap')}
+      {error ? (
+        // 拉取失败不再伪装成永久骨架：给出失败态与重试（请求层已 toast 过原因）
+        <Result
+          status="warning"
+          title={t('common.loadFailed')}
+          extra={
+            <Button onClick={reload} loading={loading}>
+              {t('common.retry')}
             </Button>
-            <Typography.Title level={5} className="mt-8">
-              {t('devices.recentAlarms')}
-            </Typography.Title>
-            {data.recentAlarms.length ? (
-              <Listy
-                items={data.recentAlarms}
-                rowKey="id"
-                styles={{ item: { paddingBlock: 8, paddingInline: 0 } }}
-                itemRender={(alarm) => (
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="min-w-0">
-                      <SemanticTag tone={LEVEL_COLOR[alarm.level]}>
-                        {enums.label('alarmLevel', alarm.level)}
-                      </SemanticTag>
-                      <Link to={`/ops/alarms?keyword=${encodeURIComponent(alarm.id)}`}>
-                        {enums.label('alarmType', alarm.type)}
-                      </Link>
-                      <Typography.Text type="secondary"> · {enums.label('alarmStatus', alarm.status)}</Typography.Text>
-                    </span>
-                    <Typography.Text type="secondary">{fromNow(alarm.occurredAt, intl.locale)}</Typography.Text>
-                  </div>
-                )}
-              />
-            ) : (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('devices.noAlarms')} />
-            )}
-          </>
-        )}
-      </Skeleton>
+          }
+        />
+      ) : (
+        <Skeleton active loading={loading || !data}>
+          {data && (
+            <>
+              <Descriptions column={1} size="small" bordered>
+                <Descriptions.Item label={t('devices.column.device')}>
+                  {data.name} <Typography.Text type="secondary">{data.id}</Typography.Text>
+                </Descriptions.Item>
+                <Descriptions.Item label={t('alarms.column.location')}>
+                  {enums.label('region', data.region)} · {data.city}
+                </Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.model')}>
+                  {data.model} · {data.firmware}
+                </Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.band')}>
+                  {data.band[0]}–{data.band[1]} MHz
+                </Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.status')}>
+                  <Badge
+                    status={data.status === 'online' ? 'success' : data.status === 'fault' ? 'error' : 'default'}
+                    text={enums.label('deviceStatus', data.status)}
+                  />
+                </Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.uptime')}>{data.uptime30d}%</Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.signal')}>{data.signalDbm} dBm</Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.heartbeat')}>
+                  {formatDateTime(data.lastHeartbeatAt, 'YYYY-MM-DD HH:mm:ss')}
+                </Descriptions.Item>
+                <Descriptions.Item label={t('devices.column.installedAt')}>
+                  {formatDateTime(data.installedAt, 'YYYY-MM-DD')}
+                </Descriptions.Item>
+              </Descriptions>
+              {/* 同一业务对象的跳转链（E03）：地图定位 + 告警明细，浏览器返回可回到这里 */}
+              <Button
+                className="mt-4"
+                icon={<AimOutlined />}
+                data-tour="device-locate"
+                onClick={() => history.push(`/map/openlayers?focus=${encodeURIComponent(data.id)}`)}
+              >
+                {t('devices.locateOnMap')}
+              </Button>
+              <Typography.Title level={5} className="mt-8">
+                {t('devices.recentAlarms')}
+              </Typography.Title>
+              {data.recentAlarms.length ? (
+                <Listy
+                  items={data.recentAlarms}
+                  rowKey="id"
+                  styles={{ item: { paddingBlock: 8, paddingInline: 0 } }}
+                  itemRender={(alarm) => (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0">
+                        <SemanticTag tone={LEVEL_COLOR[alarm.level]}>
+                          {enums.label('alarmLevel', alarm.level)}
+                        </SemanticTag>
+                        <Link to={`/ops/alarms?keyword=${encodeURIComponent(alarm.id)}`}>
+                          {enums.label('alarmType', alarm.type)}
+                        </Link>
+                        <Typography.Text type="secondary">
+                          {' '}
+                          · {enums.label('alarmStatus', alarm.status)}
+                        </Typography.Text>
+                      </span>
+                      <Typography.Text type="secondary">{fromNow(alarm.occurredAt, intl.locale)}</Typography.Text>
+                    </div>
+                  )}
+                />
+              ) : (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('devices.noAlarms')} />
+              )}
+            </>
+          )}
+        </Skeleton>
+      )}
     </Drawer>
   );
 };

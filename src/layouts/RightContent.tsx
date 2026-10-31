@@ -7,6 +7,7 @@ import { logout } from '@/services/auth';
 import { getDemoClock, resetDemoData, switchDemoScenario } from '@/services/system';
 import { avatarColor, avatarText } from '@/utils/avatar';
 import { formatDateTime } from '@/utils/format';
+import { isMac } from '@/utils/platform';
 import {
   DownOutlined,
   FieldTimeOutlined,
@@ -148,7 +149,7 @@ const RightContent = () => {
     { mode: t(dark ? 'header.themeLight' : 'header.themeDark') },
   );
   // ⌘K / Ctrl+K 随平台显示（与命令面板内部判定同一口径）
-  const searchLabel = `${t('header.search')} (${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl+K'})`;
+  const searchLabel = `${t('header.search')} (${isMac() ? '⌘K' : 'Ctrl+K'})`;
 
   return (
     // backgroundColor 内联写死：ProLayout 会给 actions 容器的这个直接子元素刷一层淡底（hover 时

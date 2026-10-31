@@ -236,13 +236,16 @@ export default function Heatmap() {
     const timer = window.setInterval(() => {
       if (disposed) return;
       const seconds = Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, epoch);
+      // powers 走 ref（与组件顶部 powersRef 同一来源）：放进依赖会让 slider 每一拍都
+      // terminate + 重建 Worker（模块级 Worker 重新加载 chunk），而 Worker 本就按请求接收新 powers
+      const currentPowers = powersRef.current;
       if (worker) {
-        worker.postMessage({ ...GRID, seconds, powers });
+        worker.postMessage({ ...GRID, seconds, powers: currentPowers });
       } else {
         // 降级：主线程低分辨率（import 环形依赖规避：fieldModel 就在同目录）
         import('./fieldModel').then(({ gridValues }) => {
           if (disposed) return;
-          const values = gridValues(FALLBACK_GRID.cols, FALLBACK_GRID.rows, seconds, powers);
+          const values = gridValues(FALLBACK_GRID.cols, FALLBACK_GRID.rows, seconds, currentPowers);
           draw({ ...FALLBACK_GRID, values });
         });
       }
@@ -254,8 +257,7 @@ export default function Heatmap() {
       worker?.terminate();
       workerRef.current = null;
     };
-    // powers 变化重建管线：slider 拖动即重算
-  }, [viewer, powers, epoch]);
+  }, [viewer, epoch]);
 
   useEffect(() => {
     if (viewer) viewer.clock.multiplier = speed;

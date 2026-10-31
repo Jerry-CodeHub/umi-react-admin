@@ -6,14 +6,17 @@ import type { User } from '@/services/types';
 import { listUserLogs } from '@/services/users';
 import { formatDateTime, fromNow } from '@/utils/format';
 import { useIntl } from '@umijs/max';
-import { Badge, Descriptions, Drawer, Empty, Skeleton, Tag, Timeline, Typography } from 'antd';
+import { Badge, Button, Descriptions, Drawer, Empty, Result, Skeleton, Tag, Timeline, Typography } from 'antd';
 
 /** 用户详情：基本信息 + 最近操作记录（来自操作日志接口） */
 export default function UserDrawer({ user, onClose }: { user?: User; onClose: () => void }) {
   const intl = useIntl();
   const t = (id: string) => intl.formatMessage({ id });
   const enums = useEnums();
-  const { data, loading } = useApi(() => (user ? listUserLogs(user.id) : Promise.resolve(undefined)), [user?.id]);
+  const { data, loading, error, reload } = useApi(
+    () => (user ? listUserLogs(user.id) : Promise.resolve(undefined)),
+    [user?.id],
+  );
 
   return (
     <Drawer open={!!user} onClose={onClose} size={520} title={t('users.detail')} destroyOnHidden>
@@ -46,28 +49,41 @@ export default function UserDrawer({ user, onClose }: { user?: User; onClose: ()
           <Typography.Title level={5} className="mt-8">
             {t('users.recentActivity')}
           </Typography.Title>
-          <Skeleton active loading={loading}>
-            {data?.list.length ? (
-              <Timeline
-                items={data.list.map((log) => ({
-                  key: log.id,
-                  color: log.result === 'success' ? 'green' : 'red',
-                  // antd 6：items.children 已弃用，改用 items.content
-                  content: (
-                    <div>
-                      <span>{enums.label('logAction', log.action)}</span>
-                      {log.target && <Typography.Text type="secondary"> · {log.target}</Typography.Text>}
-                      <div className="text-xs opacity-60">
-                        {fromNow(log.createdAt, intl.locale)} · {log.ip}
+          {/* 拉取失败不再显示成「无操作记录」：失败态 + 重试，避免误导管理员 */}
+          {error ? (
+            <Result
+              status="warning"
+              title={t('common.loadFailed')}
+              extra={
+                <Button onClick={reload} loading={loading}>
+                  {t('common.retry')}
+                </Button>
+              }
+            />
+          ) : (
+            <Skeleton active loading={loading}>
+              {data?.list.length ? (
+                <Timeline
+                  items={data.list.map((log) => ({
+                    key: log.id,
+                    color: log.result === 'success' ? 'green' : 'red',
+                    // antd 6：items.children 已弃用，改用 items.content
+                    content: (
+                      <div>
+                        <span>{enums.label('logAction', log.action)}</span>
+                        {log.target && <Typography.Text type="secondary"> · {log.target}</Typography.Text>}
+                        <div className="text-xs opacity-60">
+                          {fromNow(log.createdAt, intl.locale)} · {log.ip}
+                        </div>
                       </div>
-                    </div>
-                  ),
-                }))}
-              />
-            ) : (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('users.noActivity')} />
-            )}
-          </Skeleton>
+                    ),
+                  }))}
+                />
+              ) : (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('users.noActivity')} />
+              )}
+            </Skeleton>
+          )}
         </>
       )}
     </Drawer>

@@ -272,6 +272,16 @@ export default function Direction() {
     if (sweepRef.current) sweepRef.current.show = mode !== 'bands';
   }, [mode, viewer]);
 
+  // TimeDeck 播放/暂停与倍速必须同步到 viewer.clock（与 Heatmap/Trajectory/Situation 同一模式）；
+  // 此前只在 onReady 里设过一次，导致播放控制与 ×1/×4/×16 按钮完全失效
+  useEffect(() => {
+    if (viewer && !viewer.isDestroyed()) viewer.clock.shouldAnimate = playing;
+  }, [viewer, playing]);
+
+  useEffect(() => {
+    if (viewer && !viewer.isDestroyed()) viewer.clock.multiplier = speed;
+  }, [viewer, speed]);
+
   const stats = useMemo(() => CAPABILITIES.map((capability) => ({ capability, ...capabilityStats(capability) })), []);
   const interceptStats = stats.find((row) => row.capability === 'intercept');
   const radarData = useMemo(

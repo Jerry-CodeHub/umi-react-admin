@@ -8,7 +8,7 @@ import type { Device } from '@/services/types';
 import { formatDateTime } from '@/utils/format';
 import { CameraOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useIntl } from '@umijs/max';
-import { App, Button, Card, Descriptions, Image, Modal, Select, Skeleton, Space, Tag, Typography } from 'antd';
+import { App, Button, Card, Descriptions, Empty, Image, Modal, Select, Skeleton, Space, Tag, Typography } from 'antd';
 import html2canvas from 'html2canvas';
 import { useRef, useState } from 'react';
 
@@ -24,6 +24,8 @@ const loadCard = async (deviceId?: string) => {
   }
   const { list } = await listAlarms({ level: 'critical', pageSize: 1 });
   const alarm = list[0] ?? (await listAlarms({ pageSize: 1 })).list[0];
+  // 全库无告警时不再解引用 alarm.deviceId（此前在 useApi 里抛错，页面卡死在骨架屏）
+  if (!alarm) return { alarm: undefined, device: undefined };
   const device = await getDevice(alarm.deviceId);
   return { alarm, device };
 };
@@ -69,11 +71,11 @@ export default function Screenshot() {
     if (!url) return;
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${data?.alarm.id ?? 'screenshot'}.png`;
+    link.download = `${data?.alarm?.id ?? 'screenshot'}.png`;
     link.click();
   };
 
-  const recent = data?.device.recentAlarms ?? [];
+  const recent = data?.device?.recentAlarms ?? [];
 
   return (
     <DemoPage
@@ -108,7 +110,7 @@ export default function Screenshot() {
           <Card
             title={t('screenshot.cardTitle')}
             extra={
-              data && (
+              data?.alarm && (
                 <Tag color={LEVEL_COLOR[data.alarm.level]}>
                   {intl.formatMessage({ id: `alarmLevel.${data.alarm.level}` })}
                 </Tag>
@@ -116,7 +118,7 @@ export default function Screenshot() {
             }
           >
             <Skeleton active loading={loading || !data}>
-              {data && (
+              {data?.alarm ? (
                 <>
                   {/* 类型是主信息（大号），告警编号是辅助信息（小号灰字），不再与标题、级别标签挤在卡片头 */}
                   <Typography.Title level={4} className="!mb-1 !mt-0">
@@ -172,6 +174,8 @@ export default function Screenshot() {
                     </Typography.Text>
                   )}
                 </>
+              ) : (
+                !loading && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('devices.noAlarms')} />
               )}
             </Skeleton>
           </Card>

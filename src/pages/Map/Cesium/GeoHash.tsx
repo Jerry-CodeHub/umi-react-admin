@@ -221,7 +221,9 @@ export default function GeoHashPage() {
   const histogram = useMemo(() => {
     if (cells.length === 0) return undefined;
     const max = cells[0].count;
-    const binOf = (count: number) => Math.min(9, Math.floor((Math.log10(count) / Math.log10(max || 1)) * 10));
+    // max === 1（所有格子 count=1）时分母 log10(1)=0 → NaN 档位：全部落第 0 档
+    const binOf = (count: number) =>
+      max <= 1 ? 0 : Math.min(9, Math.floor((Math.log10(count) / Math.log10(max)) * 10));
     const bins = new Array(10).fill(0) as number[];
     cells.forEach((cell) => {
       bins[binOf(cell.count)] += 1;

@@ -10,6 +10,14 @@ import { STORE_KEY, STORE_VERSION } from './store';
  */
 const MANIFEST_PATH = new URL('../../docs/demo/demo-scenarios.json', import.meta.url);
 
+/** 体验账号 → 角色 key（与 scenarios.ts 的种子角色同一映射；查表取代四层嵌套三元） */
+const ROLE_KEY: Record<string, string> = {
+  admin: 'admin',
+  lead: 'lead',
+  operator: 'operator',
+  analyst: 'analyst',
+};
+
 const buildManifest = () => ({
   // 与存储版本同源：升 STORE_VERSION 时清单随之变化，提醒重新生成
   version: STORE_VERSION,
@@ -18,16 +26,7 @@ const buildManifest = () => ({
   accounts: DEMO_ACCOUNTS.map((username) => ({
     username,
     password: 'demo',
-    roleKey:
-      username === 'admin'
-        ? 'admin'
-        : username === 'lead'
-          ? 'lead'
-          : username === 'operator'
-            ? 'operator'
-            : username === 'analyst'
-              ? 'analyst'
-              : 'viewer',
+    roleKey: ROLE_KEY[username] ?? 'viewer',
   })),
   clock: {
     live: '跟随真实时间；演示后端每请求检查，跨过 60 秒即按当前时钟重建基础数据（补丁保留）',

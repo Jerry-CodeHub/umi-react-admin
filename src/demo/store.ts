@@ -44,8 +44,12 @@ const emptyPatch = (): CollectionPatch => ({ created: [], updated: {}, deleted: 
  * 字段为 undefined 表示「清除该字段」（如工单退回处理中要清掉完成时间）。
  * JSON 会丢掉 undefined，所以补丁里记成 null，应用补丁时 null 同样视为删除。
  */
+const UNSAFE_PATCH_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 const applyChanges = (target: Record<string, unknown>, changes: Record<string, unknown>) => {
   Object.entries(changes).forEach(([key, value]) => {
+    // JSON.parse 会把 "__proto__" 造成自有属性，Object.entries 能枚举到；
+    // 赋值则走 Object.prototype 的 setter 直接改写记录原型（持久化补丁不可信时的原型污染）
+    if (UNSAFE_PATCH_KEYS.has(key)) return;
     if (value === undefined || value === null) {
       delete target[key];
     } else {

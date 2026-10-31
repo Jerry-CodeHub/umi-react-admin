@@ -74,6 +74,10 @@ const MESSAGES = {
     zh: '导入请求结构不合法，未写入任何数据',
     en: 'The import request is malformed; nothing was written',
   },
+  actionInvalid: {
+    zh: '操作类型不在支持范围内',
+    en: 'The action is not one of the supported kinds',
+  },
 } as const;
 
 export type MessageKey = keyof typeof MESSAGES;

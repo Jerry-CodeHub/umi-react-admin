@@ -8,7 +8,7 @@ import { DemoStore, type StorageLike } from '../store';
 import { verifyDemoToken } from '../token';
 import { BizFailure, HttpError, type DemoRequest, type DemoResponse } from './http';
 import { message } from './messages';
-import { resolvePermissions, routes, type Route, type Session } from './routes';
+import { PROTECTED_USERNAMES, resolvePermissions, routes, type Route, type Session } from './routes';
 
 export type { DemoRequest, DemoResponse } from './http';
 
@@ -49,14 +49,25 @@ export const createDemoServer = (options: { locale: DemoLocale; storage?: Storag
     const payload = matched ? verifyDemoToken(matched[1]) : null;
     if (!payload) return undefined;
     const user = store.dataset.users.find((u) => u.username.toLowerCase() === payload.name.toLowerCase());
-    // 种子用户被停用后，已签发的 token 随之失效
+    // 种子用户被停用后，已签发的 token 随之失效；被删除同理——否则 admin 种子账号删除后
+    // 其 token 会走「无用户记录」路径，继续保留 admin 角色全部权限
     if (user && user.status !== 'active') return undefined;
+    if (!user && PROTECTED_USERNAMES.has(payload.name.toLowerCase())) return undefined;
     return {
       username: payload.name,
       role: payload.role,
       user,
       ...resolvePermissions(store.dataset, user, payload.role),
     };
+  };
+
+  /** 路径参数解码：畸形百分号编码（如 /tickets/%E4%25）按 400 响应，而不是抛裸 URIError 逃过异常分类 */
+  const decodeParam = (value: string): string => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      throw new HttpError(400, message('notFound', locale));
+    }
   };
 
   const handle = (request: DemoRequest): DemoResponse => {
@@ -68,7 +79,7 @@ export const createDemoServer = (options: { locale: DemoLocale; storage?: Storag
       // 时钟推进检查（F09）：live 模式下跨过阈值按当前时间重建基础数据（补丁保留）；受控模式时钟冻结不会触发
       store.refreshIfStale();
       const values = url.pathname.match(route.pattern)!.slice(1);
-      const params = Object.fromEntries(route.keys.map((key, i) => [key, decodeURIComponent(values[i])]));
+      const params = Object.fromEntries(route.keys.map((key, i) => [key, decodeParam(values[i])]));
       const query = { ...Object.fromEntries(url.searchParams), ...(request.params ?? {}) };
       const session = resolveSession(request.headers?.Authorization ?? request.headers?.authorization);
       if (route.access !== 'public' && !session) throw new HttpError(401, message('unauthorized', locale));

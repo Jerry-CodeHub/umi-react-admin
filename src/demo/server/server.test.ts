@@ -219,6 +219,21 @@ describe('工单与告警', () => {
     const again = call('POST', `/api/v1/alarms/${alarm.id}/handle`, { token, body: { action: 'recover' } });
     expect(again.body.success).toBe(false);
   });
+
+  it('未知的处置/批量动作返回 400，不再静默按误报/停用处理', () => {
+    const token = loginAs('admin');
+    const alarm = server.store.dataset.alarms.find((a) => a.status === 'active')!;
+    // 修复前：未知 action 走 else 分支，一律按误报关单并写日志
+    const bad = call('POST', `/api/v1/alarms/${alarm.id}/handle`, { token, body: { action: 'banana' } });
+    expect(bad.status).toBe(400);
+    expect(server.store.dataset.alarms.find((a) => a.id === alarm.id)).toMatchObject({ status: 'active' });
+
+    const target = server.store.dataset.users.find((u) => u.username === 'guest')!;
+    // 修复前：未知批量 action 会把整批用户 disable
+    const batch = call('POST', '/api/v1/users/batch', { token, body: { ids: [target.id], action: 'banana' } });
+    expect(batch.status).toBe(400);
+    expect(server.store.dataset.users.find((u) => u.id === target.id)).toMatchObject({ status: 'active' });
+  });
 });
 
 describe('演示数据存储', () => {

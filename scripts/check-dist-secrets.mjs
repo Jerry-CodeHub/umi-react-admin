@@ -66,8 +66,12 @@ const SECRET_PATTERNS = [
   [/ghp_[A-Za-z0-9]{36}/, 'GitHub PAT（ghp_）'],
   [/gho_[A-Za-z0-9]{36}/, 'GitHub OAuth token（gho_）'],
   [/github_pat_[A-Za-z0-9_]{22,}/, 'GitHub fine-grained PAT'],
-  [/sk-[A-Za-z0-9]{20,}/, 'sk- 前缀 API key'],
+  // sk- 的字符类不含 '-'，会漏掉 sk-ant-（Anthropic）这类带内嵌连字符的前缀
+  [/sk-(?:ant-)?[A-Za-z0-9-]{20,}/, 'sk- 前缀 API key（含 sk-ant-）'],
+  [/glpat-[A-Za-z0-9_-]{20,}/, 'GitLab PAT（glpat-）'],
+  [/npm_[A-Za-z0-9]{36}/, 'npm access token（npm_）'],
   [/xox[bp]-[A-Za-z0-9-]{10,}/, 'Slack token'],
+  [/AIza[0-9A-Za-z_-]{35}/, 'Google API key（AIza）'],
   [/-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/, 'PEM 私钥块'],
 ];
 

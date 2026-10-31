@@ -1258,8 +1258,15 @@ class Preflight {
     }
     if (names.length === 0) return { kind: 'plain', estimated: raw };
     const [firstDecoder] = names;
-    if (FLATE_FILTERS.has(firstDecoder)) return { kind: 'flate' };
     const amplifying = (name: string) => !NON_AMPLIFYING.has(name) && !IMAGE_CODERS.has(name);
+    if (FLATE_FILTERS.has(firstDecoder)) {
+      // [/FlateDecode /FlateDecode] 这类链：第一层我们只解出其输出字节数，其后若还有
+      // 放大层（第二个 Flate、LZW、RunLength…），其展开无法计量——与缩小编码分支同口径，
+      // 按倍数保守估算，宁可多算不可漏计（曾只看 firstDecoder，双层 Flate 可绕过预算）。
+      return names.slice(1).some(amplifying)
+        ? { kind: 'amplifying', estimated: raw * this.budgets.unknownFilterAmplification }
+        : { kind: 'flate' };
+    }
     if (IMAGE_CODERS.has(firstDecoder)) return { kind: 'plain', estimated: raw };
     if (NON_AMPLIFYING.has(firstDecoder)) {
       // 盔甲/缩小编码本身不放大；只有其后确实还有放大层时才保守估算，

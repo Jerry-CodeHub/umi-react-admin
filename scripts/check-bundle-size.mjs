@@ -124,6 +124,12 @@ if (!existsSync(chunkGraphPath)) {
       continue;
     }
     const files = [...new Set(groups.flatMap((g) => graph[g]))].filter((f) => /\.m?js$/.test(f));
+    const missingChunks = files.filter((f) => !existsSync(join(distDir, f)));
+    // 静默跳过缺失 chunk 会少算总量（chunk 清单过期/产物被裁剪时门禁形同虚设），
+    // 与上方入口同步脚本的处理同口径：缺失即记 failure
+    if (missingChunks.length) {
+      failures.push(`路由 ${route} 首屏的 chunk 在产物中不存在（体积合计会少算）：${missingChunks.join(', ')}`);
+    }
     const total = files.reduce(
       (acc, f) => {
         const file = join(distDir, f);

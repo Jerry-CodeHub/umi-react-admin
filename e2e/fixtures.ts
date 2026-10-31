@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from '@playwright/test';
+import { DEFAULT_BASE_URL } from './baseUrl';
 
 /** 第三方地图 / 影像 / 视频源的网络失败不算应用缺陷（CI 网络环境不可控） */
 const THIRD_PARTY =
@@ -57,7 +58,7 @@ export const signIn = async (page: Page, { user = 'admin', locale = 'zh-CN' } = 
   await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
-export const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:4173/umi-react-admin/';
+export const BASE_URL = process.env.E2E_BASE_URL ?? DEFAULT_BASE_URL;
 
 /** 站内跳转（不整页刷新，避开静态托管的 404 回退）；path 为应用内路由（可带 query），如 /system/users */
 export const navigate = async (page: Page, path: string) => {

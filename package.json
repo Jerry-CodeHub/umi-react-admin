@@ -57,8 +57,6 @@
     "@fullcalendar/react": "^7.1.0",
     "@pansy/amap-api-loader": "^0.4.10",
     "@tinymce/tinymce-react": "^6.3.0",
-    "@turf/helpers": "^7.2.0",
-    "@turf/union": "^7.2.0",
     "@umijs/max": "^4.7.22",
     "antd": "^6.6.5",
     "cesium": "^1.146.0",

@@ -53,7 +53,9 @@ test('工作台 KPI 与明细口径一致：在线设备数等于设备台账筛
   await signIn(page);
   const kpi = page.locator('.ant-card').filter({ hasText: '在线设备' }).first();
   await expect(kpi).toBeVisible();
-  const online = Number((await kpi.locator('.text-3xl').first().innerText()).match(/\d+/)![0]);
+  // 千分位感知的解析（与 demo-mainline.spec.ts 同口径）：/\d+/ 遇 "1,234" 只取到 1，
+  // 配合下方 toContainText 会让一致性断言空转
+  const online = Number((await kpi.locator('.text-3xl').first().innerText()).match(/[\d,]+/)![0].replace(/,/g, ''));
   await navigate(page, '/ops/devices');
   // 查询表单默认折叠，「状态」在展开后的第二行
   await page.locator('.ant-pro-query-filter-collapse-button').click();

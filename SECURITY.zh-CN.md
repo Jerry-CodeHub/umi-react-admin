@@ -50,7 +50,7 @@ Vercel 产线的 `/api/*` 是闭合失败的：显式的 `/api/(.*)` rewrite 排
 
 Dockerfile 不再声明可变的 `# syntax=docker/dockerfile:1` frontend——它只使用默认 frontend 支持的指令，且两个 base 镜像都按摘要固定；若将来确实需要 BuildKit 专属语法，必须固定到精确版本或摘要，由 `scripts/dockerfile-frontend.test.ts` 把关。
 
-真实模式通过构建期 alias（`@/demo/adapter`、`@/demo/token`）剥离浏览器内演示后端，但**并非**零演示代码：来自 `src/demo/clock.ts` 的 `umi-react-admin:demo-clock:v1` 仍出现在三个懒加载路由 chunk 中（`Signature`、`Tickets`、`Alarms`），因为 `src/utils/now.ts` 静态 import 了演示时钟。它不在入口 chunk，也不属于演示后端 / 生成器 / 场景 / 存储，因此既定剥离标准成立；但若某来源站曾用于演示，localStorage 里残留的冻结时钟锚点会让真实模式的相对时间出错。推荐的修法是给 `@/demo/clock` 加第三个构建期 alias。
+真实模式通过构建期 alias（`@/demo/adapter`、`@/demo/token`、`@/demo/clock`）剥离浏览器内演示后端——其中时钟 alias 把 `src/utils/now.ts` 重定向到 `src/demo/clock.real.ts`（恒返回系统时间；freeze/resume 直接抛错）。该替身完全不读不写任何存储，因此即便某来源站曾用于演示、localStorage 里残留冻结时钟锚点，真实模式也不会读到它；freeze/resume 抛错则保证配置错误第一时间暴露。`scripts/real-mode-artifact.test.ts` 断言真实产物含替身哨兵、且异步 chunk 中不含演示时钟的存储键。
 
 本地 preview 默认仅监听 127.0.0.1，拒绝目录越界、逃逸符号链接及异常编码。它用于本机验证；生产应使用 HTTPS 静态服务入口。nginx 监听内网 8080，TLS 在部署入口终止；HSTS 只有浏览器收到 HTTPS 响应时才生效。
 

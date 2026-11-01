@@ -40,17 +40,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Quality gates（typecheck + 严格 lint + vitest，含演示数据合理性与 CSP 一致性）
-        run: pnpm check
+      - name: Quality gates（typecheck + 严格 lint）
+        run: pnpm typecheck && pnpm lint
 
-      - name: Coverage gate（vitest --coverage，阈值见 vitest.config.ts）
-        # Q1：`pnpm check` 只跑 `vitest run`，vitest.config.ts 里的 thresholds 从不被执行 = 形同虚设。
-        # 这里用带 --coverage 的命令再跑一次，阈值（statements 60 / branches 50 / functions 60 / lines 60）
-        # 才真正拦得住回归。注意 include 是**选定域**（utils / services / demo + 安全相关页面逻辑），
-        # 日志里的百分比不是全项目覆盖率（全项目口径见 vitest.config.ts 注释）。
+      - name: Test & coverage gate（vitest --coverage 单次执行，阈值见 vitest.config.ts）
+        # Q1 的初衷是让 coverage 阈值真正被执行。此前 `pnpm check`（内含一轮全量 vitest）+
+        # `pnpm test:coverage`（再来一轮）把全部用例跑了两遍；现在 lint 之后只跑一次带
+        # --coverage 的 vitest，用例与阈值在同一次执行里生效。本地/pre-commit 的
+        # `pnpm check` 入口不受影响。include 仍是**选定域**（utils / services / demo +
+        # 安全相关页面逻辑），日志里的百分比不是全项目覆盖率。
         run: pnpm test:coverage
 
-      - name: Dependency audit（全量公告、真实源码补丁和攻击回归；不忽略公告）
+      - name: Dependency audit（运行时公告零忽略 + 真实源码补丁与攻击回归；仅构建链可达的公告为非阻塞告警，分层政策见 SECURITY.md）
         run: pnpm audit:security
 
   build:

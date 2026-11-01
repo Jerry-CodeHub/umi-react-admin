@@ -56,8 +56,10 @@ export type InflateOptions = {
   /** 允许解出的最大字节数；达到 limit 后继续产出会抛 InflateLimitError。 */
   limit?: number;
   /**
-   * 每交付 32 KiB 解码结果回调一次（顺序保证），调用方据此递增计数/预算，无需保存全量输出。
-   * 传入的 Uint8Array 是复用中的环形缓冲视图：需要长期保留必须自行 `slice()`。
+   * 交付解码结果（顺序保证），调用方据此递增计数/预算，无需保存全量输出。
+   * 通常每凑满 32 KiB 回调一次；唯一例外是超长存储块前的不足一窗尾巴（防环形覆盖），
+   * 以及流末尾 drain() 的最后一段。传入的 Uint8Array 是复用中的环形缓冲视图：
+   * 需要长期保留必须自行 `slice()`。
    * 成功返回时输出必然完整；若中途因 limit 或格式错误抛错，则不足一窗（< 32 KiB）的尾部
    * 不会交付 —— 这种情况只会发生在调用方已经决定拒绝该文件的路径上。
    */
@@ -233,7 +235,16 @@ export const inflateRaw = (data: Uint8Array, options: InflateOptions = {}): numb
       if (length !== (~complement & 0xffff)) throw new InflateError('inflate: stored block length mismatch');
       if (pos + length > data.length) throw new InflateError('inflate: stored block overruns stream');
       if (total + length > limit) throw new InflateLimitError(limit);
-      if (total - flushed + length > OUTPUT_SIZE) flush();
+      if (total + length - flushed > OUTPUT_SIZE) {
+        flush();
+        // flush 只交付满窗（最多滞留 WINDOW_SIZE-1 字节）。存储块最长 65535，仍放不下时
+        // 环形写入会覆盖这些未交付字节 —— 必须先把不足一窗的尾巴直接交给 sink（无 sink
+        // 时 flush 已把 flushed 推到 total，不会走到这里）。此后剩余恒为 0，写入绝不回环覆盖。
+        if (total + length - flushed > OUTPUT_SIZE) {
+          sinkRange(flushed, total - flushed);
+          flushed = total;
+        }
+      }
       const at = total & OUTPUT_MASK;
       const firstPart = Math.min(length, OUTPUT_SIZE - at);
       window.set(data.subarray(pos, pos + firstPart), at);

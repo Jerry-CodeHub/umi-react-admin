@@ -1,3 +1,4 @@
+import { isMac } from '@/utils/platform';
 import { canAccessRoute, type NavRoute } from '@/utils/routeNav';
 import { SearchOutlined } from '@ant-design/icons';
 import { history, useAccess, useAppData, useIntl } from '@umijs/max';
@@ -34,8 +35,6 @@ export const filterEntries = (entries: NavEntry[], query: string, labelOf: (entr
   if (!q) return entries;
   return entries.filter((entry) => labelOf(entry).toLowerCase().includes(q) || entry.path.toLowerCase().includes(q));
 };
-
-const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform);
 
 /**
  * ⌘K / Ctrl+K 命令面板：全站页面按名直达，弥补宽信息架构下「目标页在哪个分组」的记忆成本，

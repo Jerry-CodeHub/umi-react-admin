@@ -21,6 +21,11 @@ const DEMO_DATA_MARKERS = [
 const STUB_SENTINEL = '__REAL_MODE_ADAPTER_STUB__';
 /** token 替身哨兵：第二个 alias（src/demo/token.real.ts）同样要有正控制 */
 const TOKEN_STUB_SENTINEL = '__REAL_MODE_TOKEN_STUB__';
+/**
+ * clock 替身哨兵：第三个 alias（src/demo/clock.real.ts）。now.ts 只被页面引用，
+ * 该哨兵只会出现在异步 chunk，因此它的正控制扫描整个 dist 而不只是入口。
+ */
+const CLOCK_STUB_SENTINEL = '__REAL_MODE_CLOCK_STUB__';
 
 /**
  * 门禁上下文（CI 的 build:real 作业）用 REAL_MODE_ARTIFACT_REQUIRED=1 声明「这里必须是真实模式产物」：
@@ -134,6 +139,23 @@ const entryChunksContaining = (marker: string) =>
     expect(hits, `以下产物仍含演示数据标记: ${hits.join(', ')}`).toEqual([]);
   });
 
+  /**
+   * 第三个正控制：clock 替身哨兵。alias 换掉的是懒加载 chunk 里的 '@/demo/clock'，
+   * 只扫入口必然漏报 —— 扫全部 .js，出现即证明第三个 alias 真的生效；
+   * 顺带断言演示时钟存储键在异步 chunk 里也消失（这正是加该替身的动机）。
+   */
+  it.skipIf(demoMode !== false)('真实模式产物含 clock 替身哨兵，且异步 chunk 无演示时钟存储键', () => {
+    const jsFiles = readdirSync(distDir).filter((name) => name.endsWith('.js'));
+    const withSentinel = jsFiles.filter((name) =>
+      readFileSync(join(distDir, name), 'utf8').includes(CLOCK_STUB_SENTINEL),
+    );
+    expect(withSentinel, '产物未出现 clock 替身哨兵（第三个 alias 未生效）').not.toEqual([]);
+    const withClockKey = jsFiles.filter((name) =>
+      readFileSync(join(distDir, name), 'utf8').includes('umi-react-admin:demo-clock'),
+    );
+    expect(withClockKey, '以下异步 chunk 仍含演示时钟存储键').toEqual([]);
+  });
+
   /** 真实模式残留面：demo 时钟存储键（旧 adapter → clock 链）与 demo token 前缀都不该出现在入口 */
   it.skipIf(demoMode !== false)('真实模式入口 chunk 不含 demo 时钟存储键与 demo token 前缀', () => {
     expect(entryChunksContaining('umi-react-admin:demo-clock')).toEqual([]);
@@ -162,5 +184,13 @@ const entryChunksContaining = (marker: string) =>
     expect(entryChunksContaining(TOKEN_STUB_SENTINEL), '演示产物不应出现真实模式 token 替身').toEqual([]);
     expect(entryChunksContaining('ALM-SCN').length).toBeGreaterThan(0);
     expect(entryChunksContaining('umi-react-admin:demo-store').length).toBeGreaterThan(0);
+  });
+
+  /** 反向断言的异步面：演示构建走真实 clock，clock 替身哨兵不得出现在任何 chunk */
+  it.skipIf(demoMode !== true)('演示模式产物不含 clock 替身哨兵', () => {
+    const hits = readdirSync(distDir)
+      .filter((name) => name.endsWith('.js'))
+      .filter((name) => readFileSync(join(distDir, name), 'utf8').includes(CLOCK_STUB_SENTINEL));
+    expect(hits, '演示产物不应出现真实模式 clock 替身').toEqual([]);
   });
 });

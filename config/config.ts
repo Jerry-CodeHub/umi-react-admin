@@ -45,6 +45,10 @@ export default defineConfig({
    * - '@/demo/token'：services/auth.ts 顶层 import，调用点在 `if (DEMO_MODE)` 里；DEMO_MODE 经
    *   模块命名空间读取（产物中是 `ne.G`），压缩器无法判定该分支为死代码，演示 token 模块
    *   （含 'demo.' 前缀字面量）因此留在真实模式入口 chunk，实测确认后才加的第二个替身。
+   * - '@/demo/clock'：src/utils/now.ts 顶层 import。不加替身时 Signature / Tickets / Alarms 的
+   *   懒加载 chunk 会带上演示时钟与存储键 'umi-react-admin:demo-clock'——若同一 origin 冻结过
+   *   演示时钟，真实模式下 nowMs() 会继续返回旧锚点（SLA/持续时长按错误时间计算）。
+   *   替身恒返回系统时间（见 src/demo/clock.real.ts），哨兵由 real-mode-artifact.test.ts 断言。
    *
    * 键写成完整路径：preset-umi 的 configPlugins 把用户 alias 展开在内置 '@' 之前
    * （memo.alias = { ...memo.alias, '@': absSrcPath }），完整键精确命中，不依赖前缀匹配顺序。
@@ -55,6 +59,7 @@ export default defineConfig({
     : {
         '@/demo/adapter': path.resolve(__dirname, '../src/demo/adapter.real.ts'),
         '@/demo/token': path.resolve(__dirname, '../src/demo/token.real.ts'),
+        '@/demo/clock': path.resolve(__dirname, '../src/demo/clock.real.ts'),
       },
   chainWebpack(config) {
     keepUrlAssetsVerbatim(config);

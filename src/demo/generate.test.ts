@@ -183,7 +183,9 @@ describe('工单', () => {
     expect(data.tickets.filter((x) => x.resolvedAt && t(x.resolvedAt) > since).length).toBeGreaterThan(5);
   });
 
-  it('两周内任意时刻，「处理中」都不少于 5 张（拖拽演示不至于只剩一两张卡）', () => {
+  // 56 次全量 generateDataset 单跑约 2.1s；并发负载下会顶爆 5s 默认超时（2026-10-31 实测 flaky），
+  // 用例本身是固定种子、完全确定性——显式放宽超时只影响等待上限，不放松断言
+  it('两周内任意时刻，「处理中」都不少于 5 张（拖拽演示不至于只剩一两张卡）', { timeout: 20_000 }, () => {
     const counts = Array.from({ length: 14 }, (_, d) =>
       [3, 10, 15, 21].map(
         (hour) =>

@@ -55,7 +55,13 @@ export default function Roles() {
     return PERMISSION_TREE.map(toNode);
   }, [t, locked, grantable]);
 
-  const dirty = active && [...checked].sort().join() !== [...active.permissions].sort().join();
+  // antd Tree 的勾选集会带上全选父分组键（dashboard/system/ops/doc），而 active.permissions 只存
+  // 叶子键：比较时只剔除分组键，「勾上再取消」净变化为零时 Save 不再虚启用。未知/伪造键仍算
+  // dirty——提交时的叶子过滤才是它们的兜底（save.test.tsx 断言的正是这条提交边界）
+  const groupKeys = new Set(PERMISSION_TREE.map((group) => group.key));
+  const dirty =
+    active &&
+    [...checked.filter((key) => !groupKeys.has(key))].sort().join() !== [...active.permissions].sort().join();
 
   const save = async () => {
     setSaving(true);
@@ -71,10 +77,16 @@ export default function Roles() {
     }
   };
 
+  // 恢复默认与保存共用 saving 态：无防连点时双击会并发触发两次重置，失败也会留下未处理的 rejection
   const restore = async () => {
-    await resetRolePermissions(activeId);
-    message.success(t('common.saved'));
-    reload();
+    setSaving(true);
+    try {
+      await resetRolePermissions(activeId);
+      message.success(t('common.saved'));
+      reload();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -142,7 +154,7 @@ export default function Roles() {
               locked
                 ? undefined
                 : [
-                    <Button key="restore" type="link" onClick={restore}>
+                    <Button key="restore" type="link" loading={saving} onClick={restore}>
                       {t('roles.restoreDefault')}
                     </Button>,
                     <Button key="save" type="primary" disabled={!dirty} loading={saving} onClick={save}>

@@ -77,7 +77,8 @@ const DEPARTMENT_KEYS = DEPARTMENTS.map((d) => d.key);
 const USER_STATUSES: UserStatus[] = ['active', 'disabled', 'locked'];
 const EVENT_TYPES: EventType[] = ['duty', 'inspection', 'review', 'training', 'maintenance', 'release'];
 /** 受保护账号：五种快捷体验账号不能被停用/删除/改名，避免演示自断入口 */
-const PROTECTED_USERNAMES = new Set(['admin', 'guest', 'lead', 'operator', 'analyst']);
+/** 体验/种子账号名：既是受保护账号，也是「删除后 token 必须失效」的判定集合（见 server/index.ts） */
+export const PROTECTED_USERNAMES = new Set(['admin', 'guest', 'lead', 'operator', 'analyst']);
 const BOARD_DONE_DAYS = 3;
 
 /** 批量用户动作 → 操作日志 action（与单条 DELETE/PUT 保持同一套命名，便于按 action 过滤） */
@@ -109,9 +110,13 @@ let logSeq = 0;
 /** 把演示后端里发生的写操作记进操作日志（日志页能看到自己的操作） */
 const writeLog = (ctx: RouteContext, action: LogAction, target: string, result: OperationLog['result'] = 'success') => {
   const now = ctx.store.now();
-  logSeq += 1;
   ctx.store.create('logs', {
-    id: `LOG-${now.getTime().toString(36).toUpperCase()}-${logSeq}`,
+    // 时间基 + 进程序号在冻结时钟/重载下都会撞号（锚点相同、logSeq 归零）：补随机后缀保证唯一，
+    // 日志页按 id 渲染 key，撞号会破坏受控场景里「跨重载保持」的补丁数据
+    id: `LOG-${now.getTime().toString(36).toUpperCase()}-${(logSeq++).toString(36).toUpperCase()}-${Math.random()
+      .toString(36)
+      .slice(2, 6)
+      .toUpperCase()}`,
     actorId: ctx.session?.user?.id ?? '',
     actorName: ctx.session?.user?.name ?? ctx.session?.username ?? '',
     action,
@@ -270,7 +275,8 @@ const USER_WRITE_KEYS = ['name', 'username', 'email', 'department', 'status'] as
 const pickUserInput = (ctx: RouteContext, body: Record<string, unknown>) => {
   const input: Partial<UserInput> = {};
   USER_WRITE_KEYS.forEach((key) => {
-    if (body[key] !== undefined) (input as Record<string, unknown>)[key] = body[key];
+    // null 不在「未传」语义里：曾绕过校验（String(null)='null' 过正则）后经 store 落成字段删除
+    if (body[key] !== undefined && body[key] !== null) (input as Record<string, unknown>)[key] = body[key];
   });
   if (typeof input.username === 'string') input.username = input.username.trim().toLowerCase();
   if (typeof input.name === 'string') input.name = input.name.trim();
@@ -519,6 +525,8 @@ export const routes: Route[] = [
     handle: (ctx) => {
       const ids = Array.isArray(ctx.body.ids) ? (ctx.body.ids as string[]) : [];
       const action = ctx.body.action as UserBatchAction;
+      // 枚举先行：任意值曾被 `as` 直通，'banana' 之类会静默把整批用户禁用并写出无 action 的日志
+      if (!BATCH_LOG_ACTION[action]) failWith(ctx, 400, 'actionInvalid');
       if (action === 'delete') requirePermission(ctx, 'system.user.delete');
       const users = ids.map((id) => findUser(ctx, id));
       // 整批判定、先于任何写入：混入一个 admin / lead 账号整批 403，不会先处理前面的普通账号（启用同样算）
@@ -752,6 +760,10 @@ export const routes: Route[] = [
       const alarm = data(ctx).alarms.find((a) => a.id === ctx.params.id) ?? notFound(ctx);
       if (alarm.status !== 'active') fail(ctx, 'alarmClosed');
       const action = ctx.body.action as AlarmHandleAction;
+      // 枚举校验：未知值曾被 else 分支一律按「误报」关单并写 misleading 日志
+      if (action !== 'ticket' && action !== 'recover' && action !== 'falsePositive') {
+        failWith(ctx, 400, 'actionInvalid');
+      }
       const now = nowIso(ctx);
       if (action === 'ticket') {
         const device = data(ctx).devices.find((d) => d.id === alarm.deviceId)!;
@@ -924,9 +936,34 @@ export const routes: Route[] = [
     handle: (ctx) => {
       const event = data(ctx).events.find((e) => e.id === ctx.params.id) ?? notFound(ctx);
       const changes: Partial<CalendarEvent> = {};
-      (['title', 'type', 'start', 'end', 'allDay'] as const).forEach((key) => {
-        if (key in ctx.body) (changes as Record<string, unknown>)[key] = ctx.body[key] ?? undefined;
-      });
+      const body = ctx.body;
+      const hasValue = (value: unknown): value is NonNullable<unknown> => value !== undefined && value !== null;
+      // 部分更新复用 POST 的校验口径（修复前 PUT 直通：{title:null} 删标题、'garbage' 也能当日期）。
+      // title/type/start 不可清空：出现即必须是合法值；end 允许显式清空（去掉结束时间）。
+      if ('title' in body) {
+        const { title } = body;
+        if (typeof title !== 'string' || !title.trim()) fail(ctx, 'titleRequired');
+        changes.title = (title as string).trim();
+      }
+      if ('type' in body && hasValue(body.type)) {
+        if (!EVENT_TYPES.includes(body.type as EventType)) fail(ctx, 'notFound');
+        changes.type = body.type as EventType;
+      }
+      if ('start' in body && hasValue(body.start)) {
+        if (Number.isNaN(new Date(String(body.start)).getTime())) fail(ctx, 'notFound');
+        changes.start = String(body.start);
+      }
+      if ('end' in body && hasValue(body.end)) {
+        if (Number.isNaN(new Date(String(body.end)).getTime())) fail(ctx, 'notFound');
+        changes.end = String(body.end);
+      } else if ('end' in body) {
+        changes.end = undefined;
+      }
+      if ('allDay' in body && hasValue(body.allDay)) changes.allDay = !!body.allDay;
+      const effectiveStart = changes.start !== undefined ? new Date(changes.start) : new Date(event.start);
+      const effectiveEnd =
+        changes.end !== undefined ? new Date(changes.end) : event.end ? new Date(event.end) : undefined;
+      if (effectiveEnd && effectiveStart.getTime() > effectiveEnd.getTime()) fail(ctx, 'notFound');
       const updated = ctx.store.update('events', event.id, changes);
       writeLog(ctx, 'scheduleUpdate', event.id);
       return updated;

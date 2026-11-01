@@ -39,17 +39,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: pnpm run typecheck
-
-      - name: Test
-        run: pnpm test
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Dependency audit（全量公告与真实源码补丁验证）
-        run: pnpm audit:security
+      # 质量门禁（typecheck / test / lint / audit）不在 master 部署上重跑：推到 master 的
+      # commit 即 PR 上被 ci.yml 逐项检查过的同一 commit（分支保护要求 check/build/e2e 全绿），
+      # 重复执行只增加约 6-8 分钟纯冗余。本工作流保留的是部署特有的门禁：凭据注入构建、
+      # SPA 404 回退、dist 密钥扫描与完整性清单（扫描过的字节 = 发布的字节）。
+      # 直推 master（不经 PR）的提交没有这道重复防线——分支保护已要求 PR 流程。
 
       - name: Build
         # 注入本产线会用到的全部凭据；扫描步骤必须看到同一组环境变量（否则「构建期配置了凭据」

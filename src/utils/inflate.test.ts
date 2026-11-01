@@ -41,6 +41,69 @@ describe('inflateFlate round-trips real zlib output', () => {
     roundTrip(text('stored block payload '.repeat(200)), { level: 0 });
   });
 
+  it('decodes level-0 zlib streams spanning multiple stored blocks (>64 KiB)', HEAVY, () => {
+    // 200 KiB 零压缩 = 4 个 65535 字节存储块：第二个块进入前环形缓冲还滞留
+    // 32767 字节未交付，覆盖即静默损坏（存储块回环写入缺陷的最小复现）。
+    const input = text('level-zero must not corrupt the ring buffer. '.repeat(4600));
+    expect(input.length).toBeGreaterThan(3 * 65535);
+    roundTrip(input, { level: 0 });
+  });
+
+  it('delivers the partial tail before a stored block that would wrap the ring', HEAVY, () => {
+    // 手工构造 raw DEFLATE：固定 Huffman 块先产出 1000 字节（余量 r=1000 ∈ (0,32768)），
+    // 紧跟一个 65535 字节存储块 —— r+65535 > 65536，环形写入必然跨过未交付区间，
+    // 修复前这里交付给 sink 的数据已被覆盖。Huffman 码字 MSB-first，其余比特 LSB-first。
+    const headLen = 1000;
+    const storedLen = 65535;
+    const bytes: number[] = [];
+    let bitBuf = 0;
+    let bitCnt = 0;
+    const writeBits = (value: number, n: number) => {
+      bitBuf |= value << bitCnt;
+      bitCnt += n;
+      while (bitCnt >= 8) {
+        bytes.push(bitBuf & 0xff);
+        bitBuf >>>= 8;
+        bitCnt -= 8;
+      }
+    };
+    const writeCode = (code: number, n: number) => {
+      for (let i = n - 1; i >= 0; i--) writeBits((code >> i) & 1, 1);
+    };
+    writeBits(0, 1); // BFINAL=0
+    writeBits(1, 2); // BTYPE=01 固定 Huffman
+    const payload: number[] = [];
+    for (let i = 0; i < headLen; i++) payload.push(0x41 + (i % 26));
+    for (const b of payload) writeCode(0x30 + b, 8); // 符号 0..143：8 位码 00110000+sym
+    writeCode(0, 7); // EOB(256)：0000000
+    writeBits(1, 1); // BFINAL=1
+    writeBits(0, 2); // BTYPE=00 存储块
+    if (bitCnt > 0) {
+      bytes.push(bitBuf & 0xff);
+      bitBuf = 0;
+      bitCnt = 0;
+    }
+    const len = storedLen & 0xffff;
+    const nlen = ~len & 0xffff;
+    bytes.push(len & 0xff, (len >> 8) & 0xff, nlen & 0xff, (nlen >> 8) & 0xff);
+    for (let i = 0; i < storedLen; i++) bytes.push(0x5a);
+
+    const input = new Uint8Array(headLen + storedLen);
+    input.set(payload, 0);
+    input.fill(0x5a, headLen);
+    const chunks: Uint8Array[] = [];
+    const total = inflateRaw(new Uint8Array(bytes), { sink: (chunk) => chunks.push(chunk.slice()) });
+    const joined = new Uint8Array(total);
+    let cursor = 0;
+    for (const chunk of chunks) {
+      joined.set(chunk, cursor);
+      cursor += chunk.length;
+    }
+    expect(cursor).toBe(total);
+    expect(total).toBe(input.length);
+    expect(joined).toEqual(input);
+  });
+
   it('decodes incompressible binary data', HEAVY, () => {
     const binary = new Uint8Array(32 * 1024);
     for (let index = 0; index < binary.length; index++) binary[index] = (index * 37 + (index >> 3)) & 0xff;

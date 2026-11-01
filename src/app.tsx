@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import GroupNav from '@/components/GroupNav';
 import GuideTour from '@/components/GuideTour';
 import PageTransition from '@/components/PageTransition';
+import { REPO_URL as REPO } from '@/constants/repo';
 import { syncColorScheme } from '@/hooks/useThemeMode';
 import RightContent from '@/layouts/RightContent';
 import Forbidden from '@/pages/Exception/403';
@@ -114,8 +115,6 @@ const AccessFallback = () => {
   }
   return <Forbidden />;
 };
-
-import { REPO_URL as REPO } from '@/constants/repo';
 
 /** 左上角应用列表：项目相关链接（图标用内置图标，不再热链第三方图片，CSP 随之收紧） */
 const appList = () => {

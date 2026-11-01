@@ -182,7 +182,13 @@ export default function Calendar() {
     refetch();
   };
 
-  /** 拖动 / 拉伸改期：写回接口，失败则还原 */
+  // validateFields 对「标题为空」的拒绝会以字段错误形式展示：onPressEnter / onOk 直接挂
+  // 原函数会把该拒绝变成 unhandled rejection（弹窗保持打开是期望行为，吞掉即可）
+  const handleCreateSafe = () => {
+    void handleCreate().catch(() => undefined);
+  };
+
+  /** 拖动 / 拉伸改期：写回接口，失败则还原；成功后 refetch（「接下来」侧栏此前一直滞留旧时段） */
   const handleChange = async ({ event, revert }: EventChangeInfo) => {
     try {
       await updateEvent(event.id, {
@@ -191,6 +197,7 @@ export default function Calendar() {
         allDay: event.allDay,
       });
       message.success(t('calendar.saved'));
+      refetch();
     } catch {
       revert();
     }
@@ -205,6 +212,13 @@ export default function Calendar() {
     viewing.remove();
     setViewing(undefined);
     message.success(t('common.deleted'));
+    // 侧栏「接下来」此前不随删除刷新，被删日程一直挂到下一次新建
+    refetch();
+  };
+
+  // Popconfirm 的 onConfirm 也会丢弃返回的 promise（antd v6 无加载契约）：失败就地吞掉
+  const handleDeleteSafe = () => {
+    void handleDelete().catch(() => undefined);
   };
 
   return (
@@ -315,7 +329,7 @@ export default function Calendar() {
             key="delete"
             title={t('calendar.deleteConfirm', { title: viewing?.title ?? '' })}
             okButtonProps={{ danger: true }}
-            onConfirm={handleDelete}
+            onConfirm={handleDeleteSafe}
           >
             <Button danger>{t('common.delete')}</Button>
           </Popconfirm>,
@@ -337,13 +351,13 @@ export default function Calendar() {
       <Modal
         title={t('calendar.newEvent')}
         open={!!draft}
-        onOk={handleCreate}
+        onOk={handleCreateSafe}
         onCancel={() => setDraft(undefined)}
         destroyOnHidden
       >
         <Form form={form} layout="vertical" preserve={false}>
           <Form.Item name="title" label={t('calendar.title')} rules={[{ required: true, whitespace: true }]}>
-            <Input placeholder={t('calendar.titlePlaceholder')} onPressEnter={handleCreate} />
+            <Input placeholder={t('calendar.titlePlaceholder')} onPressEnter={handleCreateSafe} />
           </Form.Item>
           <Form.Item name="type" label={t('calendar.type')} rules={[{ required: true }]}>
             <Select options={enums.options('eventType', EVENT_TYPE_KEYS)} />

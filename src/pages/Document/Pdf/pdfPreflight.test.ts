@@ -183,6 +183,25 @@ describe('解码放大预算', () => {
     expect(report.stats.estimatedFilterStreams).toBe(1);
     expect(report.violations[0].code).toBe('decodedBytes');
   });
+
+  it('Flate 首层后再挂放大层（双层 Flate）也保守估算，不绕过预算', HEAVY, () => {
+    // /Filter [/FlateDecode /FlateDecode]：我们只能解出第一层的字节数，第二层 Flate 的
+    // 展开无从计量——修复前这里按 kind:'flate' 计账，双层 Flate 炸弹可绕过解码预算。
+    const payload = incompressible(3 * 1024 * 1024);
+    const report = preflightPdf(flateContentPdf(payload, '/Filter [/FlateDecode /FlateDecode]'));
+    expect(report.ok).toBe(false);
+    expect(report.stats.estimatedFilterStreams).toBe(1);
+    expect(report.violations[0].code).toBe('decodedBytes');
+  });
+
+  it('Flate 首层后是缩小编码时仍按真实解码计数（不过度拒绝）', HEAVY, () => {
+    const report = preflightPdf(
+      flateContentPdf(new Uint8Array(2 * 1024 * 1024), '/Filter [/FlateDecode /ASCIIHexDecode]'),
+    );
+    expect(report.ok).toBe(true);
+    expect(report.stats.decodedStreamBytes).toBe(2 * 1024 * 1024);
+    expect(report.stats.estimatedFilterStreams).toBe(0);
+  });
 });
 
 describe('页树放大预算', () => {

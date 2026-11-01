@@ -261,7 +261,7 @@ export default function Direction() {
     return () => {
       if (!viewer.isDestroyed()) viewer.clock.onTick.removeEventListener(onTick);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- epoch 挂载时冻结进 ref、TARGETS 为模块常量;省略的只有 t(整页重载稳定)
   }, [viewer]);
 
   // 模式切换：覆盖带与波束各自显隐
@@ -271,6 +271,16 @@ export default function Direction() {
     });
     if (sweepRef.current) sweepRef.current.show = mode !== 'bands';
   }, [mode, viewer]);
+
+  // TimeDeck 播放/暂停与倍速必须同步到 viewer.clock（与 Heatmap/Trajectory/Situation 同一模式）；
+  // 此前只在 onReady 里设过一次，导致播放控制与 ×1/×4/×16 按钮完全失效
+  useEffect(() => {
+    if (viewer && !viewer.isDestroyed()) viewer.clock.shouldAnimate = playing;
+  }, [viewer, playing]);
+
+  useEffect(() => {
+    if (viewer && !viewer.isDestroyed()) viewer.clock.multiplier = speed;
+  }, [viewer, speed]);
 
   const stats = useMemo(() => CAPABILITIES.map((capability) => ({ capability, ...capabilityStats(capability) })), []);
   const interceptStats = stats.find((row) => row.capability === 'intercept');
@@ -284,7 +294,7 @@ export default function Direction() {
           rangeKm: p.rangeKm,
         })),
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- polarPattern/CAPABILITIES 为纯模块函数;唯一捕获 t,切语言整页重载
     [],
   );
 

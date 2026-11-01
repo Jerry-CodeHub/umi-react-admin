@@ -84,7 +84,7 @@ export default function Signature() {
   const [signedCount, setSignedCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [empty, setEmpty] = useState(true);
-  const { data: pending, loading, reload } = useApi(loadPending);
+  const { data: pending, loading, error, reload } = useApi(loadPending);
   const ticket = pending?.find((item) => item.id === ticketId);
 
   useEffect(() => {
@@ -203,8 +203,19 @@ export default function Signature() {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={9}>
           <Card title={t('signature.ticket')} loading={loading && !pending}>
-            {/* 有候选才渲染选择器；签完最后一张（pending 清空）落到 allDone 完成空态（复查 P2-1） */}
-            {pending?.length ? (
+            {/* 失败态优先于空态：否则拉取失败会显示「无待签工单」，操作员会误判无事可签 */}
+            {error ? (
+              <Result
+                status="warning"
+                title={t('common.loadFailed')}
+                extra={
+                  <Button onClick={reload} loading={loading}>
+                    {t('common.retry')}
+                  </Button>
+                }
+              />
+            ) : /* 有候选才渲染选择器；签完最后一张（pending 清空）落到 allDone 完成空态（复查 P2-1） */
+            pending?.length ? (
               <>
                 <Select
                   className="w-full"

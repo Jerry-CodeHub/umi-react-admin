@@ -39,9 +39,16 @@ export async function getInitialState(): Promise<AppInitialState | undefined> {
   try {
     const user = await fetchCurrentUser();
     return { ...new UserInfo(user), theme };
-  } catch {
-    // 失效演示 token 或服务端会话：回落到未登录态，Cookie 的失效/删除由后端负责
-    clearDemoToken();
+  } catch (error) {
+    // 会话失效（401 / success:false 业务失败）与网络故障分流：后者不清演示 token——
+    // 网络抖动把有效会话误判成「过期」并销毁 token，恢复后还得重新登录。
+    // BizError 用 name 判定而不是 instanceof：这里刻意不 import 它（会拖进 i18n→@umijs/max
+    // 整条链，bootstrap 测试的 jsdom 环境装不下），且 vi.resetModules 下跨模块实例 instanceof 不可靠
+    const response = error instanceof Object && 'response' in error ? (error as { response?: unknown }).response : null;
+    const authFailed =
+      (error instanceof Error && error.name === 'BizError') ||
+      (response instanceof Object && (response as { status?: unknown }).status === 401);
+    if (authFailed) clearDemoToken();
     return undefined;
   }
 }

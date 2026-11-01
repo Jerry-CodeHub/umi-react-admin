@@ -676,7 +676,11 @@ export const verifyScenarios = (dataset: Dataset, now: Date): string[] => {
   const rework = byId(dataset.tickets, SCENARIO_IDS.reworkTicket);
   if (rework && !rework.acceptance?.signature)
     problems.push('rework ticket must carry a pre-seeded acceptance signature');
-  if (rework && new Date(rework.acceptance!.signedAt).getTime() < new Date(rework.resolvedAt!).getTime()) {
+  // 验收可能缺席（上一条只记录 problem）：这里必须可空链，否则 verifyScenarios 自己先 TypeError
+  if (
+    rework?.acceptance?.signedAt &&
+    new Date(rework.acceptance.signedAt).getTime() < new Date(rework.resolvedAt!).getTime()
+  ) {
     problems.push('rework acceptance must be signed after resolution');
   }
   [SCENARIO_IDS.accept1, SCENARIO_IDS.accept2].forEach((id) => {

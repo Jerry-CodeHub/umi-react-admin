@@ -67,8 +67,9 @@ const resolveBackend = () => {
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
       return { error: 'backend_misconfigured' };
     }
-    // 生产部署拒绝环回/私网/保留地址（与全站服务端请求约束一致）：API_ORIGIN 被污染成内网地址时
-    // 不得把函数变成内网探测跳板。本地/CI 测试用 127.0.0.1 起真实上游验证代理语义，故仅生产启用
+    // 公网部署（production 与 preview）拒绝环回/私网/保留地址（与全站服务端请求约束一致）：
+    // API_ORIGIN 被污染成内网地址时不得把函数变成内网探测跳板。
+    // 本地/CI 测试用 127.0.0.1 起真实上游验证代理语义，故仅公网部署启用
     const host = url.hostname.toLowerCase();
     const isLoopback = host === 'localhost' || host === '::1' || host === '[::1]' || host.endsWith('.localhost');
     const isPrivateIpv4 =
@@ -79,9 +80,14 @@ const resolveBackend = () => {
           a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a === 0 || a >= 224
         );
       })();
-    const isLinkLocal =
-      host.startsWith('169.254.') || host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd');
-    const isProduction = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+    // IPv6 ULA（fc00::/7）必然含 ':'：此前用 startsWith('fc')/startsWith('fd') 会把
+    // fcms.example.com 这类公网域名误判成链路本地并拒绝
+    const isLinkLocal = host.startsWith('169.254.') || host.startsWith('fe80:') || /^f[cd][0-9a-f]*:/.test(host);
+    // preview 部署同样公网可达（此前只有 production 拒绝内网地址，preview 可被当内网探测跳板）
+    const isProduction =
+      process.env.VERCEL_ENV === 'production' ||
+      process.env.VERCEL_ENV === 'preview' ||
+      process.env.NODE_ENV === 'production';
     if (isProduction && (isLoopback || isPrivateIpv4 || isLinkLocal)) {
       return { error: 'backend_misconfigured' };
     }

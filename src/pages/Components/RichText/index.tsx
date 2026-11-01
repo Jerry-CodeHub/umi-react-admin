@@ -6,7 +6,7 @@ import { getDashboardOverview } from '@/services/ops';
 import { EyeOutlined } from '@ant-design/icons';
 import { Editor } from '@tinymce/tinymce-react';
 import { useIntl } from '@umijs/max';
-import { Button, Card, Skeleton, Typography } from 'antd';
+import { Button, Card, Result, Skeleton, Typography } from 'antd';
 import DOMPurify from 'dompurify';
 import { useRef, useState } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
@@ -32,7 +32,7 @@ export default function RichText() {
   const { dark } = useChartTheme();
   const editorRef = useRef<TinyMCEEditor | null>(null);
   const [preview, setPreview] = useState('');
-  const { data } = useApi(loadDraft);
+  const { data, error, loading, reload } = useApi(loadDraft);
 
   // 皮肤只能在初始化时指定：切换主题时按 key 重建编辑器。重建前（本次渲染、旧编辑器尚未卸载）
   // 直接从旧实例取最新内容作为新编辑器的初始值——不依赖 change/keyup 事件是否已触发
@@ -64,31 +64,44 @@ export default function RichText() {
       }
     >
       <Card>
-        <Skeleton active loading={!draftRef.current} paragraph={{ rows: 12 }}>
-          <Editor
-            key={`${dark ? 'dark' : 'light'}-${intl.locale}`}
-            licenseKey="gpl"
-            onInit={(_evt, editor) => (editorRef.current = editor)}
-            initialValue={draftRef.current}
-            init={{
-              height: 560,
-              menubar: false,
-              // 界面语言跟随 umi locale：zh-CN 语言包已在 tinymceBundle.ts 注册（addI18n），en 为内置默认
-              language: intl.locale === 'zh-CN' ? 'zh-CN' : 'en',
-              skin: dark ? 'oxide-dark' : 'oxide',
-              content_css: dark ? 'dark' : 'default',
-              plugins: ['advlist', 'autolink', 'lists', 'link', 'table', 'charmap', 'searchreplace', 'wordcount'],
-              toolbar:
-                'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright | ' +
-                'bullist numlist outdent indent | table link | removeformat',
-              // 段落格式下拉的显示名以项目文案为准（语言包只覆盖控件文字）
-              block_formats: t('richText.blockFormats'),
-              // 正文限宽居中，像一页文档：满宽的长行不好读
-              content_style:
-                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.7; max-width: 800px; margin: 16px auto; padding: 0 16px }',
-            }}
+        {/* 周报数据拉取失败给失败态与重试：否则骨架会永久转圈（data 永不到位，初稿永远不生成） */}
+        {error ? (
+          <Result
+            status="warning"
+            title={t('common.loadFailed')}
+            extra={
+              <Button onClick={reload} loading={loading}>
+                {t('common.retry')}
+              </Button>
+            }
           />
-        </Skeleton>
+        ) : (
+          <Skeleton active loading={!draftRef.current} paragraph={{ rows: 12 }}>
+            <Editor
+              key={`${dark ? 'dark' : 'light'}-${intl.locale}`}
+              licenseKey="gpl"
+              onInit={(_evt, editor) => (editorRef.current = editor)}
+              initialValue={draftRef.current}
+              init={{
+                height: 560,
+                menubar: false,
+                // 界面语言跟随 umi locale：zh-CN 语言包已在 tinymceBundle.ts 注册（addI18n），en 为内置默认
+                language: intl.locale === 'zh-CN' ? 'zh-CN' : 'en',
+                skin: dark ? 'oxide-dark' : 'oxide',
+                content_css: dark ? 'dark' : 'default',
+                plugins: ['advlist', 'autolink', 'lists', 'link', 'table', 'charmap', 'searchreplace', 'wordcount'],
+                toolbar:
+                  'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright | ' +
+                  'bullist numlist outdent indent | table link | removeformat',
+                // 段落格式下拉的显示名以项目文案为准（语言包只覆盖控件文字）
+                block_formats: t('richText.blockFormats'),
+                // 正文限宽居中，像一页文档：满宽的长行不好读
+                content_style:
+                  'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.7; max-width: 800px; margin: 16px auto; padding: 0 16px }',
+              }}
+            />
+          </Skeleton>
+        )}
       </Card>
       {preview && (
         <Card className="mt-4" title={t('richText.previewTitle')}>

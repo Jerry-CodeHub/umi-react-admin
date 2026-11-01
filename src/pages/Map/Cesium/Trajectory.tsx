@@ -59,7 +59,16 @@ export default function Trajectory() {
   const [drawing, setDrawing] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(2);
+  const [corridorWidthLive, setCorridorWidthLive] = useState(2600);
+  // 去抖提交：走廊宽度每变一步都会触发几何重三角化，拖动期间只跟手显示，停拖才落定
   const [corridorWidth, setCorridorWidth] = useState(2600);
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setCorridorWidth((committed) => (committed === corridorWidthLive ? committed : corridorWidthLive)),
+      120,
+    );
+    return () => window.clearTimeout(timer);
+  }, [corridorWidthLive]);
   const [hasPlayback, setHasPlayback] = useState(false);
   const [follow, setFollow] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -468,7 +477,7 @@ export default function Trajectory() {
       }
     };
     return { pathD, px, W, H, totalKm, altMin, altMax, seek };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- samplesRef/startRef 等均为 ref;真实依赖 progress/hasPlayback/viewer 已列出,t/intl 整页重载稳定
   }, [progress, hasPlayback, viewer]);
 
   const statsPanel = stats ? (
@@ -496,8 +505,8 @@ export default function Trajectory() {
           min={800}
           max={6000}
           step={200}
-          value={corridorWidth}
-          onChange={setCorridorWidth}
+          value={corridorWidthLive}
+          onChange={setCorridorWidthLive}
           tooltip={{ formatter: (v) => `${((v ?? 0) / 1000).toFixed(1)} km` }}
         />
       </div>
@@ -510,12 +519,19 @@ export default function Trajectory() {
         <div className="scene-panel-title">{t('cesium.route.profile')}</div>
         <svg
           viewBox={`0 0 ${profile.W} ${profile.H}`}
-          className="w-full cursor-pointer"
+          className="w-full cursor-pointer touch-none"
           role="slider"
           aria-label={t('cesium.route.profile')}
           tabIndex={0}
-          onClick={(e) => profile.seek(e.clientX, e.currentTarget)}
-          onDrag={(e) => profile.seek(e.clientX, e.currentTarget)}
+          /* SVG 不是 draggable 元素，原生 onDrag 永远不触发（拖拽寻址此前是死交互）：
+             改 pointer 捕获实现按住拖动 scrub */
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            profile.seek(e.clientX, e.currentTarget);
+          }}
+          onPointerMove={(e) => {
+            if (e.currentTarget.hasPointerCapture(e.pointerId)) profile.seek(e.clientX, e.currentTarget);
+          }}
         >
           <path d={profile.pathD} fill="none" stroke={ACCENT_CSS.corridor} strokeWidth={1.6} />
           <line x1={profile.px} y1={2} x2={profile.px} y2={profile.H - 4} stroke="#faad14" strokeWidth={1.4} />

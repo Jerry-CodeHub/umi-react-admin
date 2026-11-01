@@ -364,7 +364,6 @@ export type CalendarEventInput = Omit<CalendarEvent, 'id'>;
 
 // ---------------- 演示时钟与场景（仅演示模式） ----------------
 
-/** live 跟随真实时间；frozen 固定在进入场景那一刻（受控演示，页面明确展示「演示时间」） */
 /** 登录页「证据层」的演示数据快照（免登录，只含聚合数字；与工作台 KPI 同一口径） */
 export interface DemoSnapshot {
   devicesOnline: number;
@@ -374,6 +373,7 @@ export interface DemoSnapshot {
   slaRate: number;
 }
 
+/** live 跟随真实时间；frozen 固定在进入场景那一刻（受控演示，页面明确展示「演示时间」） */
 export interface DemoClockState {
   mode: 'live' | 'frozen';
   /** frozen 模式的锚点（epoch ms） */

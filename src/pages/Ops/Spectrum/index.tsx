@@ -2,7 +2,7 @@ import DemoPage from '@/components/DemoPage';
 import { useApi } from '@/hooks/useApi';
 import { listAllDevices } from '@/services/ops';
 import { useIntl } from '@umijs/max';
-import { Card, Grid, Progress, Skeleton, Table, Tag, Typography } from 'antd';
+import { Button, Card, Grid, Progress, Result, Skeleton, Table, Tag, Typography } from 'antd';
 import { useCallback, useMemo } from 'react';
 import { KEY_BANDS, coverageByModel, devicesCovering } from './bands';
 import CoverageChart, { formatMHz } from './CoverageChart';
@@ -14,7 +14,7 @@ export default function Spectrum() {
     (id: string, values?: Record<string, string | number>) => intl.formatMessage({ id }, values),
     [intl],
   );
-  const { data: devices, loading } = useApi(listAllDevices);
+  const { data: devices, loading, error, reload } = useApi(listAllDevices);
   const { md } = Grid.useBreakpoint();
 
   const models = useMemo(() => coverageByModel(devices ?? []), [devices]);
@@ -49,7 +49,20 @@ export default function Spectrum() {
           </Typography.Text>
         )}
         <Skeleton active loading={loading && !devices}>
-          <CoverageChart models={models} />
+          {error ? (
+            // 拉取失败不再渲染成「零覆盖」图表与 0/0 表格：给出失败态与重试
+            <Result
+              status="warning"
+              title={t('common.loadFailed')}
+              extra={
+                <Button onClick={reload} loading={loading}>
+                  {t('common.retry')}
+                </Button>
+              }
+            />
+          ) : (
+            <CoverageChart models={models} />
+          )}
         </Skeleton>
       </Card>
       <Card title={t('spectrum.keyBands')}>

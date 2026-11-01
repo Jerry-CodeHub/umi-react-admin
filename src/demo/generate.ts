@@ -387,7 +387,9 @@ const generateAlarmsAndTickets = (locale: DemoLocale, now: Date, devices: Device
             draft.resolve *= scale;
           }
         } else if (draft.closeAfter > remaining - MINUTE) {
-          draft.closeAfter = Math.max(5_000, remaining * 0.5);
+          // 钳到剩余时间内：remaining < 5s 时 5000ms 下限会越过 now，告警滞留为 active，
+          // 违反「在线设备不带未恢复阻断告警」的 P3-1 不变式
+          draft.closeAfter = Math.min(Math.max(5_000, remaining * 0.5), remaining);
         }
       }
       const id = `ALM-${key}-${String(index + 1).padStart(3, '0')}`;

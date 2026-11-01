@@ -43,6 +43,17 @@ export default function Amap() {
   const mapRef = useRef<AMap.Map>(undefined);
   const markersRef = useRef<{ device: Device; marker: AMap.CircleMarker }[]>([]);
   const [filter, setFilter] = useState<StatusFilter>('all');
+  // 地图（含 marker）是异步重建的：重建后必须重放当前过滤，并把 filter effect 的依赖指向
+  // 新一代 marker（否则暗色切换重建地图后，已有的状态过滤被静默丢弃）
+  const [mapEpoch, setMapEpoch] = useState(0);
+  const filterRef = useRef(filter);
+  filterRef.current = filter;
+  const applyFilter = () => {
+    const current = filterRef.current;
+    markersRef.current.forEach(({ device, marker }) =>
+      current === 'all' || device.status === current ? marker.show() : marker.hide(),
+    );
+  };
   const [loadError, setLoadError] = useState<string>();
   const [selected, setSelected] = useState<Device>();
   const infoWindowRef = useRef<AMap.InfoWindow>(undefined);
@@ -97,6 +108,9 @@ export default function Amap() {
           map.add(marker);
           return { device, marker };
         });
+        // marker 是异步创建的：filter effect 首轮跑在它之前，这里补一次当前过滤的落地
+        applyFilter();
+        setMapEpoch((n) => n + 1);
       })
       .catch((error: unknown) => !disposed && setLoadError(error instanceof Error ? error.message : String(error)));
     return () => {
@@ -118,7 +132,7 @@ export default function Amap() {
     markersRef.current.forEach(({ device, marker }) =>
       filter === 'all' || device.status === filter ? marker.show() : marker.hide(),
     );
-  }, [filter, devices]);
+  }, [filter, mapEpoch]);
 
   return (
     <DemoPage

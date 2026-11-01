@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <!-- 视频封面：项目自制（随项目 MIT），替代此前热链的第三方 CDN 图片 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1a33"/>
+      <stop offset="1" stop-color="#12345c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4096ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#4096ff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#grid)"/>
+  <circle cx="640" cy="360" r="300" fill="url(#glow)"/>
+  <g fill="none" stroke="#69b1ff" stroke-linecap="round">
+    <circle cx="640" cy="360" r="90" stroke-opacity="0.9" stroke-width="3"/>
+    <circle cx="640" cy="360" r="150" stroke-opacity="0.55" stroke-width="2"/>
+    <circle cx="640" cy="360" r="215" stroke-opacity="0.3" stroke-width="2"/>
+    <circle cx="640" cy="360" r="285" stroke-opacity="0.15" stroke-width="2"/>
+  </g>
+  <path d="M0 560 C 160 520, 240 610, 400 570 S 640 500, 800 555 S 1080 620, 1280 540" fill="none" stroke="#36cfc9" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M0 610 C 200 580, 300 650, 480 615 S 760 560, 920 600 S 1140 650, 1280 600" fill="none" stroke="#4096ff" stroke-opacity="0.35" stroke-width="2"/>
+</svg>

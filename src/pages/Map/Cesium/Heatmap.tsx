@@ -38,7 +38,17 @@ export default function Heatmap() {
   const [mode, setMode] = useState<Mode>('both');
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
+  // 功率分两级：live 跟手（滑块与面板读数即时变），powers 是去抖后的提交值——
+  // 覆盖圈整层重画（16 实体销毁重建）与探测重算只随提交值走，拖动期间不再每步重画
+  const [powersLive, setPowersLive] = useState<number[]>(() => transmitters().map((tx) => tx.power));
   const [powers, setPowers] = useState<number[]>(() => transmitters().map((tx) => tx.power));
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      // 停拖 120ms 才提交；值未变时返回原引用，React 跳过重渲染（避免挂载时空转一次重画）
+      setPowers((committed) => (committed === powersLive ? committed : powersLive));
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [powersLive]);
   // 点击探测的 handler 只在 onReady 建一次：经 ref 读当前功率，否则拖动滑块后读数仍按初始功率计算
   const powersRef = useRef(powers);
   powersRef.current = powers;
@@ -183,7 +193,7 @@ export default function Heatmap() {
         },
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- drawShells 是渲染期新建函数,入依赖会让 effect 随任意渲染重跑;真实数据依赖 powers/viewer 已列出
   }, [viewer, powers]);
 
   // 功率变化时已有的探测读数按新功率重算（探测点不动），与热力/覆盖圈保持一致
@@ -304,16 +314,16 @@ export default function Heatmap() {
             <div className="mb-0.5 flex items-center justify-between text-xs">
               <span className="font-mono">{tx.id}</span>
               <span className="font-mono opacity-70">
-                {Math.round(powers[i] * 100)}% · {coverageRadiusKm(powers[i], 60).toFixed(0)} km
+                {Math.round(powersLive[i] * 100)}% · {coverageRadiusKm(powersLive[i], 60).toFixed(0)} km
               </span>
             </div>
             <Slider
               min={0.2}
               max={1}
               step={0.05}
-              value={powers[i]}
+              value={powersLive[i]}
               onChange={(next) =>
-                setPowers((prev) => {
+                setPowersLive((prev) => {
                   const copy = [...prev];
                   copy[i] = next;
                   return copy;

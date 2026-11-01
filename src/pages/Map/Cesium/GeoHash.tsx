@@ -36,6 +36,7 @@ export default function GeoHashPage() {
   const [hovered, setHovered] = useState<Cell>();
   const [tilted, setTilted] = useState(false);
   const layerRef = useRef<Cesium.CustomDataSource>(null);
+  const highlightRef = useRef<Cesium.Entity>(null);
   const pointsRef = useRef<Cesium.PointPrimitiveCollection>(null);
   const freezeTimerRef = useRef<number | undefined>(undefined);
   const fleet = useMemo(() => buildStationFleet(8000), []);
@@ -56,10 +57,23 @@ export default function GeoHashPage() {
       // handler 只在 onReady 建一次，必须用回调参数 instance：闭包里的 state viewer 首帧是 null，
       // 底图重试后则是已销毁的旧实例
       const handler = new Cesium.ScreenSpaceEventHandler(instance.scene.canvas);
+      // scene.pick 是一次完整的 pick 渲染 pass，而 MOUSE_MOVE 频率高于帧率——rAF 合帧，每帧最多 pick 一次
+      //（同 CesiumViewer HUD 的做法）；缓存最新落点，帧回调里统一消费
+      let pickQueued: Cesium.Cartesian2 | undefined;
+      let pickRaf: number | undefined;
       handler.setInputAction((movement: { endPosition: Cesium.Cartesian2 }) => {
-        const picked = instance.scene.pick(movement.endPosition);
-        const cell = picked?.id?.properties?.cell?.getValue(Cesium.JulianDate.now());
-        setHovered(cell ?? undefined);
+        pickQueued = movement.endPosition;
+        if (pickRaf === undefined) {
+          pickRaf = window.requestAnimationFrame(() => {
+            pickRaf = undefined;
+            const position = pickQueued;
+            pickQueued = undefined;
+            if (!position || instance.isDestroyed()) return;
+            const picked = instance.scene.pick(position);
+            const cell = picked?.id?.properties?.cell?.getValue(Cesium.JulianDate.now());
+            setHovered(cell ?? undefined);
+          });
+        }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       handler.setInputAction((click: { position: Cesium.Cartesian2 }) => {
         const picked = instance.scene.pick(click.position);
@@ -77,7 +91,10 @@ export default function GeoHashPage() {
             });
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      return () => handler.destroy();
+      return () => {
+        if (pickRaf !== undefined) window.cancelAnimationFrame(pickRaf);
+        handler.destroy();
+      };
     },
   });
 
@@ -106,9 +123,9 @@ export default function GeoHashPage() {
   /* 聚合：按精度编码 → 计数 → 色带格柱（带生长动画，动画结束后冻结为常量高度） */
   useEffect(() => {
     const layer = layerRef.current;
-    if (!viewer || !layer || stations.length === 0) return;
+    if (!viewer || !layer || stations.length === 0) return undefined;
     layer.entities.removeAll();
-    window.clearTimeout(freezeTimerRef.current);
+    highlightRef.current = null;
     const counts = new Map<string, number>();
     stations.forEach((s) => {
       const hash = centerGeoHash(s.lat, s.lng, precision);
@@ -135,7 +152,11 @@ export default function GeoHashPage() {
 
     const growStart = performance.now();
     const entityHeights: [Cesium.Entity, number][] = [];
-    list.forEach((cell, i) => {
+    // 精度 5 × 8000 站会产出 5–7k 格：实体（各自走异步三角化队列）封顶在几百格的量级，
+    // 按计数降序取前 N 渲染；直方图 / Top 列表 / KPI 仍用完整统计。标签同理只挂在大格上
+    const RENDER_CAP = 800;
+    const LABEL_RATIO = 0.1;
+    list.slice(0, RENDER_CAP).forEach((cell, i) => {
       const b = geohashBounds(cell.hash);
       if (!b) return;
       const target = cellHeight(cell.ratio);
@@ -153,12 +174,15 @@ export default function GeoHashPage() {
           outlineColor: Cesium.Color.WHITE.withAlpha(0.5),
         },
         position: Cesium.Cartesian3.fromDegrees(cell.center[0], cell.center[1], target),
-        label: {
-          ...tagLabel({ font: '11px ui-monospace, Menlo, monospace' }),
-          text: `${cell.count}`,
-          showBackground: cell.ratio > 0.5,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        },
+        label:
+          cell.ratio >= LABEL_RATIO
+            ? {
+                ...tagLabel({ font: '11px ui-monospace, Menlo, monospace' }),
+                text: `${cell.count}`,
+                showBackground: cell.ratio > 0.5,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              }
+            : undefined,
         properties: { cell },
       });
       entityHeights.push([entity, target]);
@@ -170,6 +194,8 @@ export default function GeoHashPage() {
       });
     }, 1900);
     setCells(list);
+    // 卸载 / 换参时取消冻结定时器：1.9s 后 viewer 可能已销毁，别再碰它的实体
+    return () => window.clearTimeout(freezeTimerRef.current);
   }, [viewer, stations, precision]);
 
   /** 俯视 ↔ 侧视：侧视才能看出挤出高度的数据差异，这是这页的「定妆镜头」 */
@@ -199,7 +225,9 @@ export default function GeoHashPage() {
     const hash = centerGeoHash(lat, lng, precision);
     const b = geohashBounds(hash);
     if (b) {
-      layerRef.current.entities.add({
+      // 中心高亮只保留最近一个：连续点按旧实体不移除会无限累积
+      if (highlightRef.current) layerRef.current.entities.remove(highlightRef.current);
+      highlightRef.current = layerRef.current.entities.add({
         rectangle: {
           coordinates: Cesium.Rectangle.fromDegrees(b.longitudeMin, b.latitudeMin, b.longitudeMax, b.latitudeMax),
           material: cesiumColor('#fa8c16', 0.5),
@@ -213,6 +241,7 @@ export default function GeoHashPage() {
 
   const clear = () => {
     layerRef.current?.entities.removeAll();
+    highlightRef.current = null;
     setCells([]);
     setHovered(undefined);
   };
@@ -260,7 +289,7 @@ export default function GeoHashPage() {
         </div>
       </div>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t/intl 按 umi 惯例切语言整页重载，稳定引用不入依赖
   }, [cells, hovered]);
 
   const topList = (

@@ -59,7 +59,16 @@ export default function Trajectory() {
   const [drawing, setDrawing] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(2);
+  const [corridorWidthLive, setCorridorWidthLive] = useState(2600);
+  // 去抖提交：走廊宽度每变一步都会触发几何重三角化，拖动期间只跟手显示，停拖才落定
   const [corridorWidth, setCorridorWidth] = useState(2600);
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setCorridorWidth((committed) => (committed === corridorWidthLive ? committed : corridorWidthLive)),
+      120,
+    );
+    return () => window.clearTimeout(timer);
+  }, [corridorWidthLive]);
   const [hasPlayback, setHasPlayback] = useState(false);
   const [follow, setFollow] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -468,7 +477,7 @@ export default function Trajectory() {
       }
     };
     return { pathD, px, W, H, totalKm, altMin, altMax, seek };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- samplesRef/startRef 等均为 ref;真实依赖 progress/hasPlayback/viewer 已列出,t/intl 整页重载稳定
   }, [progress, hasPlayback, viewer]);
 
   const statsPanel = stats ? (
@@ -496,8 +505,8 @@ export default function Trajectory() {
           min={800}
           max={6000}
           step={200}
-          value={corridorWidth}
-          onChange={setCorridorWidth}
+          value={corridorWidthLive}
+          onChange={setCorridorWidthLive}
           tooltip={{ formatter: (v) => `${((v ?? 0) / 1000).toFixed(1)} km` }}
         />
       </div>

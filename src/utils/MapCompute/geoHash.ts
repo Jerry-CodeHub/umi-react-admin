@@ -19,8 +19,6 @@ export function geohashBounds(hash: string) {
     lonMax = 180;
   let latMid = 0,
     lonMid = 0;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let bit = 0;
   let ch = 0;
 
   for (let i = 0; i < hash.length; i++) {
@@ -72,8 +70,6 @@ export function centerGeoHash(lat: number, lon: number, precision: number): stri
   const BITS = [16, 8, 4, 2, 1];
   const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
   let isEven = true;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let i = 0;
   let latMin = -90,
     latMax = 90;
   let lonMin = -180,

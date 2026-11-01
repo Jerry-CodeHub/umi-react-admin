@@ -261,7 +261,7 @@ export default function Direction() {
     return () => {
       if (!viewer.isDestroyed()) viewer.clock.onTick.removeEventListener(onTick);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- epoch 挂载时冻结进 ref、TARGETS 为模块常量;省略的只有 t(整页重载稳定)
   }, [viewer]);
 
   // 模式切换：覆盖带与波束各自显隐
@@ -294,7 +294,7 @@ export default function Direction() {
           rangeKm: p.rangeKm,
         })),
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- polarPattern/CAPABILITIES 为纯模块函数;唯一捕获 t,切语言整页重载
     [],
   );
 

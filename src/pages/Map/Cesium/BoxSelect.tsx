@@ -54,7 +54,11 @@ export default function BoxSelect() {
 
   const toolRef = useRef<Tool>(undefined);
   const devicesRef = useRef<Device[]>([]);
+  // 提交图形层（start/clear 会整层清空）与预览实体分离：橡皮筋/预览边/圆预览/测量线
+  // 若与提交图形同层，首次 start() 的 removeAll() 就会把它们移出可视化管线，之后
+  // show=true 全部作用在已脱管实体上——四种实时预览静默失效
   const layerRef = useRef<Cesium.CustomDataSource>(null);
+  const previewsRef = useRef<Cesium.Entity[]>([]);
   const highlightRef = useRef<Cesium.Entity>(null);
   // 各工具的进行时状态（不进 React state，避免每帧渲染）
   const boxDragRef = useRef<{ start?: [number, number]; current?: [number, number] }>({});
@@ -78,13 +82,16 @@ export default function BoxSelect() {
       const layer = new Cesium.CustomDataSource('select');
       instance.dataSources.add(layer);
       layerRef.current = layer;
+      // 预览实体专层：从不清空，仅靠 show 开关（见上方 previewsRef 注释）
+      const previewLayer = new Cesium.CustomDataSource('select-preview');
+      instance.dataSources.add(previewLayer);
 
       const cursor = (next?: Tool) => {
         (instance.container as HTMLElement).style.cursor = next ? 'crosshair' : '';
       };
 
       /* 矩形：按住拖拽（LEFT_DOWN 起点、MOUSE_MOVE 橡皮筋、LEFT_UP 定选） */
-      const rubberBand = layer.entities.add({
+      const rubberBand = previewLayer.entities.add({
         rectangle: {
           coordinates: new Cesium.CallbackProperty(() => {
             const { start, current } = boxDragRef.current;
@@ -105,7 +112,7 @@ export default function BoxSelect() {
 
       /* 多边形：点击加点 + 指向光标的预览边；双击收口（光标点存闭包变量，每帧变不值 setState） */
       let polygonCursor: [number, number] | undefined;
-      const previewLine = layer.entities.add({
+      const previewLine = previewLayer.entities.add({
         polyline: {
           positions: new Cesium.CallbackProperty(() => {
             const points = polygonRef.current;
@@ -127,7 +134,7 @@ export default function BoxSelect() {
         const { center, edge } = circleRef.current;
         return center && edge ? distanceKm(center, edge) : 0;
       };
-      const circlePreview = layer.entities.add({
+      const circlePreview = previewLayer.entities.add({
         ellipse: {
           semiMajorAxis: new Cesium.CallbackProperty(() => circleRadiusKm() * 1000, false),
           semiMinorAxis: new Cesium.CallbackProperty(() => circleRadiusKm() * 1000, false),
@@ -151,7 +158,7 @@ export default function BoxSelect() {
       circlePreview.show = false;
 
       /* 量测：多段折线 + 逐段标注 + 累计 */
-      const measureLine = layer.entities.add({
+      const measureLine = previewLayer.entities.add({
         polyline: {
           positions: new Cesium.CallbackProperty(() => {
             const seq = measureRef.current.flatMap((p) => [p[0], p[1]]);
@@ -163,6 +170,7 @@ export default function BoxSelect() {
         },
       });
       measureLine.show = false;
+      previewsRef.current = [rubberBand, previewLine, circlePreview, measureLine];
 
       const finishMeasure = () => {
         const points = measureRef.current;
@@ -315,7 +323,11 @@ export default function BoxSelect() {
       return () => {
         handler.destroy();
         polygonCursor = undefined;
-        if (!instance.isDestroyed()) instance.dataSources.remove(layer, true);
+        previewsRef.current = [];
+        if (!instance.isDestroyed()) {
+          instance.dataSources.remove(previewLayer, true);
+          instance.dataSources.remove(layer, true);
+        }
       };
     },
   });
@@ -342,27 +354,29 @@ export default function BoxSelect() {
     });
   }, [viewer, hoverDevice]);
 
-  const start = (next: Tool) => {
+  // 只清提交图形层；预览实体在专层上常驻，随工具状态重置一并隐藏
+  const resetShapes = () => {
     layerRef.current?.entities.removeAll();
+    previewsRef.current.forEach((entity) => {
+      entity.show = false;
+    });
     boxDragRef.current = {};
     polygonRef.current = [];
     circleRef.current = {};
     measureRef.current = [];
     setSelected(undefined);
     setMeasureTotal(undefined);
+  };
+
+  const start = (next: Tool) => {
+    resetShapes();
     setTool(next);
     // viewer 未就绪（首帧、底图重试换实例的空窗）时只切工具状态，不碰光标
     if (viewer) (viewer.container as HTMLElement).style.cursor = 'crosshair';
   };
 
   const clear = () => {
-    layerRef.current?.entities.removeAll();
-    boxDragRef.current = {};
-    polygonRef.current = [];
-    circleRef.current = {};
-    measureRef.current = [];
-    setSelected(undefined);
-    setMeasureTotal(undefined);
+    resetShapes();
     setTool(undefined);
     if (viewer) (viewer.container as HTMLElement).style.cursor = '';
   };

@@ -18,6 +18,17 @@ const buildLut = () =>
     return new Uint8ClampedArray([r, g, b, 255]);
   }));
 
+// ImageData 按 canvas + 尺寸缓存复用：热力「呼吸」4Hz 全像素重写，512×336 每帧新建
+// 是 ~675KB/帧（≈2.7MB/s）的纯 GC 垃圾；下方循环逐像素写满全部通道，复用无残留
+const imageCache = new WeakMap<HTMLCanvasElement, { w: number; h: number; image: ImageData }>();
+const acquireImageData = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number) => {
+  const hit = imageCache.get(canvas);
+  if (hit && hit.w === w && hit.h === h) return hit.image;
+  const image = ctx.createImageData(w, h);
+  imageCache.set(canvas, { w, h, image });
+  return image;
+};
+
 export interface HeatGrid {
   cols: number;
   rows: number;
@@ -51,7 +62,7 @@ export const renderHeatField = (canvas: HTMLCanvasElement, grid: HeatGrid, thres
   if (!ctx) return;
   const { width: w, height: h } = canvas;
   const lut = buildLut();
-  const image = ctx.createImageData(w, h);
+  const image = acquireImageData(canvas, ctx, w, h);
   const data = image.data;
   for (let py = 0; py < h; py++) {
     const gy = (py / h) * grid.rows;

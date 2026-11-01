@@ -55,7 +55,13 @@ export default function Roles() {
     return PERMISSION_TREE.map(toNode);
   }, [t, locked, grantable]);
 
-  const dirty = active && [...checked].sort().join() !== [...active.permissions].sort().join();
+  // antd Tree 的勾选集会带上全选父分组键（dashboard/system/ops/doc），而 active.permissions 只存
+  // 叶子键：比较时只剔除分组键，「勾上再取消」净变化为零时 Save 不再虚启用。未知/伪造键仍算
+  // dirty——提交时的叶子过滤才是它们的兜底（save.test.tsx 断言的正是这条提交边界）
+  const groupKeys = new Set(PERMISSION_TREE.map((group) => group.key));
+  const dirty =
+    active &&
+    [...checked.filter((key) => !groupKeys.has(key))].sort().join() !== [...active.permissions].sort().join();
 
   const save = async () => {
     setSaving(true);

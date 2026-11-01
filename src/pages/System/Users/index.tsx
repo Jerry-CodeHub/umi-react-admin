@@ -57,11 +57,17 @@ export default function Users() {
     reload();
   };
 
+  // 批量启用/停用按钮直接挂 onClick（antd 丢弃返回的 promise）：失败必须就地 catch（modal.confirm
+  // 的删除路径由 onOk 的加载契约兜底，无需处理）
   const runBatch = async (ids: string[], action: UserBatchAction, clear: () => void) => {
-    const count = await batchUsers(ids, action);
-    message.success(t('users.batchDone', { count }));
-    clear();
-    reload();
+    try {
+      const count = await batchUsers(ids, action);
+      message.success(t('users.batchDone', { count }));
+      clear();
+      reload();
+    } catch {
+      // 错误提示由请求层统一弹出
+    }
   };
 
   const columns: ProColumns<User>[] = [

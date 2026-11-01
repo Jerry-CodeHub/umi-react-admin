@@ -8,7 +8,21 @@ import type { Device } from '@/services/types';
 import { formatDateTime } from '@/utils/format';
 import { CameraOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useIntl } from '@umijs/max';
-import { App, Button, Card, Descriptions, Empty, Image, Modal, Select, Skeleton, Space, Tag, Typography } from 'antd';
+import {
+  App,
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  Image,
+  Modal,
+  Result,
+  Select,
+  Skeleton,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import html2canvas from 'html2canvas';
 import { useRef, useState } from 'react';
 
@@ -41,7 +55,7 @@ export default function Screenshot() {
   // 截图对象可选（E07：主线演示时选「演示 · 主线故障站」）；默认继承最近严重告警的设备
   const [deviceId, setDeviceId] = useState<string>();
   const { data: devices } = useApi(() => listAllDevices().then((list) => list.slice(0, 300)));
-  const { data, loading } = useApi(() => loadCard(deviceId), [deviceId]);
+  const { data, loading, error, reload } = useApi(() => loadCard(deviceId), [deviceId]);
   const deviceOptions = (devices ?? []).map((device: Device) => ({
     value: device.id,
     label: `${device.name} · ${device.id}`,
@@ -117,8 +131,19 @@ export default function Screenshot() {
               )
             }
           >
-            <Skeleton active loading={loading || !data}>
-              {data?.alarm ? (
+            {/* 失败态优先于「无告警」空态：否则拉取失败会被误读成没有告警（骨架在 error 时也不再无限转） */}
+            <Skeleton active loading={loading && !error}>
+              {error ? (
+                <Result
+                  status="warning"
+                  title={t('common.loadFailed')}
+                  extra={
+                    <Button onClick={reload} loading={loading}>
+                      {t('common.retry')}
+                    </Button>
+                  }
+                />
+              ) : data?.alarm ? (
                 <>
                   {/* 类型是主信息（大号），告警编号是辅助信息（小号灰字），不再与标题、级别标签挤在卡片头 */}
                   <Typography.Title level={4} className="!mb-1 !mt-0">

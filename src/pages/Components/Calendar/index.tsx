@@ -216,6 +216,11 @@ export default function Calendar() {
     refetch();
   };
 
+  // Popconfirm 的 onConfirm 也会丢弃返回的 promise（antd v6 无加载契约）：失败就地吞掉
+  const handleDeleteSafe = () => {
+    void handleDelete().catch(() => undefined);
+  };
+
   return (
     <DemoPage descriptionId="page.calendar.desc" source="src/pages/Components/Calendar/index.tsx">
       <Row gutter={[16, 16]}>
@@ -324,7 +329,7 @@ export default function Calendar() {
             key="delete"
             title={t('calendar.deleteConfirm', { title: viewing?.title ?? '' })}
             okButtonProps={{ danger: true }}
-            onConfirm={handleDelete}
+            onConfirm={handleDeleteSafe}
           >
             <Button danger>{t('common.delete')}</Button>
           </Popconfirm>,

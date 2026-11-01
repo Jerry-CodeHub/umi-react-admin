@@ -90,7 +90,8 @@ export default function AudioPlayer() {
     if (!analyze) return;
     analyze.mode = mode;
     Object.assign(analyze.options, MODE_OPTIONS[mode]);
-  }, [mode]);
+    // 依赖含 intl.locale：locale 重建 Analyze 后 mode 未变、[mode] 不触发，需借此重放当前模式
+  }, [mode, intl.locale]);
 
   return (
     <DemoPage

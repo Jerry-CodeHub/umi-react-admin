@@ -36,7 +36,7 @@ import {
   theme,
 } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TicketCard from './TicketCard';
 import TicketDrawer from './TicketDrawer';
 
@@ -189,7 +189,7 @@ const TicketSearch = ({ onOpen }: { onOpen: (ticket: Ticket) => void }) => {
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           placeholder={t('tickets.search.placeholder')}
-          onSearch={search}
+          onSearch={() => void search().catch(() => undefined)}
           loading={searching}
           enterButton
         />
@@ -218,7 +218,8 @@ const TicketSearch = ({ onOpen }: { onOpen: (ticket: Ticket) => void }) => {
           onChange={(value) => setRange(value?.[0] && value?.[1] ? [value[0], value[1]] : undefined)}
           placeholder={[t('tickets.search.from'), t('tickets.search.to')]}
         />
-        <Button onClick={search} loading={searching}>
+        {/* antd 会丢弃 onClick 返回的 promise：失败必须就地 catch，否则成为 unhandled rejection */}
+        <Button onClick={() => void search().catch(() => undefined)} loading={searching}>
           {t('tickets.search.button')}
         </Button>
       </Space>
@@ -316,17 +317,24 @@ export default function Tickets() {
   }, [tickets, kind]);
 
   /** 乐观更新：先移动卡片，接口失败再退回（错误提示由请求层统一弹出）。拖拽与详情抽屉共用 */
+  // 同一张卡连续两次移动（拖拽 + 抽屉、快速连拖）时，早发起的请求可能晚返回或失败回滚：
+  // 每次移动递增序号，过期响应与过期回滚都丢弃，避免旧状态覆盖新状态
+  const moveSeqRef = useRef(new Map<string, number>());
   const move = async (ticket: Ticket, status: TicketStatus) => {
     if (status === ticket.status) return;
     // 只记录被移动那张卡的原状态：整表快照回滚会一并吞掉调用期间落地的其他变更
     // （看板刷新合并、第二张卡的移动、经办人变更）
     const previousStatus = ticket.status;
+    const seq = (moveSeqRef.current.get(ticket.id) ?? 0) + 1;
+    moveSeqRef.current.set(ticket.id, seq);
     setTickets((list) => list.map((item) => (item.id === ticket.id ? { ...item, status } : item)));
     try {
       const updated = await moveTicket(ticket.id, status);
+      if (moveSeqRef.current.get(ticket.id) !== seq) return;
       setTickets((list) => list.map((item) => (item.id === ticket.id ? updated : item)));
       message.success(t('tickets.moved', { id: ticket.id, status: t(`ticketStatus.${status}`) }));
     } catch {
+      if (moveSeqRef.current.get(ticket.id) !== seq) return;
       setTickets((list) => list.map((item) => (item.id === ticket.id ? { ...item, status: previousStatus } : item)));
     }
   };

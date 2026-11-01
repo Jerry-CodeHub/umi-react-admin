@@ -6,7 +6,7 @@ import { buildCsp } from './csp';
 import { faviconLinks } from './favicons';
 import { configureSplitChunks } from './splitChunks';
 import { keepUrlAssetsVerbatim } from './urlAssets';
-// import { routes } from './routes';
+
 const AUTH_CONFIG = resolveAuthConfig(process.env);
 if (!AUTH_CONFIG.demoMode) {
   throw new Error('GitHub Pages supports public demo only; backend mode needs a host with security headers');
@@ -22,7 +22,9 @@ export default defineConfig({
     if (process.env.NODE_ENV === 'production') {
       configureSplitChunks(config);
       addChunkGraph(config);
-      addVersionFile(config);
+      // 与 config.ts 对齐传入 demoMode：本文件入口已断言 demoMode 为真，避免仅靠
+      // UMI_APP_DEMO_MODE 环境变量兜底（两条产线参数源不同就会静默漂移）
+      addVersionFile(config, { demoMode: AUTH_CONFIG.demoMode });
     }
   },
   // define 经 lodash.merge 逐键深合并（@umijs/core getUserConfig）：这里只覆盖与主产线的

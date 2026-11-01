@@ -229,6 +229,24 @@ describe('decode-uri-component 的官方回移', () => {
     expect(source).toContain('while (position < input.length)');
     expect(source).not.toContain('decodeComponents');
   });
+
+  it('GHSA-qr28:百分号编码串单遍替换,不再有二次方 replaceMap 循环', () => {
+    // 上游 0.5.1 的两个特例随单遍扫描落在 decode() 内:UTF-16 BOM 与截断的 %C2
+    expect(decode('%FE%FF')).toBe('\uFFFD\uFFFD');
+    expect(decode('%FF%FE')).toBe('\uFFFD\uFFFD');
+    expect(decode('%C2')).toBe('\uFFFD');
+    expect(decode('a%C2b')).toBe('a\uFFFDb');
+    const source = read(join(installed(name, '0.2.2'), 'index.js'));
+    expect(source).toContain('input.replace(multiMatcher');
+    expect(source).not.toContain('replaceMap');
+    // 大量互不相同的编码串(旧实现的 replaceMap 逐 key 全串扫描是二次方)单遍正确解码
+    const big = Array.from({ length: 4000 }, (_, index) => `%${(0x41 + (index % 26)).toString(16)}${index % 10}`).join(
+      '',
+    );
+    const decoded = decode(big);
+    expect(decoded).not.toContain('%41');
+    expect(decoded.length).toBeLessThanOrEqual(big.length);
+  });
 });
 
 describe('Excel 的真实浏览器工作簿与密码保护', () => {

@@ -19,10 +19,11 @@ overrides:
   colord@<2.9.4: 2.9.4
   compression@>=1.0.0 <1.8.2: 1.8.2
   cross-spawn@>=7.0.0 <7.0.5: 7.0.6
-  dompurify@>=3.0.0 <3.4.16: 3.4.16
+  dompurify@>=3.0.0 <3.4.17: 3.4.17
   es5-ext@<0.10.63: 0.10.64
   esbuild@<0.25.0: 0.25.12
   fast-uri@>=3.0.0 <3.1.8: 3.1.8
+  follow-redirects@>=1.0.0 <1.16.2: 1.16.2
   form-data@>=4.0.0 <4.0.6: 4.0.6
   glob@>=10.2.0 <10.5.0: 10.5.0
   hono@>=4.0.0 <4.13.7: 4.13.7
@@ -71,7 +72,7 @@ patchedDependencies:
   '@umijs/preset-umi@4.7.22': 29e2cc1a26b0fdd8bb736ad6a779f06d610518b3a1c5fe358eeb560d6f0c89d5
   '@umijs/renderer-react@4.7.22': 0f804f00cada7a343be7d9435b1cd0597bca52228c640ff90f906712018c58e7
   braces@3.0.3: 18a4724cb117fb08010e0d8f8aa9684fbd706be3560a12dd4d0e4233d5834acd
-  decode-uri-component@0.2.2: 4bd5a5e1ec0b95817e4d3a1266b29d7ff4d7065630ae4b35a1f0cdec0de579cc
+  decode-uri-component@0.2.2: 337cc9f69eb805a7555bdbcde5fca0a3e8f210e97c35338fa6f54c6bd2fd1bf9
   exceljs@4.4.0: a02bd99ddda9857e9f25c127e09b6892421f3a7f6a45b0481cb16973fb9ac9f7
   node-libs-browser-okam@2.2.5: 74add8ae00cc142e91994ae396ed350dd504d037fca3b8991a608dbe54704559
   node-libs-browser@2.2.1: 54c014d704b5d3d291d99ccd2024ef61fc08e6fd4c4e409a47de257c4151a371
@@ -100,7 +101,7 @@ importers:
         version: 0.4.10
       '@tinymce/tinymce-react':
         specifier: ^6.3.0
-        version: 6.3.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tinymce@8.9.2)
+        version: 6.3.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tinymce@8.10.1)
       '@umijs/max':
         specifier: ^4.7.22
         version: 4.7.22(@babel/core@7.29.6(supports-color@10.2.2))(@types/node@26.6.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(debug@4.4.3(supports-color@10.2.2))(dva@2.5.0-beta.2(encoding@0.1.13)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(jiti@2.7.0)(lightningcss@1.32.0)(prettier@3.9.9)(rc-field-form@2.7.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rollup@4.63.4)(sass@1.54.0)(styled-jsx@5.1.7(@babel/core@7.29.6(supports-color@10.2.2))(babel-plugin-macros@3.1.0)(react@19.3.0))(supports-color@10.2.2)(type-fest@1.4.0)(typescript@6.0.3)(webpack@5.104.1(clean-css@5.3.3)(csso@4.2.0)(esbuild@0.28.2)(html-minifier-terser@6.1.0)(lightningcss@1.32.0)(postcss@8.5.23))(yaml@2.8.3)
@@ -123,8 +124,8 @@ importers:
         specifier: ^1.11.23
         version: 1.11.23
       dompurify:
-        specifier: ^3.4.16
-        version: 3.4.16
+        specifier: ^3.4.17
+        version: 3.4.17
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0(patch_hash=a02bd99ddda9857e9f25c127e09b6892421f3a7f6a45b0481cb16973fb9ac9f7)
@@ -159,8 +160,8 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5
       tinymce:
-        specifier: ^8.9.2
-        version: 8.9.2
+        specifier: ^8.9.3
+        version: 8.10.1
       tinymce-i18n:
         specifier: ^26.9.28
         version: 26.9.28
@@ -900,15 +901,15 @@ packages:
 
   '@esbuild-kit/cjs-loader@2.4.4':
     resolution: {integrity: sha512-NfsJX4PdzhwSkfJukczyUiZGc7zNNWZcEAyqeISpDnn0PTfzMJR1aR8xAIPskBejIxBJbIgCCMzbaYa9SXepIg==}
-    deprecated: 'Merged into tsx: https://tsx.hirok.io'
+    deprecated: 'Merged into tsx: https://tsx.is'
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.hirok.io'
+    deprecated: 'Merged into tsx: https://tsx.is'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.hirok.io'
+    deprecated: 'Merged into tsx: https://tsx.is'
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -4157,8 +4158,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  dompurify@3.4.16:
-    resolution: {integrity: sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==}
+  dompurify@3.4.17:
+    resolution: {integrity: sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==}
 
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
@@ -4609,8 +4610,8 @@ packages:
     resolution: {integrity: sha512-kWyh8ADvHBFz6ua5xYOPnUroZTT/bwWfrCeL0Wj1dzG4/YOmOcfJ99W8dOVyyynJN35rZ9aCOtHChqQovV7yog==}
     engines: {node: '>=6'}
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+  follow-redirects@1.16.2:
+    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -7855,8 +7856,8 @@ packages:
   tinymce-i18n@26.9.28:
     resolution: {integrity: sha512-VOMMyvzji7veYm1+8gYpf05A70G308Cc1UCTCqwAgyx+jDqYOKsqssEm1RpdRQlKuPliVHgNg8lkm3jD0Y5gjg==}
 
-  tinymce@8.9.2:
-    resolution: {integrity: sha512-Qh6ADSC0x1F/KsrupfResNJFAaINJQBtfVjx5zxxWJ0ZrGtaKldtAXDMI6uEA57s2n+0rEtXmtbitiU4zV7+0Q==}
+  tinymce@8.10.1:
+    resolution: {integrity: sha512-Mgdnx8HuEPRlLqKTyHcy7+JJn9reXH7b7L/1ywPCzKAyjaq8fzEPE+CYBLW42GgBlaaoIOd0dTOcYHUlPZyV2A==}
 
   tinyrainbow@3.1.1:
     resolution: {integrity: sha512-yau8yJdTt989Mm0Bd/236QnzEiPf2xLLTqUZRUJOo/3CB078LSwzei343DgtJVmfJKJE3TMINY1u42SQsP6mXw==}
@@ -9152,7 +9153,7 @@ snapshots:
       '@zip.js/zip.js': 2.17.0
       autolinker: 4.1.5
       bitmap-sdf: 1.0.4
-      dompurify: 3.4.16
+      dompurify: 3.4.17
       draco3d: 1.5.7
       earcut: 3.0.2
       grapheme-splitter: 1.0.4
@@ -10643,13 +10644,13 @@ snapshots:
     optionalDependencies:
       react-dom: 19.3.0(react@19.3.0)
 
-  '@tinymce/tinymce-react@6.3.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tinymce@8.9.2)':
+  '@tinymce/tinymce-react@6.3.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tinymce@8.10.1)':
     dependencies:
       prop-types: 15.8.1
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
     optionalDependencies:
-      tinymce: 8.9.2
+      tinymce: 8.10.1
 
   '@tweenjs/tween.js@25.0.0': {}
 
@@ -12170,7 +12171,7 @@ snapshots:
 
   axios@1.20.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@10.2.2))
+      follow-redirects: 1.16.2(debug@4.4.3(supports-color@10.2.2))
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@10.2.2)
       proxy-from-env: 2.1.0
@@ -12952,7 +12953,7 @@ snapshots:
 
   decimal.js@10.6.0: {}
 
-  decode-uri-component@0.2.2(patch_hash=4bd5a5e1ec0b95817e4d3a1266b29d7ff4d7065630ae4b35a1f0cdec0de579cc): {}
+  decode-uri-component@0.2.2(patch_hash=337cc9f69eb805a7555bdbcde5fca0a3e8f210e97c35338fa6f54c6bd2fd1bf9): {}
 
   deep-is@0.1.4: {}
 
@@ -13085,7 +13086,7 @@ snapshots:
   domparser-win32-x64-msvc@0.0.7:
     optional: true
 
-  dompurify@3.4.16:
+  dompurify@3.4.17:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -13850,7 +13851,7 @@ snapshots:
 
   flru@1.0.2: {}
 
-  follow-redirects@1.16.0(debug@4.4.3(supports-color@10.2.2)):
+  follow-redirects@1.16.2(debug@4.4.3(supports-color@10.2.2)):
     optionalDependencies:
       debug: 4.4.3(supports-color@10.2.2)
 
@@ -15817,7 +15818,7 @@ snapshots:
 
   query-string@6.14.1:
     dependencies:
-      decode-uri-component: 0.2.2(patch_hash=4bd5a5e1ec0b95817e4d3a1266b29d7ff4d7065630ae4b35a1f0cdec0de579cc)
+      decode-uri-component: 0.2.2(patch_hash=337cc9f69eb805a7555bdbcde5fca0a3e8f210e97c35338fa6f54c6bd2fd1bf9)
       filter-obj: 1.1.0
       split-on-first: 1.1.0
       strict-uri-encode: 2.0.0
@@ -17375,7 +17376,7 @@ snapshots:
 
   tinymce-i18n@26.9.28: {}
 
-  tinymce@8.9.2: {}
+  tinymce@8.10.1: {}
 
   tinyrainbow@3.1.1: {}
 

@@ -22,7 +22,7 @@
   "decode-uri-component": {
     "version": "0.2.2",
     "files": {
-      "index.js": "5112ff71759fadbfd485235d26e80573eb2837bf15cc3cd8597cf14e9b6c27b5",
+      "index.js": "90bebf25138e46944409e42263b176eac3005bd2be3b6e55548e84e76b55a87e",
       "package.json": "8f2e9784337b3b4fa69359f88f75a2847e0aa17776f062cb518d008d8d408bca"
     }
   },

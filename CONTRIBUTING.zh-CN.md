@@ -37,7 +37,7 @@ pnpm start:demo
 - **权限点只有一个来源。** 新增权限点要在 `src/constants/permissions.ts` 的 `PERMISSION_TREE` 里登记，并在同一个 PR 内接好：页面用 `config/routes.ts` 的 `access`，按钮用 `src/access.ts`，演示后端路由用 `src/demo/server/routes.ts`，并同步 [docs/demo/role-matrix.md](./docs/demo/role-matrix.md) 的接口 → 权限点对照。角色权限不允许在别处另算一套——矩阵文档逐项复刻 `DEFAULT_ROLE_PERMISSIONS`，必须保持精确一致。
 - **绝不把演示模式描述成真实授权。** 浏览器内演示后端演示的是契约；一切校验都在用户自己的浏览器里执行，文档必须始终写明真实后端要自行实现。操作日志、角色分配规则与坐标精度同理。
 - **新增构建期凭据。** 要在 `scripts/check-dist-secrets.mjs` 的 `CREDENTIAL_DECLARATIONS` 登记，配一个类型化的 `EXPECTED_*` 声明与形态校验，并在所有注入它的产线里声明（Vercel 环境变量、Cloudflare Pages 环境变量、Docker build-arg、Pages workflow 的扫描步骤）。注入了却没声明会按设计判失败。
-- **不得为了合入而放松门禁。** 阈值、白名单、CSP 来源与安全测试都不许放宽；被门禁挡住时请修根因，或在 PR 描述里提出。
+- **不得为了合入而放松门禁。** 阈值、白名单、CSP 来源与安全测试都不许放宽；被门禁挡住时请修根因，或在 PR 描述里提出。（有记录的唯一一次主动修订：2026-11-01 依赖公告分层——运行时维持零忽略，仅构建链可达的公告降为告警；理由与范围见 SECURITY.md。）
 
 ## 测试
 

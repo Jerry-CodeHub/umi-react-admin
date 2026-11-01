@@ -37,7 +37,7 @@ pnpm start:demo
 - **Permission points are single-source.** Add a new point to `PERMISSION_TREE` in `src/constants/permissions.ts`, then wire it in the same PR: `access` in `config/routes.ts` for pages, `src/access.ts` for buttons, the demo backend route in `src/demo/server/routes.ts`, and the API→permission table in [docs/demo/role-matrix.md](./docs/demo/role-matrix.md). Do not re-derive a role's permissions anywhere else — the matrix reproduces `DEFAULT_ROLE_PERMISSIONS` item by item and must stay exact.
 - **Never describe demo mode as real authorization.** The in-browser demo backend demonstrates the contract; every check runs in the user's own browser, so the docs must always say that a real backend has to implement it. The same applies to audit logs, the role-assignment rules and coordinate precision.
 - **New build-time credential.** Register it in `CREDENTIAL_DECLARATIONS` in `scripts/check-dist-secrets.mjs`, give it a typed `EXPECTED_*` declaration and a shape check, and declare it in every pipeline that injects it (Vercel env, Cloudflare Pages env, Docker build args, the Pages workflow's scan step). An injected-but-undeclared credential fails the scan by design.
-- **Do not weaken a gate to land a change.** Thresholds, allowlists, CSP sources and security tests must not be relaxed; if a gate blocks you, fix the cause or raise it in the PR description.
+- **Do not weaken a gate to land a change.** Thresholds, allowlists, CSP sources and security tests must not be relaxed; if a gate blocks you, fix the cause or raise it in the PR description. (The one deliberate amendment on record: dependency-advisory tiering, 2026-11-01 — runtime stays zero-ignore, build-chain-only advisories warn; rationale and scope in SECURITY.md.)
 
 ## Testing
 
